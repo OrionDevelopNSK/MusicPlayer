@@ -2,6 +2,7 @@ package com.orion.musicplayer;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (READ_AUDIO) readAudio();
 
+
+
     }
 
     @Override
@@ -65,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
 
 }
