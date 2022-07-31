@@ -58,4 +58,38 @@ public class AudioReader {
         int sec = Math.round((durationMSec - (min * 60 * 1000)) / 1000f);
         return String.format("%02d", min) + ":" + String.format("%02d", sec);
     }
+
+    @SuppressLint("Range")
+    public List<Soundtrack> getMediaData2(Context context) {
+        String[] projection = new String[]{
+                //MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA
+        };
+
+        Cursor cursorAudio = context.getApplicationContext().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                MediaStore.Audio.Media.DATA + " like ? OR " + MediaStore.Audio.Media.DATA + " like ? ",
+                new String[]{"%mp3", "%wav"},
+                null);
+
+        cursorAudio.moveToFirst();
+
+        List<Soundtrack> soundtracks = new ArrayList<>();
+
+        while (cursorAudio.moveToNext()) {
+            Soundtrack soundtrack = new Soundtrack();
+            soundtrack.setTitle(cursorAudio.getString(cursorAudio.getColumnIndex(MediaStore.Audio.Media.TITLE)));
+            soundtrack.setArtist(cursorAudio.getString(cursorAudio.getColumnIndex(MediaStore.Audio.Media.ARTIST)));
+
+            soundtrack.setDuration(cursorAudio.getInt(cursorAudio.getColumnIndex(MediaStore.Audio.Media.DURATION)));
+            soundtrack.setData(cursorAudio.getString(cursorAudio.getColumnIndex(MediaStore.Audio.Media.DATA)));
+            soundtracks.add(soundtrack);
+        }
+
+        cursorAudio.close();
+        return soundtracks;
+    }
 }
