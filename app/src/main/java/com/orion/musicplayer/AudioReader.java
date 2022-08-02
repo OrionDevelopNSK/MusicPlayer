@@ -1,6 +1,7 @@
 package com.orion.musicplayer;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
@@ -12,44 +13,12 @@ import java.util.List;
 
 public class AudioReader {
 
-    @SuppressLint("Range")
-    public List<String> getMediaData(Context context) {
-        String[] projection = new String[]{
-                //MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA
-        };
-        ArrayList<String> audio = new ArrayList<>();
+    private final Context context;
 
-        Cursor cursorAudio = context.getApplicationContext().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                MediaStore.Audio.Media.DATA + " like ? OR " + MediaStore.Audio.Media.DATA + " like ? ",
-                new String[]{"%mp3", "%wav"},
-                null);
-
-        cursorAudio.moveToFirst();
-
-        while (cursorAudio.moveToNext()) {
-            StringBuilder sound = new StringBuilder();
-            for (String s : projection) {
-
-                if (s.equals(MediaStore.Audio.Media.DURATION)){
-                    int durationMSec = cursorAudio.getInt(cursorAudio.getColumnIndex(s));
-                    String dur = formattedTime(durationMSec);
-                    sound.append(dur);
-                }else {
-                    sound.append(cursorAudio.getString(cursorAudio.getColumnIndex(s)));
-                }
-                sound.append("\n");
-            }
-            audio.add(sound.toString());
-        }
-
-        cursorAudio.close();
-        return audio;
+    public AudioReader(Context context) {
+        this.context = context;
     }
+
 
     @NonNull
     @SuppressLint("DefaultLocale")
@@ -60,7 +29,7 @@ public class AudioReader {
     }
 
     @SuppressLint("Range")
-    public List<Soundtrack> getMediaData2(Context context) {
+    public List<Soundtrack> readMediaData() {
         String[] projection = new String[]{
                 //MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE,
@@ -69,23 +38,27 @@ public class AudioReader {
                 MediaStore.Audio.Media.DATA
         };
 
-        Cursor cursorAudio = context.getApplicationContext().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+        ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
+        Cursor cursorAudio = contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 projection,
                 MediaStore.Audio.Media.DATA + " like ? OR " + MediaStore.Audio.Media.DATA + " like ? ",
                 new String[]{"%mp3", "%wav"},
                 null);
 
         cursorAudio.moveToFirst();
-
         List<Soundtrack> soundtracks = new ArrayList<>();
+        int columnIndexTitle = cursorAudio.getColumnIndex(MediaStore.Audio.Media.TITLE);
+        int columnIndexArtist = cursorAudio.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+        int columnIndexDuration = cursorAudio.getColumnIndex(MediaStore.Audio.Media.DURATION);
+        int columnIndexData = cursorAudio.getColumnIndex(MediaStore.Audio.Media.DATA);
 
         while (cursorAudio.moveToNext()) {
             Soundtrack soundtrack = new Soundtrack();
-            soundtrack.setTitle(cursorAudio.getString(cursorAudio.getColumnIndex(MediaStore.Audio.Media.TITLE)));
-            soundtrack.setArtist(cursorAudio.getString(cursorAudio.getColumnIndex(MediaStore.Audio.Media.ARTIST)));
-
-            soundtrack.setDuration(cursorAudio.getInt(cursorAudio.getColumnIndex(MediaStore.Audio.Media.DURATION)));
-            soundtrack.setData(cursorAudio.getString(cursorAudio.getColumnIndex(MediaStore.Audio.Media.DATA)));
+            soundtrack.setTitle(cursorAudio.getString(columnIndexTitle));
+            soundtrack.setArtist(cursorAudio.getString(columnIndexArtist));
+            soundtrack.setDuration(cursorAudio.getInt(columnIndexDuration));
+            soundtrack.setData(cursorAudio.getString(columnIndexData));
             soundtracks.add(soundtrack);
         }
 

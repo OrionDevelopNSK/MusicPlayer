@@ -1,5 +1,6 @@
 package com.orion.musicplayer;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,6 +38,7 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
         return new ViewHolder(view);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull SoundtrackAdapter.ViewHolder holder, int position) {
         Soundtrack soundtrack = soundtrackList.get(position);

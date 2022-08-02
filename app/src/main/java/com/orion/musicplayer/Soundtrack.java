@@ -2,6 +2,8 @@ package com.orion.musicplayer;
 
 import android.provider.MediaStore;
 
+import java.util.Objects;
+
 public class Soundtrack {
 
     private String data;
@@ -75,5 +77,19 @@ public class Soundtrack {
 
     public int isAlive() {
         return isAlive;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Soundtrack that = (Soundtrack) o;
+        return data.equals(that.data) && title.equals(that.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(data, title);
     }
 }

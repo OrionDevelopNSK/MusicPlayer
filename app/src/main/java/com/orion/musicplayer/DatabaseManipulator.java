@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManipulator {
-
     private static final String DATA = "DATA";
     private static final String ID = "ID";
     private static final String TITLE = "TITLE";
@@ -20,35 +19,66 @@ public class DatabaseManipulator {
     private static final String COUNT_OF_LAUNCHES = "COUNT_OF_LAUNCHES";
     private static final String IS_ALIVE = "IS_ALIVE";
 
-    private final Context context;
-    private SQLiteDatabase database;
+    private final SQLiteDatabase database;
+    private final AudioReader audioReader;
+    private List<Soundtrack> soundtracksCustomStorage;
+    private List<Soundtrack> soundtracksMediaStore;
 
     public DatabaseManipulator(Context context) {
-        this.context = context;
-    }
-
-    private void initDatabase(){
         SqlOpenDatabaseHelper helper = new SqlOpenDatabaseHelper(context);
         database = helper.getWritableDatabase();
+        audioReader = new AudioReader(context);
+        List<Soundtrack> soundtracks = audioReader.readMediaData();
+        insert(soundtracks);
+        checkingRelevanceDatabase();
     }
 
-    private void insert(Soundtrack soundtrack){
+    private void insert(List<Soundtrack> soundtrackList){
+        soundtracksMediaStore = soundtrackList;
+        for (Soundtrack soundtrack : soundtrackList) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(DATA, soundtrack.getData());
+            contentValues.put(ID, soundtrack.getId());
+            contentValues.put(TITLE, soundtrack.getTitle());
+            contentValues.put(ARTIST, soundtrack.getArtist());
+            contentValues.put(DURATION, soundtrack.getDuration());
+            contentValues.put(RATING, soundtrack.getRating());
+            contentValues.put(COUNT_OF_LAUNCHES, soundtrack.getCountOfLaunches());
+            contentValues.put(IS_ALIVE, soundtrack.isAlive());
+            database.insert(SqlOpenDatabaseHelper.TABLE_NAME, null, contentValues);
+        }
+    }
+
+    public void delete(Soundtrack soundtrack){
+        database.delete(SqlOpenDatabaseHelper.TABLE_NAME,
+                DATA + "=? AND" + TITLE + "=?" ,
+                new String[]{soundtrack.getData(), soundtrack.getTitle()});
+    }
+
+    public void update(Soundtrack soundtrack){
         ContentValues contentValues = new ContentValues();
         contentValues.put(DATA, soundtrack.getData());
-        contentValues.put(ID, soundtrack.getData());
-        contentValues.put(TITLE, soundtrack.getData());
-        contentValues.put(ARTIST, soundtrack.getData());
-        contentValues.put(DURATION, soundtrack.getData());
-        contentValues.put(RATING, soundtrack.getData());
-        contentValues.put(COUNT_OF_LAUNCHES, soundtrack.getData());
-        contentValues.put(IS_ALIVE, soundtrack.getData());
+        contentValues.put(ID, soundtrack.getId());
+        contentValues.put(TITLE, soundtrack.getTitle());
+        contentValues.put(RATING, soundtrack.getRating());
+        contentValues.put(COUNT_OF_LAUNCHES, soundtrack.getCountOfLaunches());
+        contentValues.put(IS_ALIVE, soundtrack.isAlive());
+        database.update(SqlOpenDatabaseHelper.TABLE_NAME,
+                contentValues, DATA + "=? AND" + soundtrack.getData(),
+                null);
+    }
 
-        database.insert(SqlOpenDatabaseHelper.TABLE_NAME, null, contentValues);
+    void checkingRelevanceDatabase(){
+        for (Soundtrack s: soundtracksCustomStorage) {
+            if (!soundtracksMediaStore.contains(s)) {
+                delete(s);
+            }
+        }
     }
 
     @SuppressLint("Range")
-    private List<Soundtrack> readDatabaseOrderBy(String orderBy){
-        List<Soundtrack> soundtracks = new ArrayList<>();
+    private void readDatabaseOrderBy(String orderBy){
+        soundtracksCustomStorage = new ArrayList<>();
         Cursor cursor = database.query(SqlOpenDatabaseHelper.TABLE_NAME,
                 null,
                 null,
@@ -57,21 +87,32 @@ public class DatabaseManipulator {
                 null,
                 orderBy);
         cursor.moveToFirst();
+
+        final int columnIndexData = cursor.getColumnIndex(DATA);
+        final int columnIndexId = cursor.getColumnIndex(ID);
+        final int columnIndexTitle = cursor.getColumnIndex(TITLE);
+        final int columnIndexArtist = cursor.getColumnIndex(ARTIST);
+        final int columnIndexDuration = cursor.getColumnIndex(DURATION);
+        final int columnIndexRating = cursor.getColumnIndex(RATING);
+        final int columnIndexCountOfLaunches = cursor.getColumnIndex(COUNT_OF_LAUNCHES);
+        final int columnIndexIsAlive = cursor.getColumnIndex(IS_ALIVE);
+
         while (cursor.moveToNext()) {
             Soundtrack soundtrack = new Soundtrack();
-            soundtrack.setData(cursor.getString(cursor.getColumnIndex(DATA)));
-            soundtrack.setId(cursor.getString(cursor.getColumnIndex(ID)));
-            soundtrack.setTitle(cursor.getString(cursor.getColumnIndex(TITLE)));
-            soundtrack.setArtist(cursor.getString(cursor.getColumnIndex(ARTIST)));
-            soundtrack.setDuration(cursor.getInt(cursor.getColumnIndex(DURATION)));
-            soundtrack.setRating(cursor.getInt(cursor.getColumnIndex(RATING)));
-            soundtrack.setCountOfLaunches(cursor.getInt(cursor.getColumnIndex(COUNT_OF_LAUNCHES)));
-            soundtrack.setAlive(cursor.getInt(cursor.getColumnIndex(IS_ALIVE)));
-            soundtracks.add(soundtrack);
+            soundtrack.setData(cursor.getString(columnIndexData));
+            soundtrack.setId(cursor.getString(columnIndexId));
+            soundtrack.setTitle(cursor.getString(columnIndexTitle));
+            soundtrack.setArtist(cursor.getString(columnIndexArtist));
+            soundtrack.setDuration(cursor.getInt(columnIndexDuration));
+            soundtrack.setRating(cursor.getInt(columnIndexRating));
+            soundtrack.setCountOfLaunches(cursor.getInt(columnIndexCountOfLaunches));
+            soundtrack.setAlive(cursor.getInt(columnIndexIsAlive));
+            soundtracksCustomStorage.add(soundtrack);
         }
         cursor.close();
-        return soundtracks;
     }
+
+
 
 
 }

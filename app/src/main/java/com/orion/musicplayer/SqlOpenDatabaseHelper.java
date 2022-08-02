@@ -39,13 +39,16 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
                 RATING + " INTEGER, " +
                 COUNT_OF_LAUNCHES + " INTEGER, " +
                 IS_ALIVE + " INTEGER, " +
-                "PRIMARY KEY (" + ID + ", " + TITLE + ")" +
+                "UNIQUE (" + DATA + ", " + TITLE + ")" +
                 ");"
         );
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
     }
+
+
 }
