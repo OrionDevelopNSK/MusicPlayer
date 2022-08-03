@@ -1,10 +1,17 @@
 package com.orion.musicplayer;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +50,7 @@ public class DatabaseManipulator {
         for (Soundtrack soundtrack : soundtrackList) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(DATA, soundtrack.getData());
-            contentValues.put(ID, soundtrack.getId());
+            //contentValues.put(ID, soundtrack.getId());
             contentValues.put(TITLE, soundtrack.getTitle());
             contentValues.put(ARTIST, soundtrack.getArtist());
             contentValues.put(DURATION, soundtrack.getDuration());
@@ -119,6 +126,8 @@ public class DatabaseManipulator {
         }
         cursor.close();
     }
+
+
 
 
 

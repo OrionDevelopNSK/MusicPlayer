@@ -3,36 +3,24 @@ package com.orion.musicplayer;
 import android.media.MediaPlayer;
 
 import java.io.IOException;
-import java.util.List;
 
 public class SoundtrackPlayer {
     private MediaPlayer mediaPlayer = new MediaPlayer();
+    private Soundtrack currentPlayingSong;
 
-    public void playSoundtrack(Soundtrack soundtrack) {
-
-        if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-        mediaPlayer = new MediaPlayer();
-
-        //TO DO
-        String s = soundtrack.getData();
-        try {
-            mediaPlayer.setDataSource(s);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener(){
-            @Override
-            public void onPrepared(MediaPlayer playerM){
-                playerM.start();
+    public void play(Soundtrack soundtrack) {
+        if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
+            if (mediaPlayer.isPlaying()) pause();
+            else {
+                start();
             }
-        });
+        } else if (currentPlayingSong != null && !currentPlayingSong.equals(soundtrack)) {
+            stop();
+            setData(soundtrack);
+        } else if (currentPlayingSong == null) {
+            setData(soundtrack);
+        }
+        currentPlayingSong = soundtrack;
 
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -48,5 +36,34 @@ public class SoundtrackPlayer {
         });
 
     }
+
+    public void pause() {
+        if (mediaPlayer.isPlaying()) mediaPlayer.pause();
+    }
+
+    public void stop() {
+        if (mediaPlayer.isPlaying()) mediaPlayer.stop();
+    }
+
+    private void start() {
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+            }
+        });
+        mediaPlayer.prepareAsync();
+    }
+
+    private void setData(Soundtrack soundtrack) {
+        String s = soundtrack.getData();
+        mediaPlayer.reset();
+        try {
+            mediaPlayer.setDataSource(s);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        start();
+    }
+
 
 }

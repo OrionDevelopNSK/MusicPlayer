@@ -19,14 +19,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 
-public class SoundListViewFragment extends Fragment {
+public class SoundRecyclerViewFragment extends Fragment {
     private final SoundtrackPlayer soundtrackPlayer = new SoundtrackPlayer();
-    //private final AudioReader audioReader = new AudioReader(getContext());
-    private final DatabaseManipulator databaseManipulator = new DatabaseManipulator(MainActivity.getContext());
+    private DatabaseManipulator databaseManipulator;
 
 
-    public static SoundListViewFragment newInstance() {
-        return new SoundListViewFragment();
+    public static SoundRecyclerViewFragment newInstance() {
+        return new SoundRecyclerViewFragment();
     }
 
     @Override
@@ -38,32 +37,34 @@ public class SoundListViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sound_list_view, container, false);
-        int requestCode = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
         RecyclerView recyclerView = view.findViewById(R.id.listSongs);
-        List<Soundtrack> soundtracks = databaseManipulator.getSoundtracksCustomStorage();
+        databaseManipulator = new DatabaseManipulator(MainActivity.getContext());
+
         SoundtrackAdapter.OnSoundtrackClickListener onSoundtrackClickListener = new SoundtrackAdapter.OnSoundtrackClickListener() {
 
             @Override
             public void onSoundtrackClick(Soundtrack soundtrack, int position) {
                 Toast.makeText(MainActivity.getContext(), "Был выбран пункт " + soundtrack.getTitle(),
                         Toast.LENGTH_SHORT).show();
-                soundtrackPlayer.playSoundtrack(soundtrack);
+                soundtrackPlayer.play(soundtrack);
             }
         };
 
+        List<Soundtrack> soundtracks = databaseManipulator.getSoundtracksCustomStorage();
         SoundtrackAdapter soundtrackAdapter = new SoundtrackAdapter(getContext(), soundtracks, onSoundtrackClickListener);
         recyclerView.setAdapter(soundtrackAdapter);
 
-        if (requestCode != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(getContext(), "Требуется установить разрешения", Toast.LENGTH_LONG).show();
-            ActivityCompat.requestPermissions((Activity) MainActivity.getContext(),
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.ACCESS_MEDIA_LOCATION},
-                    1);
-        }
+
         return view;
     }
+
+
+
+
+
+
+
+
 
 
 }
