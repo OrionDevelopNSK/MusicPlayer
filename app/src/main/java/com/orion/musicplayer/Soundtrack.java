@@ -1,7 +1,5 @@
 package com.orion.musicplayer;
 
-import android.provider.MediaStore;
-
 import java.util.Objects;
 
 public class Soundtrack {

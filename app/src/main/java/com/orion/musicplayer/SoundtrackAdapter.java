@@ -14,8 +14,11 @@ import java.util.List;
 
 public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.ViewHolder> {
 
-    private final LayoutInflater layoutInflater;
-    private final List<Soundtrack> soundtrackList;
+    interface OnSoundtrackClickListener{
+        void onSoundtrackClick(Soundtrack soundtrack, int position);
+    }
+
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         final TextView textView;
@@ -26,9 +29,17 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
         }
     }
 
-    public SoundtrackAdapter(Context context, List<Soundtrack> soundtrackList) {
+
+
+    private final LayoutInflater layoutInflater;
+    private final List<Soundtrack> soundtrackList;
+    private final OnSoundtrackClickListener onClickListener;
+
+    public SoundtrackAdapter(Context context, List<Soundtrack> soundtrackList, OnSoundtrackClickListener onClickListener) {
         this.layoutInflater = LayoutInflater.from(context);
         this.soundtrackList = soundtrackList;
+        this.onClickListener = onClickListener;
+
     }
 
     @NonNull
@@ -40,7 +51,7 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull SoundtrackAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull SoundtrackAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Soundtrack soundtrack = soundtrackList.get(position);
         holder.textView.setText(soundtrack.getData() + "\n"
                                 + soundtrack.getId() + "\n"
@@ -49,6 +60,13 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
                                 + soundtrack.getDuration() + "\n"
                                 + soundtrack.getRating() + "\n"
                                 + soundtrack.getCountOfLaunches() + "\n");
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onClickListener.onSoundtrackClick(soundtrack, position);
+            }
+        });
     }
 
     @Override

@@ -8,21 +8,19 @@ import java.util.List;
 public class SoundtrackPlayer {
     private MediaPlayer mediaPlayer = new MediaPlayer();
 
-    public void playSoundtrack(List<String> mediaData, int i) {
+    public void playSoundtrack(Soundtrack soundtrack) {
 
         if (mediaPlayer.isPlaying()) mediaPlayer.stop();
         mediaPlayer = new MediaPlayer();
 
         //TO DO
-        String s = mediaData.get(i);
-        int pos = s.lastIndexOf("\n", s.lastIndexOf("\n") - 1);
-        String s2 = s.substring(pos);
-
+        String s = soundtrack.getData();
         try {
-            mediaPlayer.setDataSource(s2.trim());
+            mediaPlayer.setDataSource(s);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         try {
             mediaPlayer.prepare();
         } catch (IOException e) {

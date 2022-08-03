@@ -1,5 +1,6 @@
 package com.orion.musicplayer;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,10 +8,16 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 public class MainActivity extends AppCompatActivity {
+    private static MainActivity  instance;
 
-    private static boolean READ_AUDIO = false;
+    public MainActivity() {
+        instance = this;
+    }
 
-
+    public static Context getContext()
+    {
+        return instance;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

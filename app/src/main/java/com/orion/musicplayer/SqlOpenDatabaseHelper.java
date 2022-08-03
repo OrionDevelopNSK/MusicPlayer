@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import androidx.annotation.Nullable;
 
 public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
-    public static final String DBNAME = "sound_properties.sqlite";
+    public static final String DBNAME = "sound_properties.db";
     public static final int VERSION = 1;
     public static final String TABLE_NAME = "sound_properties";
 
@@ -30,6 +30,7 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void createDatabase(SQLiteDatabase sqLiteDatabase) {
+        System.out.println("************************** Create");
         sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_NAME + " (" +
                 DATA + " TEXT, " +
                 ID + " TEXT, " +
@@ -44,6 +45,7 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
         );
 
     }
+
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {

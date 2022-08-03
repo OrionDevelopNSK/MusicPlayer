@@ -30,7 +30,12 @@ public class DatabaseManipulator {
         audioReader = new AudioReader(context);
         List<Soundtrack> soundtracks = audioReader.readMediaData();
         insert(soundtracks);
+        readDatabaseOrderBy(null);
         checkingRelevanceDatabase();
+    }
+
+    public List<Soundtrack> getSoundtracksCustomStorage() {
+        return soundtracksCustomStorage;
     }
 
     private void insert(List<Soundtrack> soundtrackList){
@@ -45,13 +50,13 @@ public class DatabaseManipulator {
             contentValues.put(RATING, soundtrack.getRating());
             contentValues.put(COUNT_OF_LAUNCHES, soundtrack.getCountOfLaunches());
             contentValues.put(IS_ALIVE, soundtrack.isAlive());
-            database.insert(SqlOpenDatabaseHelper.TABLE_NAME, null, contentValues);
+            database.insertWithOnConflict(SqlOpenDatabaseHelper.TABLE_NAME, null, contentValues, SQLiteDatabase.CONFLICT_IGNORE);
         }
     }
 
     public void delete(Soundtrack soundtrack){
         database.delete(SqlOpenDatabaseHelper.TABLE_NAME,
-                DATA + "=? AND" + TITLE + "=?" ,
+                DATA + "=? AND " + TITLE + "=?" ,
                 new String[]{soundtrack.getData(), soundtrack.getTitle()});
     }
 
@@ -71,9 +76,12 @@ public class DatabaseManipulator {
     void checkingRelevanceDatabase(){
         for (Soundtrack s: soundtracksCustomStorage) {
             if (!soundtracksMediaStore.contains(s)) {
+                System.out.println("Not found ****************************************************************************** " + s.getData());
                 delete(s);
+                soundtracksCustomStorage.remove(s);
             }
         }
+
     }
 
     @SuppressLint("Range")
