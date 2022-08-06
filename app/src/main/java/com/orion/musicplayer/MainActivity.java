@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     class MediaScannerObserver extends ContentObserver {
         public MediaScannerObserver(Handler handler) {
             super(handler);
-            MainActivity.getContext().getContentResolver().registerContentObserver(
+            getContentResolver().registerContentObserver(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     false,
                     new MediaScannerObserver(new Handler())
@@ -41,13 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static MainActivity instance;
 
-    public MainActivity() {
-        instance = this;
-    }
 
-    public static Context getContext() {
-        return instance;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +51,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void request() {
-        int requestCode = ContextCompat.checkSelfPermission(MainActivity.getContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
+        int requestCode = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (requestCode != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(MainActivity.getContext(), "Требуется установить разрешения", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Требуется установить разрешения", Toast.LENGTH_LONG).show();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ActivityCompat.requestPermissions((Activity) MainActivity.getContext(),
+                ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                 Manifest.permission.READ_EXTERNAL_STORAGE,
                                 Manifest.permission.ACCESS_MEDIA_LOCATION},

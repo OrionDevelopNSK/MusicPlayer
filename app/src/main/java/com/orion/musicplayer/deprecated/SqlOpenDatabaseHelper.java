@@ -1,4 +1,4 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.deprecated;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

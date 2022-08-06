@@ -14,7 +14,7 @@ public class SoundtrackPlayer {
         if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
             if (mediaPlayer.isPlaying()) pause();
             else {
-                start();
+                mediaPlayer.start();
             }
         } else if (currentPlayingSong != null && !currentPlayingSong.equals(soundtrack)) {
             stop();
