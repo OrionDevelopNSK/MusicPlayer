@@ -2,6 +2,8 @@ package com.orion.musicplayer;
 
 import android.media.MediaPlayer;
 
+import com.orion.musicplayer.models.Soundtrack;
+
 import java.io.IOException;
 
 public class SoundtrackPlayer {

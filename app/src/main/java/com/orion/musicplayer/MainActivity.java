@@ -3,10 +3,12 @@ package com.orion.musicplayer;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,16 +18,34 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-public class MainActivity extends AppCompatActivity {
-    private static MainActivity  instance;
+import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
 
+public class MainActivity extends AppCompatActivity {
+
+    class MediaScannerObserver extends ContentObserver {
+        public MediaScannerObserver(Handler handler) {
+            super(handler);
+            MainActivity.getContext().getContentResolver().registerContentObserver(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    false,
+                    new MediaScannerObserver(new Handler())
+            );
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            createFragment();
+        }
+    }
+
+    private static MainActivity instance;
 
     public MainActivity() {
         instance = this;
     }
 
-    public static Context getContext()
-    {
+    public static Context getContext() {
         return instance;
     }
 
@@ -36,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         request();
     }
 
-    private void request(){
+    private void request() {
         int requestCode = ContextCompat.checkSelfPermission(MainActivity.getContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
         if (requestCode != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(MainActivity.getContext(), "Требуется установить разрешения", Toast.LENGTH_LONG).show();
@@ -47,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                                 Manifest.permission.ACCESS_MEDIA_LOCATION},
                         1);
             }
-        }else{
+        } else {
             createFragment();
         }
     }
@@ -58,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         createFragment();
     }
 
-    private void createFragment() {
+    public void createFragment() {
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container_view);
 

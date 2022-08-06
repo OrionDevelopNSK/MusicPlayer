@@ -1,8 +1,5 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.fragments;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,10 +8,15 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.orion.musicplayer.DatabaseManipulator;
+import com.orion.musicplayer.MainActivity;
+import com.orion.musicplayer.R;
+import com.orion.musicplayer.SoundtrackPlayer;
+import com.orion.musicplayer.adapters.SoundtrackAdapter;
+import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.List;
 

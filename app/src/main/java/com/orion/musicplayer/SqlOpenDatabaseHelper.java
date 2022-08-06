@@ -9,8 +9,8 @@ import androidx.annotation.Nullable;
 public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
     public static final String DBNAME = "sound_properties.db";
     public static final int VERSION = 1;
-    public static final String TABLE_NAME = "sound_properties";
-    public static final String TABLE_PLAYLISTS = "playlists";
+    public static final String TABLE_SOUNDTRACKS = "soundtracks";
+
 
     private static final String DATA = "DATA";
     private static final String ID = "ID";
@@ -19,9 +19,15 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
     private static final String DURATION = "DURATION";
     private static final String RATING = "RATING";
     private static final String COUNT_OF_LAUNCHES = "COUNT_OF_LAUNCHES";
-    private static final String IS_ALIVE = "IS_ALIVE";
+
+    private static final String TABLE_PLAYLISTS = "playlists";
     private static final String TABLE_PLAYLISTS_DATA = "TABLE_PLAYLISTS_DATA";
     private static final String NAME = "NAME";
+
+    private static final String TABLE_SOUNDTRACKS_PLAYLISTS = "soundtracks_playlists";
+    private static final String TABLE_SOUNDTRACKS_DATA = "TABLE_SOUNDTRACKS_DATA";
+
+
 
 
     public SqlOpenDatabaseHelper(@Nullable Context context) {
@@ -30,11 +36,22 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        createDatabase(sqLiteDatabase);
+        createTablesDatabase(sqLiteDatabase);
     }
 
-    private void createDatabase(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_NAME + " (" +
+    private void createTablesDatabase(SQLiteDatabase sqLiteDatabase) {
+        createTableSoundtracks(sqLiteDatabase);
+        createTablePlaylists(sqLiteDatabase);
+        createTableRelationshipSoundtracksPlaylists(sqLiteDatabase);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+
+    }
+
+    private void createTableSoundtracks(SQLiteDatabase sqLiteDatabase){
+        sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_SOUNDTRACKS + " (" +
                 DATA + " TEXT," +
                 ID + " INTEGER, " +
                 TITLE + " TEXT," +
@@ -42,32 +59,28 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
                 DURATION + " INTEGER, " +
                 RATING + " INTEGER, " +
                 COUNT_OF_LAUNCHES + " INTEGER, " +
-                IS_ALIVE + " INTEGER, " +
-                TABLE_PLAYLISTS_DATA + " TEXT, " +
-                "UNIQUE "  + "(" + DATA +", " + TITLE + "), " +
-                "FOREIGN KEY (" + TABLE_PLAYLISTS_DATA + ") REFERENCES " + TABLE_PLAYLISTS +
-                        " (" + DATA +" )" +
+                "UNIQUE "  + "(" + DATA +", " + TITLE + ") " +
                 ");"
-
-
         );
+    }
 
-        System.out.println("************************* 1");
+    private void createTablePlaylists(SQLiteDatabase sqLiteDatabase){
         sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_PLAYLISTS + " (" +
                 ID + " INTEGER, " +
-                NAME + " TEXT, " +
-                DATA + " TEXT, " +
-                "UNIQUE (" + DATA + ", " + NAME + ")" +
+                NAME + " TEXT " +
                 ");"
         );
-        System.out.println("************************* 2");
     }
 
-
-    @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
+    private void createTableRelationshipSoundtracksPlaylists (SQLiteDatabase sqLiteDatabase){
+        sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_SOUNDTRACKS_PLAYLISTS + " (" +
+                ID + " INTEGER, " +
+                TABLE_SOUNDTRACKS_DATA + " TEXT, " +
+                TABLE_PLAYLISTS_DATA + " TEXT, " +
+                "FOREIGN KEY (" + TABLE_PLAYLISTS_DATA + ") REFERENCES " + TABLE_PLAYLISTS + " (" + DATA +" )," +
+                "FOREIGN KEY (" + TABLE_SOUNDTRACKS_DATA + ") REFERENCES " + TABLE_SOUNDTRACKS + " (" + DATA +" )" +
+                ");"
+        );
     }
-
 
 }

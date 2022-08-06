@@ -1,4 +1,4 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -10,15 +10,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.orion.musicplayer.R;
+import com.orion.musicplayer.models.Soundtrack;
+
 import java.util.List;
 
 public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.ViewHolder> {
 
-    interface OnSoundtrackClickListener{
+    public interface OnSoundtrackClickListener{
         void onSoundtrackClick(Soundtrack soundtrack, int position);
     }
-
-
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         final TextView textView;
@@ -29,8 +30,6 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
         }
     }
 
-
-
     private final LayoutInflater layoutInflater;
     private final List<Soundtrack> soundtrackList;
     private final OnSoundtrackClickListener onClickListener;
@@ -39,7 +38,6 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
         this.layoutInflater = LayoutInflater.from(context);
         this.soundtrackList = soundtrackList;
         this.onClickListener = onClickListener;
-
     }
 
     @NonNull

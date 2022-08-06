@@ -1,4 +1,4 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.models;
 
 import java.util.Objects;
 
@@ -11,7 +11,6 @@ public class Soundtrack {
     private int duration;
     private int rating;
     private int countOfLaunches;
-    private int isAlive;
 
     public void setData(String data) {
         this.data = data;
@@ -41,10 +40,6 @@ public class Soundtrack {
         this.countOfLaunches = countOfLaunches;
     }
 
-    public void setAlive(int alive) {
-        isAlive = alive;
-    }
-
     public String getData() {
         return data;
     }
@@ -72,11 +67,6 @@ public class Soundtrack {
     public int getCountOfLaunches() {
         return countOfLaunches;
     }
-
-    public int isAlive() {
-        return isAlive;
-    }
-
 
     @Override
     public boolean equals(Object o) {
