@@ -28,7 +28,6 @@ public class RoomSoundtrackRepository{
             soundtrackDbEntity.title = s.getTitle();
             soundtrackDbEntities.add(soundtrackDbEntity);
         }
-
         soundtrackDao.insertAllSoundtracks(soundtrackDbEntities);
     }
 
