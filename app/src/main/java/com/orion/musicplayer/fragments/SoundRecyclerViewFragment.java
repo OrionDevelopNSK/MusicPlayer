@@ -14,23 +14,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import com.orion.musicplayer.AudioReader;
-import com.orion.musicplayer.MainActivity;
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.SoundtrackPlayer;
 import com.orion.musicplayer.adapters.SoundtrackAdapter;
 import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.database.AppDatabase;
-import com.orion.musicplayer.database.RoomSoundtrackRepository;
+import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
 import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.List;
-import java.util.Objects;
 
 
 public class SoundRecyclerViewFragment extends Fragment {
     private final SoundtrackPlayer soundtrackPlayer = new SoundtrackPlayer();
-    //private DatabaseManipulator databaseManipulator;
-
 
     public static SoundRecyclerViewFragment newInstance() {
         return new SoundRecyclerViewFragment();

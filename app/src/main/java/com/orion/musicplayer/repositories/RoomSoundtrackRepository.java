@@ -1,4 +1,4 @@
-package com.orion.musicplayer.database;
+package com.orion.musicplayer.repositories;
 
 import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
