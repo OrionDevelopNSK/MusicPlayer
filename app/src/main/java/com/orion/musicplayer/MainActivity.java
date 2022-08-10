@@ -1,8 +1,6 @@
 package com.orion.musicplayer;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.os.Build;
@@ -17,8 +15,14 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,12 +39,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onChange(boolean selfChange) {
             super.onChange(selfChange);
-            createFragment();
+            tabs();
         }
     }
-
-    private static MainActivity instance;
-
 
 
     @Override
@@ -62,24 +63,87 @@ public class MainActivity extends AppCompatActivity {
                         1);
             }
         } else {
-            createFragment();
+            tabs();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        createFragment();
+        tabs();
     }
 
-    public void createFragment() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container_view);
+    void tabs() {
+        MusicStateAdapter musicStateAdapter = new MusicStateAdapter(this);
+        TabLayout tabLayout = findViewById(R.id.tab_layout_media);
+        ViewPager2 viewPager2 = findViewById(R.id.pager);
+        viewPager2.setAdapter(musicStateAdapter);
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container_view);
+
+        ///TODO
+        Fragment fragment2 = getSupportFragmentManager().findFragmentById(R.id.fragment_container_view2);
+        fragment2 = SoundRecyclerViewFragment.newInstance();
+        ///END TODO
 
         if (fragment == null) {
             fragment = SoundRecyclerViewFragment.newInstance();
-            fragmentManager.beginTransaction().
-                    add(R.id.fragment_container_view, fragment).commit();
+//            if (!fragment.isAdded()) {//
+//                getSupportFragmentManager()
+//                        .beginTransaction()
+//                        .add(R.id.fragment_container_view, fragment)
+//                        .commit();//
+//                musicStateAdapter.addFragment(fragment);
+//            }
+            musicStateAdapter.addFragment(fragment);
+
+            ///TODO
+            musicStateAdapter.addFragment(fragment2);
+            ///END TODO
         }
+
+        new TabLayoutMediator(tabLayout, viewPager2,
+                (tab, position) -> {
+                    switch (position) {
+                        case 0:
+                            tab.setText("Music");
+                            break;
+                        case 1:
+                            tab.setText("Playlist");
+                            break;
+                        case 2:
+                            tab.setText("VK");
+                            break;
+                        default:
+                            tab.setText("NULL");
+                            break;
+                    }
+                }
+        ).attach();
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager2.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                tabLayout.selectTab(tabLayout.getTabAt(position));
+            }
+        });
+
     }
+
 }

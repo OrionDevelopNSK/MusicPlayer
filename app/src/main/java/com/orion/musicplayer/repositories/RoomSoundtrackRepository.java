@@ -45,7 +45,6 @@ public class RoomSoundtrackRepository{
         for (SoundtrackDbEntity se: all) {
             Soundtrack soundtrack = se.toSoundtrack();
             soundtracks.add(soundtrack);
-
         }
         return soundtracks;
 

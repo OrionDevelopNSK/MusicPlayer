@@ -3,15 +3,61 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="60dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="225dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textButton2"
+        app:layout_constraintStart_toEndOf="@+id/playMusicButton"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <TextView
+            android:id="@+id/item"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:textSize="8sp"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/item2"
+            android:layout_width="102dp"
+            android:layout_height="27dp"
+            android:layout_marginTop="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/item"
+            tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/item3"
+            android:layout_width="102dp"
+            android:layout_height="27dp"
+            android:layout_marginTop="5dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/item"
+            tools:ignore="MissingConstraints" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="1dp"
+            app:dividerInsetEnd="16dp"
+            app:dividerInsetStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:ignore="MissingConstraints" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <Button
-        android:id="@+id/textButton"
+        android:id="@+id/playMusicButton"
         style="@style/Widget.AppCompat.Button"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginStart="16dp"
-        android:clickable="false"
         android:text="PLAY"
         android:textSize="11sp"
         android:textStyle="bold"
@@ -20,45 +66,15 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
-
-    <TextView
-        android:id="@+id/item"
-        android:layout_width="319dp"
-        android:layout_height="58dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="16dp"
-        android:textSize="8sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textButton"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
-
-    <TextView
-        android:id="@+id/item2"
-        android:layout_width="154dp"
-        android:layout_height="20dp"
-        android:layout_marginTop="6dp"
-        app:layout_constraintEnd_toEndOf="@+id/item"
-        app:layout_constraintTop_toBottomOf="@+id/item"
-        tools:ignore="MissingConstraints" />
-
-    <TextView
-        android:id="@+id/item3"
-        android:layout_width="154dp"
-        android:layout_height="25dp"
-        android:layout_marginTop="6dp"
-        app:layout_constraintStart_toStartOf="@+id/item"
-        app:layout_constraintTop_toBottomOf="@+id/item"
-        tools:ignore="MissingConstraints" />
-
-    <com.google.android.material.divider.MaterialDivider
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="1dp"
-        app:dividerInsetEnd="16dp"
-        app:dividerInsetStart="16dp"
+    <Button
+        android:id="@+id/textButton2"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
 

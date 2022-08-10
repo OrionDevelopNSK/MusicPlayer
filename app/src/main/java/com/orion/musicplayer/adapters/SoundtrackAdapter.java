@@ -5,6 +5,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,10 +24,12 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         final TextView textView;
+        final Button musicButton;
 
         ViewHolder(View view){
             super(view);
             textView = view.findViewById(R.id.item);
+            musicButton = view.findViewById(R.id.playMusicButton);
         }
     }
 
@@ -59,10 +62,17 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
                                 + soundtrack.getRating() + "\n"
                                 + soundtrack.getCountOfLaunches() + "\n");
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+        holder.musicButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 onClickListener.onSoundtrackClick(soundtrack, position);
+            }
+        });
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //onClickListener.onSoundtrackClick(soundtrack, position);
             }
         });
     }
