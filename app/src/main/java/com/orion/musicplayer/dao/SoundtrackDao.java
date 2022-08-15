@@ -8,7 +8,6 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
-import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.List;
 

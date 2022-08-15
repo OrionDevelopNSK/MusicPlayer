@@ -23,12 +23,10 @@ public class MusicStateAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-
         return fragments.size();
     }
 
     public void addFragment(Fragment fragment){
-
         fragments.add(fragment);
     }
 

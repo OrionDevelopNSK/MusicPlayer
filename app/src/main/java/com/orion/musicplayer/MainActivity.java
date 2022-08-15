@@ -2,11 +2,8 @@ package com.orion.musicplayer;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.database.ContentObserver;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.provider.MediaStore;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;

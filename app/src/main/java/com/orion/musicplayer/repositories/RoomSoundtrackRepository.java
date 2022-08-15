@@ -8,15 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RoomSoundtrackRepository{
-
-    private SoundtrackDao soundtrackDao;
+    private final SoundtrackDao soundtrackDao;
 
     public RoomSoundtrackRepository(SoundtrackDao soundtrackDao) {
         this.soundtrackDao = soundtrackDao;
     }
 
     public void insertAllSoundtracks(List<Soundtrack> soundtracks) {
-
         List<SoundtrackDbEntity> soundtrackDbEntities = new ArrayList<>();
         for (Soundtrack s: soundtracks) {
             SoundtrackDbEntity soundtrackDbEntity = new SoundtrackDbEntity();

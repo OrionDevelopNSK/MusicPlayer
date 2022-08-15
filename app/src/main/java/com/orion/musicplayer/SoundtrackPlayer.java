@@ -44,6 +44,7 @@ public class SoundtrackPlayer {
         if (mediaPlayer.isPlaying()) mediaPlayer.stop();
     }
 
+
     private void start() {
         mediaPlayer.setOnPreparedListener(mp -> mp.start());
         mediaPlayer.prepareAsync();
