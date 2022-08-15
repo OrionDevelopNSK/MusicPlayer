@@ -1,8 +1,13 @@
 package com.orion.musicplayer.fragments;
 
+import android.database.ContentObserver;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,10 +24,14 @@ import com.orion.musicplayer.R;
 import com.orion.musicplayer.SoundtrackPlayer;
 import com.orion.musicplayer.adapters.SoundtrackAdapter;
 import com.orion.musicplayer.database.AppDatabase;
+import com.orion.musicplayer.utils.MediaScannerObserver;
 import com.orion.musicplayer.viewmodels.SoundtracksModel;
 
 
 public class SoundRecyclerViewFragment extends Fragment {
+
+
+
     private final SoundtrackPlayer soundtrackPlayer = new SoundtrackPlayer();
 
     public static SoundRecyclerViewFragment newInstance() {
@@ -51,9 +60,21 @@ public class SoundRecyclerViewFragment extends Fragment {
                         "database").
                 build();
 
-        SoundtracksModel soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
+        Looper looper = Looper.getMainLooper();
+        Handler handler = new Handler(looper);
 
-        AsyncTask.execute(()-> soundtracksModel.execute(database, audioReader));
+
+        SoundtracksModel soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
+        MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
+                handler,
+                soundtracksModel,
+                database,
+                audioReader,
+                requireActivity());
+
+        AsyncTask.execute(()-> {
+            soundtracksModel.execute(database, audioReader);
+        });
 
         soundtracksModel.getSoundtracks().observe(requireActivity(), soundtracks -> {
             SoundtrackAdapter soundtrackAdapter = new SoundtrackAdapter(getContext(), soundtracks, onSoundtrackClickListener);

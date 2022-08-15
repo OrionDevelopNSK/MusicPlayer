@@ -1,5 +1,7 @@
 package com.orion.musicplayer.models;
 
+import com.orion.musicplayer.entities.SoundtrackDbEntity;
+
 import java.util.Objects;
 
 public class Soundtrack {
@@ -79,5 +81,16 @@ public class Soundtrack {
     @Override
     public int hashCode() {
         return Objects.hash(data, title);
+    }
+
+    public SoundtrackDbEntity toSoundtrackDbEntity() {
+        SoundtrackDbEntity soundtrackDbEntity = new SoundtrackDbEntity();
+        soundtrackDbEntity.data = getData();
+        soundtrackDbEntity.title = getTitle();
+        soundtrackDbEntity.artist = getArtist();
+        soundtrackDbEntity.duration = getDuration();
+        soundtrackDbEntity.rating = getRating();
+        soundtrackDbEntity.countOfLaunches = getCountOfLaunches();
+        return soundtrackDbEntity;
     }
 }

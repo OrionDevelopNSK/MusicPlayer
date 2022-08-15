@@ -41,6 +41,7 @@
             tools:ignore="MissingConstraints" />
 
         <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/materialDivider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="1dp"

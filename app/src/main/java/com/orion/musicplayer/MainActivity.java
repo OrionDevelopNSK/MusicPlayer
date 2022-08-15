@@ -23,22 +23,7 @@ import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    class MediaScannerObserver extends ContentObserver {
-        public MediaScannerObserver(Handler handler) {
-            super(handler);
-            getContentResolver().registerContentObserver(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    false,
-                    new MediaScannerObserver(new Handler())
-            );
-        }
 
-        @Override
-        public void onChange(boolean selfChange) {
-            super.onChange(selfChange);
-            refreshTabs();
-        }
-    }
 
 
     @Override

@@ -18,10 +18,10 @@ public interface SoundtrackDao {
     void insertAllSoundtracks(List<SoundtrackDbEntity> soundtracks);
 
     @Delete
-    void deleteSoundtracks(SoundtrackDbEntity[] soundtrack);
+    void deleteSoundtracks(SoundtrackDbEntity... soundtrack);
 
     @Update
-    void updateSoundtrack(SoundtrackDbEntity[] soundtracks);
+    void updateSoundtrack(SoundtrackDbEntity... soundtracks);
 
     @Query("SELECT * FROM soundtrack")
     List<SoundtrackDbEntity> getAll();
