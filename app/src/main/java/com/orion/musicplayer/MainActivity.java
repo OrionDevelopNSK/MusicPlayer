@@ -14,15 +14,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onChange(boolean selfChange) {
             super.onChange(selfChange);
-            tabs();
+            refreshTabs();
         }
     }
 
@@ -63,17 +60,17 @@ public class MainActivity extends AppCompatActivity {
                         1);
             }
         } else {
-            tabs();
+            refreshTabs();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        tabs();
+        refreshTabs();
     }
 
-    void tabs() {
+    void refreshTabs() {
         MusicStateAdapter musicStateAdapter = new MusicStateAdapter(this);
         TabLayout tabLayout = findViewById(R.id.tab_layout_media);
         ViewPager2 viewPager2 = findViewById(R.id.pager);
@@ -87,13 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (fragment == null) {
             fragment = SoundRecyclerViewFragment.newInstance();
-//            if (!fragment.isAdded()) {//
-//                getSupportFragmentManager()
-//                        .beginTransaction()
-//                        .add(R.id.fragment_container_view, fragment)
-//                        .commit();//
-//                musicStateAdapter.addFragment(fragment);
-//            }
+
             musicStateAdapter.addFragment(fragment);
 
             ///TODO

@@ -33,7 +33,6 @@ public class AudioReader {
     @SuppressLint("Range")
     public List<Soundtrack> readMediaData() {
         String[] projection = new String[]{
-                //MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DURATION,

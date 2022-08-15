@@ -7,7 +7,7 @@ import com.orion.musicplayer.models.Soundtrack;
 import java.io.IOException;
 
 public class SoundtrackPlayer {
-    private MediaPlayer mediaPlayer = new MediaPlayer();
+    private final MediaPlayer mediaPlayer = new MediaPlayer();
     private Soundtrack currentPlayingSong;
 
     public void play(Soundtrack soundtrack) {
@@ -24,17 +24,14 @@ public class SoundtrackPlayer {
         }
         currentPlayingSong = soundtrack;
 
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                mediaPlayer.stop();
-                try {
-                    mediaPlayer.prepare();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                mediaPlayer.seekTo(0);
+        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+            mediaPlayer.stop();
+            try {
+                mediaPlayer.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            mediaPlayer.seekTo(0);
         });
 
     }
@@ -48,11 +45,7 @@ public class SoundtrackPlayer {
     }
 
     private void start() {
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            public void onPrepared(MediaPlayer mp) {
-                mp.start();
-            }
-        });
+        mediaPlayer.setOnPreparedListener(mp -> mp.start());
         mediaPlayer.prepareAsync();
     }
 

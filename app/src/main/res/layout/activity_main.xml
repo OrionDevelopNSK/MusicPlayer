@@ -16,11 +16,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
+        <Button
             android:id="@+id/sortedImageButton"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:contentDescription="TODO"
+            android:layout_marginLeft="20dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -33,6 +34,10 @@
             android:layout_height="50dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            app:endIconMode="custom"
+            app:errorEnabled="true"
+            style="?attr/textInputOutlinedStyle"
+            app:startIconDrawable="@drawable/ic_search_24px"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/voiceFind"
             app:layout_constraintStart_toEndOf="@+id/sortedImageButton"
@@ -41,16 +46,15 @@
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:hint="hint" />
+                android:layout_height="wrap_content"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <ImageButton
+        <Button
             android:id="@+id/voiceFind"
             android:layout_width="50dp"
             android:layout_height="50dp"
-
             android:contentDescription="TODO"
+            android:layout_marginRight="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -72,6 +76,7 @@
         android:id="@+id/tab_layout_media"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/pager"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
         tools:layout_editor_absoluteX="-20dp">
 
@@ -84,8 +89,7 @@
         app:layout_constraintBottom_toTopOf="@+id/fragment_container_view2"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tab_layout_media" />
-
+        app:layout_constraintTop_toBottomOf="@+id/tab_layout_media" />
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -96,12 +100,9 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tabLayout"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintStart_toStartOf="parent">
 
-        <include
-            layout="@layout/fragment_control_panel" />
+        <include layout="@layout/fragment_control_panel" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
