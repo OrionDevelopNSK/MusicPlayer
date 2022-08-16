@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.viewmodels.SoundtracksModel;
 
 import java.util.List;
 
@@ -37,7 +38,10 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
     private final List<Soundtrack> soundtrackList;
     private final OnSoundtrackClickListener onClickListener;
 
-    public SoundtrackAdapter(Context context, List<Soundtrack> soundtrackList, OnSoundtrackClickListener onClickListener) {
+    public SoundtrackAdapter(
+            Context context,
+            List<Soundtrack> soundtrackList,
+            OnSoundtrackClickListener onClickListener) {
         this.layoutInflater = LayoutInflater.from(context);
         this.soundtrackList = soundtrackList;
         this.onClickListener = onClickListener;
@@ -62,7 +66,14 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
                                 + soundtrack.getRating() + "\n"
                                 + soundtrack.getCountOfLaunches() + "\n");
 
-        holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
+
+
+        holder.musicButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onClickListener.onSoundtrackClick(soundtrack, position);
+            }
+        });
 
         holder.itemView.setOnClickListener(view -> {
             //onClickListener.onSoundtrackClick(soundtrack, position);

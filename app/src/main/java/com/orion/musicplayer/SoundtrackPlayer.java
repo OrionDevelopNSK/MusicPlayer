@@ -44,6 +44,14 @@ public class SoundtrackPlayer {
         if (mediaPlayer.isPlaying()) mediaPlayer.stop();
     }
 
+    public long getCurrentTime(){
+        return mediaPlayer.getCurrentPosition();
+    }
+
+    public void setCurrentTime(int position){
+        mediaPlayer.seekTo(position);
+    }
+
 
     private void start() {
         mediaPlayer.setOnPreparedListener(mp -> mp.start());
@@ -60,6 +68,10 @@ public class SoundtrackPlayer {
         }
         start();
     }
+
+
+
+
 
 
 }

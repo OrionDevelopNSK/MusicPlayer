@@ -17,20 +17,22 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
+import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
 
 public class MainActivity extends AppCompatActivity {
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        request();
+        checkPermissions();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragment_container_control_panel, SoundtrackPlayerControllerFragment.newInstance())
+                .commit();
     }
 
-    private void request() {
+    private void checkPermissions() {
         int requestCode = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (requestCode != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Требуется установить разрешения", Toast.LENGTH_LONG).show();
@@ -59,8 +61,10 @@ public class MainActivity extends AppCompatActivity {
         viewPager2.setAdapter(musicStateAdapter);
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container_view);
 
+
+
         ///TODO
-        Fragment fragment2 = getSupportFragmentManager().findFragmentById(R.id.fragment_container_view2);
+        Fragment fragment2 = getSupportFragmentManager().findFragmentById(R.id.fragment_container_control_panel);
         fragment2 = SoundRecyclerViewFragment.newInstance();
         ///END TODO
 

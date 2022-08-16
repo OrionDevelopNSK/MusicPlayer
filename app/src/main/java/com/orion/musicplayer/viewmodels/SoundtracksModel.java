@@ -21,6 +21,7 @@ import java.util.List;
 
 public class SoundtracksModel extends AndroidViewModel {
     private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Integer> position = new MutableLiveData<>();
 
 
     public SoundtracksModel(@NonNull Application application) {
@@ -52,5 +53,9 @@ public class SoundtracksModel extends AndroidViewModel {
 
     public LiveData<List<Soundtrack>> getSoundtracks() {
         return soundtracksLiveData;
+    }
+
+    public MutableLiveData<Integer> getPosition() {
+        return position;
     }
 }
