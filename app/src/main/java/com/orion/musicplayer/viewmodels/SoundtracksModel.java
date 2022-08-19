@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.room.Room;
 
 import com.orion.musicplayer.AudioReader;
 import com.orion.musicplayer.dao.SoundtrackDao;
@@ -21,8 +20,7 @@ import java.util.List;
 
 public class SoundtracksModel extends AndroidViewModel {
     private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Integer> position = new MutableLiveData<>();
-
+    private AppDatabase database;
 
     public SoundtracksModel(@NonNull Application application) {
         super(application);
@@ -31,10 +29,7 @@ public class SoundtracksModel extends AndroidViewModel {
 
     public void execute() {
         AudioReader audioReader = new AudioReader(getApplication());
-        AppDatabase database = Room.databaseBuilder(getApplication(),
-                        AppDatabase.class,
-                        "database")
-                .build();
+        database = AppDatabase.getDatabase(getApplication());
 
         AsyncTask.execute(() -> {
             SoundtrackDao soundtrackDao = database.soundtrackDao();
@@ -48,6 +43,7 @@ public class SoundtracksModel extends AndroidViewModel {
                 if (!f.exists()) roomSoundtrackRepository.deleteSoundtracks(soundtrackDbEntity);
             }
             soundtracksLiveData.postValue(roomSoundtrackRepository.getAll());
+//            database.close();
         });
     }
 
@@ -55,7 +51,9 @@ public class SoundtracksModel extends AndroidViewModel {
         return soundtracksLiveData;
     }
 
-    public MutableLiveData<Integer> getPosition() {
-        return position;
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        database.close();
     }
 }

@@ -24,4 +24,6 @@ public interface SoundtrackDao {
 
     @Query("SELECT * FROM soundtrack")
     List<SoundtrackDbEntity> getAll();
+
+
 }

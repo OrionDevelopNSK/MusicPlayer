@@ -59,21 +59,14 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
     public void onBindViewHolder(@NonNull SoundtrackAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Soundtrack soundtrack = soundtrackList.get(position);
         holder.textView.setText(soundtrack.getData() + "\n"
-                                + soundtrack.getId() + "\n"
                                 + soundtrack.getTitle() + "\n"
                                 + soundtrack.getArtist() + "\n"
-                                + soundtrack.getDuration() + "\n"
                                 + soundtrack.getRating() + "\n"
                                 + soundtrack.getCountOfLaunches() + "\n");
 
 
 
-        holder.musicButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onClickListener.onSoundtrackClick(soundtrack, position);
-            }
-        });
+        holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
 
         holder.itemView.setOnClickListener(view -> {
             //onClickListener.onSoundtrackClick(soundtrack, position);

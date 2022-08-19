@@ -27,6 +27,7 @@ public class SoundtrackDbEntity {
 
     public Soundtrack toSoundtrack(){
         Soundtrack soundtrack = new Soundtrack();
+        soundtrack.setId(soundtrackId);
         soundtrack.setData(data);
         soundtrack.setTitle(title);
         soundtrack.setArtist(artist);

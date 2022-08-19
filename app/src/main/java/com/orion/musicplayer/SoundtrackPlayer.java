@@ -7,10 +7,40 @@ import com.orion.musicplayer.models.Soundtrack;
 import java.io.IOException;
 
 public class SoundtrackPlayer {
+
+    public interface OnSoundtrackFinishedListener {
+        void onSoundtrackFinish();
+    }
+
+
     private final MediaPlayer mediaPlayer = new MediaPlayer();
     private Soundtrack currentPlayingSong;
+    private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
 
-    public void play(Soundtrack soundtrack) {
+
+    public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener){
+        this.onSoundtrackFinishedListener = onSoundtrackFinishedListener;
+    }
+
+    public SoundtrackPlayer() {
+        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+            mediaPlayer.stop();
+            try {
+                mediaPlayer.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mediaPlayer.seekTo(0);
+            onSoundtrackFinishedListener.onSoundtrackFinish();
+        });
+    }
+
+    public boolean isPlaying(){
+        return mediaPlayer.isPlaying();
+    }
+
+
+    public void playOrPause(Soundtrack soundtrack) {
         if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
             if (mediaPlayer.isPlaying()) pause();
             else {
@@ -24,23 +54,13 @@ public class SoundtrackPlayer {
         }
         currentPlayingSong = soundtrack;
 
-        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-            mediaPlayer.stop();
-            try {
-                mediaPlayer.prepare();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mediaPlayer.seekTo(0);
-        });
-
     }
 
-    public void pause() {
+    private void pause() {
         if (mediaPlayer.isPlaying()) mediaPlayer.pause();
     }
 
-    public void stop() {
+    private void stop() {
         if (mediaPlayer.isPlaying()) mediaPlayer.stop();
     }
 
@@ -48,7 +68,7 @@ public class SoundtrackPlayer {
         return mediaPlayer.getCurrentPosition();
     }
 
-    public void setCurrentTime(int position){
+    public void setCurrentDuration(int position){
         mediaPlayer.seekTo(position);
     }
 
@@ -68,6 +88,8 @@ public class SoundtrackPlayer {
         }
         start();
     }
+
+
 
 
 

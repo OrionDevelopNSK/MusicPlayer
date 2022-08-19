@@ -7,7 +7,7 @@ import java.util.Objects;
 public class Soundtrack {
 
     private String data;
-    private String id;
+    private long id;
     private String title;
     private String artist;
     private int duration;
@@ -18,7 +18,7 @@ public class Soundtrack {
         this.data = data;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -46,7 +46,7 @@ public class Soundtrack {
         return data;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
@@ -85,6 +85,7 @@ public class Soundtrack {
 
     public SoundtrackDbEntity toSoundtrackDbEntity() {
         SoundtrackDbEntity soundtrackDbEntity = new SoundtrackDbEntity();
+        soundtrackDbEntity.soundtrackId = getId();
         soundtrackDbEntity.data = getData();
         soundtrackDbEntity.title = getTitle();
         soundtrackDbEntity.artist = getArtist();
