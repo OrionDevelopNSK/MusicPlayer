@@ -1,12 +1,16 @@
 package com.orion.musicplayer;
 
 import android.media.MediaPlayer;
+import android.util.Log;
 
 import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.io.IOException;
 
 public class SoundtrackPlayer {
+
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
     public interface OnSoundtrackFinishedListener {
         void onSoundtrackFinish();
@@ -23,12 +27,13 @@ public class SoundtrackPlayer {
     }
 
     public SoundtrackPlayer() {
+        Log.d(TAG, "Установка слушателя на событие окончания песни");
         mediaPlayer.setOnCompletionListener(mediaPlayer -> {
             mediaPlayer.stop();
             try {
                 mediaPlayer.prepare();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
             }
             mediaPlayer.seekTo(0);
             onSoundtrackFinishedListener.onSoundtrackFinish();
@@ -42,8 +47,12 @@ public class SoundtrackPlayer {
 
     public void playOrPause(Soundtrack soundtrack) {
         if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
-            if (mediaPlayer.isPlaying()) pause();
+            if (mediaPlayer.isPlaying()) {
+                Log.d(TAG, "Пауза");
+                pause();
+            }
             else {
+                Log.d(TAG, "Старт");
                 mediaPlayer.start();
             }
         } else if (currentPlayingSong != null && !currentPlayingSong.equals(soundtrack)) {
@@ -74,17 +83,21 @@ public class SoundtrackPlayer {
 
 
     private void start() {
+        Log.d(TAG, "Регистрация обратного вызова готовности к воспроизведению");
         mediaPlayer.setOnPreparedListener(mp -> mp.start());
+        Log.d(TAG, "Асинхронная подготовка проигрывателя к воспроизведению");
         mediaPlayer.prepareAsync();
     }
 
     private void setData(Soundtrack soundtrack) {
         String s = soundtrack.getData();
+        Log.d(TAG, "Сброс плайера в его неинициализированное состояние");
         mediaPlayer.reset();
         try {
+            Log.d(TAG, "Установка источника данных для воспроизведения");
             mediaPlayer.setDataSource(s);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getMessage());
         }
         start();
     }

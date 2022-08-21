@@ -5,6 +5,7 @@ import static android.os.Looper.getMainLooper;
 import android.app.Application;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Random;
 
 public class SoundtrackPlayerModel extends AndroidViewModel {
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
     private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>();
@@ -70,6 +72,7 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     }
 
     public void playOrPause(int position, List<Soundtrack> countSoundtracks) {
+        Log.d(TAG, "Начало или пауза песни");
         this.countSoundtracks = countSoundtracks;
         this.currentPosition = position;
         soundtrackPlayer.playOrPause(countSoundtracks.get(position));
@@ -89,12 +92,15 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     public void next(int position, List<Soundtrack> countSoundtracks) {
         this.countSoundtracks = countSoundtracks;
         this.currentPosition = position;
-
+        Log.d(TAG, "Запуск следующей песни");
         if (stateMode == StateMode.LOOP || stateMode == StateMode.REPEAT) {
             int i = (position + 1 > countSoundtracks.size() - 1) ? 0 : position + 1;
+            Log.d(TAG, "Порядковый номер песни: " + i);
             positionLiveData.setValue(i);
         } else if (stateMode == StateMode.RANDOM) {
-            positionLiveData.setValue(new Random().nextInt(countSoundtracks.size() + 1));
+            int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
+            Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
+            positionLiveData.setValue(randomPosition);
             order.push(position);
         }
         handler.removeCallbacks(runnable);
@@ -104,14 +110,19 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     public void previous(int position, List<Soundtrack> countSoundtracks) {
         this.countSoundtracks = countSoundtracks;
         this.currentPosition = position;
+        Log.d(TAG, "Запуск предыдущей песни");
         if (stateMode == StateMode.LOOP || stateMode == StateMode.REPEAT) {
             int i = (position - 1 < 0) ? countSoundtracks.size() - 1 : position - 1;
+            Log.d(TAG, "Порядковый номер песни: " + i);
             positionLiveData.setValue(i);
         } else if (stateMode == StateMode.RANDOM) {
             if (order.peek() != null) {
-                soundtrackPlayer.playOrPause(countSoundtracks.get(order.pop()));
+                Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", order.size()));
+                positionLiveData.setValue(order.pop());
             } else {
-                positionLiveData.setValue(new Random().nextInt(countSoundtracks.size() + 1));
+                int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
+                Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
+                positionLiveData.setValue(randomPosition);
                 order.push(position);
             }
         }
@@ -132,6 +143,7 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
                 stateMode = StateMode.LOOP;
                 break;
         }
+        Log.d(TAG, "Переключение режима воспроизведения, текущее : " + stateMode.name());
         stateModeLiveData.setValue(stateMode);
     }
 
@@ -139,16 +151,17 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         soundtrackPlayer.setCurrentDuration(position);
     }
 
-    //в базу данных
     public void setRating(int position, List<Soundtrack> countSoundtracks, int rating) {
         AppDatabase database = AppDatabase.getDatabase(getApplication());
 
         AsyncTask.execute(() -> {
+            Log.d(TAG, "Запись в базу данных оценки песни");
             Soundtrack soundtrack = countSoundtracks.get(position);
             soundtrack.setRating(rating);
             SoundtrackDao soundtrackDao = database.soundtrackDao();
             RoomSoundtrackRepository roomSoundtrackRepository = new RoomSoundtrackRepository(soundtrackDao);
             roomSoundtrackRepository.updateSoundtrack(soundtrack.toSoundtrackDbEntity());
+            Log.d(TAG, String.format("Рейтинг песни под номером :%d равен %d", position, rating));
         });
 
     }
@@ -157,16 +170,16 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         AppDatabase database = AppDatabase.getDatabase(getApplication());
 
         AsyncTask.execute(() -> {
+            Log.d(TAG, "Запись в базу данных количества раз прослушивания");
             Soundtrack soundtrack = countSoundtracks.get(position);
             int countOfLaunchesOld = soundtrack.getCountOfLaunches();
             soundtrack.setCountOfLaunches(countOfLaunchesOld + 1);
             SoundtrackDao soundtrackDao = database.soundtrackDao();
             RoomSoundtrackRepository roomSoundtrackRepository = new RoomSoundtrackRepository(soundtrackDao);
             roomSoundtrackRepository.updateSoundtrack(soundtrack.toSoundtrackDbEntity());
+            Log.d(TAG, String.format("Количество прослушивания песни под номером :%d равно %d", position, countOfLaunchesOld + 1));
         });
     }
-
-
 
 
 }

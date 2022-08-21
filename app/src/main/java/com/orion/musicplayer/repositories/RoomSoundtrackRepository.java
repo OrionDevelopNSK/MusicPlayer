@@ -1,13 +1,18 @@
 package com.orion.musicplayer.repositories;
 
+import android.util.Log;
+
 import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
 import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoomSoundtrackRepository{
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+
     private final SoundtrackDao soundtrackDao;
 
     public RoomSoundtrackRepository(SoundtrackDao soundtrackDao) {
@@ -15,6 +20,8 @@ public class RoomSoundtrackRepository{
     }
 
     public void insertAllSoundtracks(List<Soundtrack> soundtracks) {
+
+        Log.d(TAG, "Вставка данных в базу данных, если они отстутвуют");
         List<SoundtrackDbEntity> soundtrackDbEntities = new ArrayList<>();
         for (Soundtrack s: soundtracks) {
             SoundtrackDbEntity soundtrackDbEntity = new SoundtrackDbEntity();
@@ -30,10 +37,12 @@ public class RoomSoundtrackRepository{
     }
 
     public void deleteSoundtracks(SoundtrackDbEntity... soundtracks) {
+        Log.d(TAG, "Удаление данных из базы данных");
         soundtrackDao.deleteSoundtracks(soundtracks);
     }
 
     public void updateSoundtrack(SoundtrackDbEntity... soundtracks) {
+        Log.d(TAG, "Обновление данных в базе данных");
         soundtrackDao.updateSoundtrack(soundtracks);
     }
 
@@ -45,6 +54,5 @@ public class RoomSoundtrackRepository{
             soundtracks.add(soundtrack);
         }
         return soundtracks;
-
     }
 }

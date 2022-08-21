@@ -11,7 +11,6 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
     public static final int VERSION = 1;
     public static final String TABLE_SOUNDTRACKS = "soundtracks";
 
-
     private static final String DATA = "DATA";
     private static final String ID = "ID";
     private static final String TITLE = "TITLE";
@@ -19,11 +18,9 @@ public class SqlOpenDatabaseHelper extends SQLiteOpenHelper {
     private static final String DURATION = "DURATION";
     private static final String RATING = "RATING";
     private static final String COUNT_OF_LAUNCHES = "COUNT_OF_LAUNCHES";
-
     private static final String TABLE_PLAYLISTS = "playlists";
     private static final String TABLE_PLAYLISTS_DATA = "TABLE_PLAYLISTS_DATA";
     private static final String NAME = "NAME";
-
     private static final String TABLE_SOUNDTRACKS_PLAYLISTS = "soundtracks_playlists";
     private static final String TABLE_SOUNDTRACKS_DATA = "TABLE_SOUNDTRACKS_DATA";
 

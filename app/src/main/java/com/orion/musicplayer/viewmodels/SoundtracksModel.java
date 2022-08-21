@@ -2,6 +2,7 @@ package com.orion.musicplayer.viewmodels;
 
 import android.app.Application;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -19,6 +20,8 @@ import java.io.File;
 import java.util.List;
 
 public class SoundtracksModel extends AndroidViewModel {
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+
     private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
     private AppDatabase database;
 
@@ -27,7 +30,12 @@ public class SoundtracksModel extends AndroidViewModel {
         execute();
     }
 
+    public LiveData<List<Soundtrack>> getSoundtracks() {
+        return soundtracksLiveData;
+    }
+
     public void execute() {
+        Log.d(TAG, "Манипуляции с базой данных");
         AudioReader audioReader = new AudioReader(getApplication());
         database = AppDatabase.getDatabase(getApplication());
 
@@ -36,19 +44,22 @@ public class SoundtracksModel extends AndroidViewModel {
             List<Soundtrack> soundtracks = audioReader.readMediaData();
             RoomSoundtrackRepository roomSoundtrackRepository = new RoomSoundtrackRepository(soundtrackDao);
             roomSoundtrackRepository.insertAllSoundtracks(soundtracks);
+            Log.d(TAG, "Получение всех сущностей из базы данных");
             List<SoundtrackDbEntity> all = soundtrackDao.getAll();
-
-            for (SoundtrackDbEntity soundtrackDbEntity : all) {
-                File f = new File(soundtrackDbEntity.data);
-                if (!f.exists()) roomSoundtrackRepository.deleteSoundtracks(soundtrackDbEntity);
-            }
+            deleteNotValidDataFromDatabase(roomSoundtrackRepository, all);
             soundtracksLiveData.postValue(roomSoundtrackRepository.getAll());
-//            database.close();
         });
     }
 
-    public LiveData<List<Soundtrack>> getSoundtracks() {
-        return soundtracksLiveData;
+    private void deleteNotValidDataFromDatabase(RoomSoundtrackRepository roomSoundtrackRepository, List<SoundtrackDbEntity> all) {
+        Log.d(TAG, "Удаление отсутствующих песен из базы данных");
+        for (SoundtrackDbEntity soundtrackDbEntity : all) {
+            File f = new File(soundtrackDbEntity.data);
+            if (!f.exists()) {
+                Log.d(TAG, String.format("%s отсутствует в базе данных", soundtrackDbEntity.data));
+                roomSoundtrackRepository.deleteSoundtracks(soundtrackDbEntity);
+            }
+        }
     }
 
     @Override

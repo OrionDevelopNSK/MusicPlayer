@@ -24,6 +24,15 @@ import java.util.Objects;
 
 
 public class SoundRecyclerViewFragment extends Fragment {
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private RecyclerView recyclerView;
+    private SoundtracksModel soundtracksModel;
+    private SoundtrackPlayerModel soundtrackPlayerModel;
+
+    @SuppressWarnings("unused")
+    MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
+            new Handler(Looper.getMainLooper()),
+            requireActivity());
 
     public static SoundRecyclerViewFragment newInstance() {
         return new SoundRecyclerViewFragment();
@@ -39,18 +48,25 @@ public class SoundRecyclerViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sound_list_view, container, false);
-        RecyclerView recyclerView = view.findViewById(R.id.list_songs);
-        SoundtracksModel soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
-        SoundtrackPlayerModel soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
+        recyclerView = view.findViewById(R.id.list_songs);
+        soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
+        soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
 
         SoundtrackAdapter.OnSoundtrackClickListener onSoundtrackClickListener =
                 (soundtrack, position) -> soundtrackPlayerModel.getPositionLiveData().setValue(position);
 
-        @SuppressWarnings("unused")
-        MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
-                new Handler(Looper.getMainLooper()),
-                requireActivity());
+        createSoundtracksObserver(onSoundtrackClickListener);
+        createPositionObserver();
+        return view;
+    }
 
+    @SuppressLint("NotifyDataSetChanged")
+    private void createPositionObserver() {
+        soundtrackPlayerModel.getPositionLiveData().observe(
+                requireActivity(), integer -> Objects.requireNonNull(recyclerView.getAdapter()).notifyDataSetChanged());
+    }
+
+    private void createSoundtracksObserver(SoundtrackAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         soundtracksModel.getSoundtracks().observe(requireActivity(), soundtracks -> {
             SoundtrackAdapter soundtrackAdapter = new SoundtrackAdapter(
                     SoundRecyclerViewFragment.this.getContext(),
@@ -58,11 +74,10 @@ public class SoundRecyclerViewFragment extends Fragment {
                     onSoundtrackClickListener);
             recyclerView.setAdapter(soundtrackAdapter);
         });
+    }
 
-        soundtrackPlayerModel.getPositionLiveData().observe(
-                requireActivity(), integer -> Objects.requireNonNull(recyclerView.getAdapter()).notifyDataSetChanged());
+    private void setSoundtrackListener(){
 
-        return view;
     }
 
 

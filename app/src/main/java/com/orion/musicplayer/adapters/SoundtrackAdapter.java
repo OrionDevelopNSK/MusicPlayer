@@ -65,7 +65,6 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
                                 + soundtrack.getCountOfLaunches() + "\n");
 
 
-
         holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
 
         holder.itemView.setOnClickListener(view -> {

@@ -5,6 +5,7 @@ import static android.os.Looper.getMainLooper;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,23 @@ import com.orion.musicplayer.viewmodels.SoundtracksModel;
 import java.util.List;
 
 public class SoundtrackPlayerControllerFragment extends Fragment {
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+
     private boolean isTouch;
+    private TextView textSoundtrackTitle;
+    private TextView textArtistTitle;
+    private TextView textTimeDuration;
+    private TextView textCurrentDuration;
+    private Slider slider;
+    private Button buttonToStart;
+    private Button buttonPlayOrPause;
+    private Button buttonPrevious;
+    private Button buttonNext;
+    private Button buttonChangeStateMode;
+    private SoundtracksModel soundtracksModel;
+    private SoundtrackPlayerModel soundtrackPlayerModel;
+
+
 
     public static SoundtrackPlayerControllerFragment newInstance() {
         return new SoundtrackPlayerControllerFragment();
@@ -45,73 +62,78 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View currentView = inflater.inflate(R.layout.fragment_control_panel, container, false);
-        TextView textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
-        TextView textArtistTitle = currentView.findViewById(R.id.text_artist_title);
-        TextView textTimeDuration = currentView.findViewById(R.id.text_time_duration);
-        TextView textCurrentDuration = currentView.findViewById(R.id.text_current_duration);
-        Slider slider = currentView.findViewById(R.id.slider_soundtrack);
 
-        Button buttonToStart = currentView.findViewById(R.id.button_to_start);
-        Button buttonPlayOrPause = currentView.findViewById(R.id.button_play_pause);
-        Button buttonPrevious = currentView.findViewById(R.id.button_previous);
-        Button buttonNext = currentView.findViewById(R.id.button_next);
-        Button buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
+        Log.d(TAG, "Поиск Views");
+        textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
+        textArtistTitle = currentView.findViewById(R.id.text_artist_title);
+        textTimeDuration = currentView.findViewById(R.id.text_time_duration);
+        textCurrentDuration = currentView.findViewById(R.id.text_current_duration);
+        slider = currentView.findViewById(R.id.slider_soundtrack);
+        buttonToStart = currentView.findViewById(R.id.button_to_start);
+        buttonPlayOrPause = currentView.findViewById(R.id.button_play_pause);
+        buttonPrevious = currentView.findViewById(R.id.button_previous);
+        buttonNext = currentView.findViewById(R.id.button_next);
+        buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
+        soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
+        soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
 
-        SoundtracksModel soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
-        SoundtrackPlayerModel soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
+        changeLabelFormat();
+        setListenerSliderTouch();
+        setListenerButtonPlayOrPause();
+        setListenerButtonPrevious();
+        setListenerButtonNext();
+        setListenerButtonChangeStateMode();
+        createDurationObserver();
+        createPositionObserver();
+        createStateModeObserver();
 
-        slider.setLabelFormatter(value -> TimeConverter.toMinutesAndSeconds((int) value));
+        return currentView;
+    }
 
+    private void setListenerSliderTouch() {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
-//                isTouch = true;
+                Log.d(TAG, "Касание слайдера прокрутки");
+                isTouch = true;
 
             }
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
+                Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
                 soundtrackPlayerModel.setCurrentDuration((int) slider.getValue());
-//                isTouch = false;
+                Log.d(TAG, "Отпускание слайдера прокрутки");
+                isTouch = false;
             }
+
         });
+    }
 
-        buttonPlayOrPause.setOnClickListener(view -> soundtrackPlayerModel.playOrPause(
-                soundtrackPlayerModel.getPositionLiveData().getValue(),
-                soundtracksModel.getSoundtracks().getValue()));
-
-
-        buttonPrevious.setOnClickListener(view -> soundtrackPlayerModel.previous(
-                soundtrackPlayerModel.getPositionLiveData().getValue(),
-                soundtracksModel.getSoundtracks().getValue()));
-
-        buttonNext.setOnClickListener(view -> soundtrackPlayerModel.next(soundtrackPlayerModel.getPositionLiveData().getValue(),
-                soundtracksModel.getSoundtracks().getValue()));
-
-        buttonChangeStateMode.setOnClickListener(view -> soundtrackPlayerModel.switchMode());
-
-        soundtrackPlayerModel.getCurrentDurationLiveData().observe(requireActivity(), integer -> {
-            textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getCurrentDurationLiveData().getValue()));
-//                if (isTouch == true) return;
-            slider.setValue(soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
-        });
-
+    private void createStateModeObserver() {
+        Log.d(TAG, "Создание обсервера изменения состояния режима воспроизведения");
         soundtrackPlayerModel.getStateModeLiveData().observe(requireActivity(), stateMode -> {
             //TODO
             if (stateMode == StateMode.LOOP) {
+                Log.d(TAG, "Установить на кнопку картинку \"drawable_loop\"");
                 //buttonChangeStateMode.setBackground("drawable_loop");
             } else if (stateMode == StateMode.REPEAT) {
+                Log.d(TAG, "Установить на кнопку картинку \"drawable_repeat\"");
                 //buttonChangeStateMode.setBackground("drawable_repeat");
             } else {
+                Log.d(TAG, "Установить на кнопку картинку \"drawable_random\"");
                 //buttonChangeStateMode.setBackground("drawable_random");
             }
         });
+    }
 
-
+    private void createPositionObserver() {
+        Log.d(TAG, "Создание обсервера изменения номера воспроизведения песни");
         soundtrackPlayerModel.getPositionLiveData().observe(requireActivity(), position -> {
             List<Soundtrack> soundtrackList = soundtracksModel.getSoundtracks().getValue();
-
             Soundtrack soundtrack = soundtrackList.get(position);
+
+            Log.d(TAG, "Изменение значений элементов UI");
             textSoundtrackTitle.setText(soundtrack.getTitle());
             textArtistTitle.setText(soundtrack.getArtist());
             textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
@@ -120,8 +142,47 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             soundtrackPlayerModel.playOrPause(position, soundtrackList);
 
         });
+    }
 
+    private void createDurationObserver() {
+        Log.d(TAG, "Создание обсервера изменения текущего времени воспроизведения песни");
+        soundtrackPlayerModel.getCurrentDurationLiveData().observe(requireActivity(), integer -> {
+            textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getCurrentDurationLiveData().getValue()));
+            if (isTouch) return;
+            int value = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
+            if (value > slider.getValueTo()) return;
+            slider.setValue(soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
+        });
+    }
 
-        return currentView;
+    private void setListenerButtonChangeStateMode() {
+        Log.d(TAG, "Установка слушателя ButtonChange");
+        buttonChangeStateMode.setOnClickListener(view -> soundtrackPlayerModel.switchMode());
+    }
+
+    private void setListenerButtonNext() {
+        Log.d(TAG, "Установка слушателя ButtonNext");
+        buttonNext.setOnClickListener(view -> soundtrackPlayerModel.next(
+                soundtrackPlayerModel.getPositionLiveData().getValue(),
+                soundtracksModel.getSoundtracks().getValue()));
+    }
+
+    private void setListenerButtonPrevious() {
+        Log.d(TAG, "Установка слушателя ButtonPrevious");
+        buttonPrevious.setOnClickListener(view -> soundtrackPlayerModel.previous(
+                soundtrackPlayerModel.getPositionLiveData().getValue(),
+                soundtracksModel.getSoundtracks().getValue()));
+    }
+
+    private void setListenerButtonPlayOrPause() {
+        Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
+        buttonPlayOrPause.setOnClickListener(view -> soundtrackPlayerModel.playOrPause(
+                soundtrackPlayerModel.getPositionLiveData().getValue(),
+                soundtracksModel.getSoundtracks().getValue()));
+    }
+
+    private void changeLabelFormat() {
+        Log.d(TAG, "Установка формата отображения времени на бейдже ползунка");
+        slider.setLabelFormatter(value -> TimeConverter.toMinutesAndSeconds((int) value));
     }
 }
