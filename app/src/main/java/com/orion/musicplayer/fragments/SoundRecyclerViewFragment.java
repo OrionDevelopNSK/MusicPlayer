@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.adapters.SoundtrackAdapter;
+import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.MediaScannerObserver;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 import com.orion.musicplayer.viewmodels.SoundtracksModel;
@@ -29,10 +31,7 @@ public class SoundRecyclerViewFragment extends Fragment {
     private SoundtracksModel soundtracksModel;
     private SoundtrackPlayerModel soundtrackPlayerModel;
 
-    @SuppressWarnings("unused")
-    MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
-            new Handler(Looper.getMainLooper()),
-            requireActivity());
+
 
     public static SoundRecyclerViewFragment newInstance() {
         return new SoundRecyclerViewFragment();
@@ -52,21 +51,29 @@ public class SoundRecyclerViewFragment extends Fragment {
         soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
 
-        SoundtrackAdapter.OnSoundtrackClickListener onSoundtrackClickListener =
-                (soundtrack, position) -> soundtrackPlayerModel.getPositionLiveData().setValue(position);
+        @SuppressWarnings("unused")
+        MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
+                new Handler(Looper.getMainLooper()),
+                requireActivity());
 
-        createSoundtracksObserver(onSoundtrackClickListener);
+        createSoundtracksObserver((soundtrack, position) -> {
+            soundtrackPlayerModel.getPositionLiveData().setValue(position);
+            soundtrackPlayerModel.playOrPause(position, soundtracksModel.getSoundtracks().getValue());
+        });
+
         createPositionObserver();
         return view;
     }
 
     @SuppressLint("NotifyDataSetChanged")
     private void createPositionObserver() {
+        Log.d(TAG, "Создание обсервера изменения номера текущей песни");
         soundtrackPlayerModel.getPositionLiveData().observe(
                 requireActivity(), integer -> Objects.requireNonNull(recyclerView.getAdapter()).notifyDataSetChanged());
     }
 
     private void createSoundtracksObserver(SoundtrackAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
+        Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtracksModel.getSoundtracks().observe(requireActivity(), soundtracks -> {
             SoundtrackAdapter soundtrackAdapter = new SoundtrackAdapter(
                     SoundRecyclerViewFragment.this.getContext(),
@@ -76,9 +83,7 @@ public class SoundRecyclerViewFragment extends Fragment {
         });
     }
 
-    private void setSoundtrackListener(){
 
-    }
 
 
 }

@@ -1,13 +1,18 @@
 package com.orion.musicplayer;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -18,6 +23,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
+import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
 import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
@@ -27,10 +33,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
         checkPermissions();
         addFragmentControlPanel();
+        Button buttonDialog = findViewById(R.id.open_dialog);
+
+        setDialogClickListener(buttonDialog);
     }
+
+    private void setDialogClickListener(Button buttonDialog) {
+        buttonDialog.setOnClickListener(view -> {
+            SoundTrackListDialogFragment fragment = SoundTrackListDialogFragment.newInstance();
+            fragment.show(getSupportFragmentManager(), "Выберите песни");
+        });
+    }
+
 
     private void addFragmentControlPanel() {
         Log.d(TAG, "Добавление фрагмента к Активити");
@@ -39,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
                 .add(R.id.fragment_container_control_panel, SoundtrackPlayerControllerFragment.newInstance())
                 .commit();
     }
+
 
     private void checkPermissions() {
         Log.d(TAG, "Проверка разрешений чтения и записи внутренней памяти");

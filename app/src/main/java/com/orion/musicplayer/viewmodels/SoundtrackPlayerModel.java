@@ -46,11 +46,13 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
             if (stateMode == StateMode.REPEAT) {
                 positionLiveData.setValue(currentPosition);
                 setCountOfLaunches(position, countSoundtracks);
+                playOrPause(currentPosition, countSoundtracks);
                 return;
             }
             int i = (currentPosition + 1 > countSoundtracks.size() - 1) ? 0 : currentPosition + 1;
             positionLiveData.setValue(i);
             setCountOfLaunches(position, countSoundtracks);
+            playOrPause(i, countSoundtracks);
 
         });
     }
@@ -96,12 +98,14 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         if (stateMode == StateMode.LOOP || stateMode == StateMode.REPEAT) {
             int i = (position + 1 > countSoundtracks.size() - 1) ? 0 : position + 1;
             Log.d(TAG, "Порядковый номер песни: " + i);
+            playOrPause(i, countSoundtracks);
             positionLiveData.setValue(i);
         } else if (stateMode == StateMode.RANDOM) {
             int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
             Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
+            playOrPause(randomPosition, countSoundtracks);
             positionLiveData.setValue(randomPosition);
-            order.push(position);
+            order.push(randomPosition);
         }
         handler.removeCallbacks(runnable);
         handler.postDelayed(runnable, 0);
@@ -114,16 +118,20 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         if (stateMode == StateMode.LOOP || stateMode == StateMode.REPEAT) {
             int i = (position - 1 < 0) ? countSoundtracks.size() - 1 : position - 1;
             Log.d(TAG, "Порядковый номер песни: " + i);
+            playOrPause(i, countSoundtracks);
             positionLiveData.setValue(i);
         } else if (stateMode == StateMode.RANDOM) {
             if (order.peek() != null) {
                 Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", order.size()));
-                positionLiveData.setValue(order.pop());
+                int pop = order.pop();
+                playOrPause(pop, countSoundtracks);
+                positionLiveData.setValue(pop);
             } else {
                 int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
                 Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
+                playOrPause(randomPosition, countSoundtracks);
                 positionLiveData.setValue(randomPosition);
-                order.push(position);
+                order.push(randomPosition);
             }
         }
         handler.removeCallbacks(runnable);

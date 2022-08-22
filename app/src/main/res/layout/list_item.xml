@@ -22,23 +22,7 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="MissingConstraints" />
 
-        <TextView
-            android:id="@+id/item2"
-            android:layout_width="102dp"
-            android:layout_height="27dp"
-            android:layout_marginTop="5dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/item"
-            tools:ignore="MissingConstraints" />
 
-        <TextView
-            android:id="@+id/item3"
-            android:layout_width="102dp"
-            android:layout_height="27dp"
-            android:layout_marginTop="5dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/item"
-            tools:ignore="MissingConstraints" />
 
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/materialDivider"

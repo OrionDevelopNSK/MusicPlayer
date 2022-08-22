@@ -1,10 +1,7 @@
 package com.orion.musicplayer.fragments;
 
-import static android.os.Looper.getMainLooper;
-
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,13 +12,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.SoundtrackPlayer;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.utils.TimeConverter;
@@ -47,8 +41,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private SoundtracksModel soundtracksModel;
     private SoundtrackPlayerModel soundtrackPlayerModel;
 
-
-
     public static SoundtrackPlayerControllerFragment newInstance() {
         return new SoundtrackPlayerControllerFragment();
     }
@@ -63,7 +55,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View currentView = inflater.inflate(R.layout.fragment_control_panel, container, false);
 
-        Log.d(TAG, "Поиск Views");
+        Log.d(TAG, "Биндинг Views");
         textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
         textArtistTitle = currentView.findViewById(R.id.text_artist_title);
         textTimeDuration = currentView.findViewById(R.id.text_time_duration);
@@ -79,6 +71,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
         changeLabelFormat();
         setListenerSliderTouch();
+        setListenerButtonToStart();
         setListenerButtonPlayOrPause();
         setListenerButtonPrevious();
         setListenerButtonNext();
@@ -86,7 +79,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         createDurationObserver();
         createPositionObserver();
         createStateModeObserver();
-
         return currentView;
     }
 
@@ -96,9 +88,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             public void onStartTrackingTouch(@NonNull Slider slider) {
                 Log.d(TAG, "Касание слайдера прокрутки");
                 isTouch = true;
-
             }
-
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
                 Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
@@ -106,7 +96,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
                 Log.d(TAG, "Отпускание слайдера прокрутки");
                 isTouch = false;
             }
-
         });
     }
 
@@ -139,7 +128,8 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
             slider.setValueTo(soundtrack.getDuration());
             slider.setValueFrom(0);
-            soundtrackPlayerModel.playOrPause(position, soundtrackList);
+
+            //soundtrackPlayerModel.playOrPause(position, soundtrackList);
 
         });
     }
@@ -154,6 +144,14 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             slider.setValue(soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
         });
     }
+
+    private void setListenerButtonToStart() {
+        Log.d(TAG, "Установка слушателя ButtonToStart");
+        buttonToStart.setOnClickListener(view -> soundtrackPlayerModel.playOrPause(
+                0,
+                soundtracksModel.getSoundtracks().getValue()));
+    }
+
 
     private void setListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
