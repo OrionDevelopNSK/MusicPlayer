@@ -33,29 +33,11 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
 
     private final SoundtrackPlayer soundtrackPlayer = new SoundtrackPlayer();
     private List<Soundtrack> countSoundtracks;
-    private Deque<Integer> order;
-    private int currentPosition;
+    private Deque<Integer> directOrder;
+    private Deque<Integer> reverseOrder;
+    private int currentPosition = -1;
     private StateMode stateMode = StateMode.LOOP;
     private boolean isPlaying;
-
-    public SoundtrackPlayerModel(@NonNull Application application) {
-        super(application);
-
-        soundtrackPlayer.setOnSoundtrackFinishedListener(() -> {
-            int position = currentPosition;
-            if (stateMode == StateMode.REPEAT) {
-                positionLiveData.setValue(currentPosition);
-                setCountOfLaunches(position, countSoundtracks);
-                playOrPause(currentPosition, countSoundtracks);
-                return;
-            }
-            int i = (currentPosition + 1 > countSoundtracks.size() - 1) ? 0 : currentPosition + 1;
-            positionLiveData.setValue(i);
-            setCountOfLaunches(position, countSoundtracks);
-            playOrPause(i, countSoundtracks);
-
-        });
-    }
 
     public MutableLiveData<StateMode> getStateModeLiveData() {
         return stateModeLiveData;
@@ -71,6 +53,32 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
 
     public MutableLiveData<Integer> getPositionLiveData() {
         return positionLiveData;
+    }
+
+    public SoundtrackPlayerModel(@NonNull Application application) {
+        super(application);
+        setSoundtrackFinishListener();
+        setPlayingStatusSoundtrackListener();
+    }
+
+    private void setPlayingStatusSoundtrackListener() {
+        Log.d(TAG, "Установка слушателя начала воспроизведения");
+        soundtrackPlayer.setOnPlayingStatusSoundtrackListener(isPlay -> {
+            isPlayingLiveData.setValue(isPlay);
+        });
+    }
+
+    private void setSoundtrackFinishListener() {
+        Log.d(TAG, "Установка слушателя конца воспроизведения песни");
+        soundtrackPlayer.setOnSoundtrackFinishedListener(() -> {
+            if (stateMode == StateMode.REPEAT) {
+                setCountOfLaunches(currentPosition, countSoundtracks);
+                playOrPause(currentPosition, countSoundtracks);
+            } else {
+                setCountOfLaunches(currentPosition, countSoundtracks);
+                next(currentPosition, countSoundtracks);
+            }
+        });
     }
 
     public void playOrPause(int position, List<Soundtrack> countSoundtracks) {
@@ -92,8 +100,14 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     };
 
     public void next(int position, List<Soundtrack> countSoundtracks) {
-        this.countSoundtracks = countSoundtracks;
-        this.currentPosition = position;
+        if (reverseOrder.peek() != null) {
+            Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", directOrder.size()));
+            int pop = reverseOrder.pop();
+            playOrPause(pop, countSoundtracks);
+            positionLiveData.setValue(pop);
+            return;
+        }
+
         Log.d(TAG, "Запуск следующей песни");
         if (stateMode == StateMode.LOOP || stateMode == StateMode.REPEAT) {
             int i = (position + 1 > countSoundtracks.size() - 1) ? 0 : position + 1;
@@ -101,19 +115,25 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
             playOrPause(i, countSoundtracks);
             positionLiveData.setValue(i);
         } else if (stateMode == StateMode.RANDOM) {
+            if (currentPosition != -1) directOrder.push(currentPosition);
             int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
             Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
             playOrPause(randomPosition, countSoundtracks);
             positionLiveData.setValue(randomPosition);
-            order.push(randomPosition);
         }
         handler.removeCallbacks(runnable);
         handler.postDelayed(runnable, 0);
     }
 
     public void previous(int position, List<Soundtrack> countSoundtracks) {
-        this.countSoundtracks = countSoundtracks;
-        this.currentPosition = position;
+        if (directOrder.peek() != null) {
+            Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", directOrder.size()));
+            int pop = directOrder.pop();
+            playOrPause(pop, countSoundtracks);
+            positionLiveData.setValue(pop);
+            return;
+        }
+
         Log.d(TAG, "Запуск предыдущей песни");
         if (stateMode == StateMode.LOOP || stateMode == StateMode.REPEAT) {
             int i = (position - 1 < 0) ? countSoundtracks.size() - 1 : position - 1;
@@ -121,18 +141,11 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
             playOrPause(i, countSoundtracks);
             positionLiveData.setValue(i);
         } else if (stateMode == StateMode.RANDOM) {
-            if (order.peek() != null) {
-                Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", order.size()));
-                int pop = order.pop();
-                playOrPause(pop, countSoundtracks);
-                positionLiveData.setValue(pop);
-            } else {
-                int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
-                Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
-                playOrPause(randomPosition, countSoundtracks);
-                positionLiveData.setValue(randomPosition);
-                order.push(randomPosition);
-            }
+            if (currentPosition != -1) reverseOrder.push(currentPosition);
+            int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
+            Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
+            playOrPause(randomPosition, countSoundtracks);
+            positionLiveData.setValue(randomPosition);
         }
         handler.removeCallbacks(runnable);
         handler.postDelayed(runnable, 0);
@@ -142,7 +155,8 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         switch (stateMode) {
             case LOOP:
                 stateMode = StateMode.RANDOM;
-                order = new ArrayDeque<>();
+                directOrder = new ArrayDeque<>();
+                reverseOrder = new ArrayDeque<>();
                 break;
             case RANDOM:
                 stateMode = StateMode.REPEAT;
@@ -171,7 +185,6 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
             roomSoundtrackRepository.updateSoundtrack(soundtrack.toSoundtrackDbEntity());
             Log.d(TAG, String.format("Рейтинг песни под номером :%d равен %d", position, rating));
         });
-
     }
 
     private void setCountOfLaunches(int position, List<Soundtrack> countSoundtracks) {

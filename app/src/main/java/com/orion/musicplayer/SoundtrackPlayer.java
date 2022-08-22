@@ -16,14 +16,22 @@ public class SoundtrackPlayer {
         void onSoundtrackFinish();
     }
 
+    public interface OnPlayingStatusSoundtrackListener {
+        void onPlayingStatusSoundtrack(boolean isPlay);
+    }
+
 
     private final MediaPlayer mediaPlayer = new MediaPlayer();
     private Soundtrack currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
-
+    private OnPlayingStatusSoundtrackListener statusSoundtrackListener;
 
     public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener){
         this.onSoundtrackFinishedListener = onSoundtrackFinishedListener;
+    }
+
+    public void setOnPlayingStatusSoundtrackListener(OnPlayingStatusSoundtrackListener statusSoundtrackListener){
+        this.statusSoundtrackListener = statusSoundtrackListener;
     }
 
     public SoundtrackPlayer() {
@@ -46,6 +54,7 @@ public class SoundtrackPlayer {
 
 
     public void playOrPause(Soundtrack soundtrack) {
+
         if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
             if (mediaPlayer.isPlaying()) {
                 Log.d(TAG, "Пауза");
@@ -54,6 +63,7 @@ public class SoundtrackPlayer {
             else {
                 Log.d(TAG, "Старт");
                 mediaPlayer.start();
+                statusSoundtrackListener.onPlayingStatusSoundtrack(true);
             }
         } else if (currentPlayingSong != null && !currentPlayingSong.equals(soundtrack)) {
             stop();
@@ -62,15 +72,21 @@ public class SoundtrackPlayer {
             setData(soundtrack);
         }
         currentPlayingSong = soundtrack;
-
     }
 
+
     private void pause() {
-        if (mediaPlayer.isPlaying()) mediaPlayer.pause();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            statusSoundtrackListener.onPlayingStatusSoundtrack(false);
+        }
     }
 
     private void stop() {
-        if (mediaPlayer.isPlaying()) mediaPlayer.stop();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            statusSoundtrackListener.onPlayingStatusSoundtrack(false);
+        }
     }
 
     public long getCurrentTime(){
@@ -84,7 +100,14 @@ public class SoundtrackPlayer {
 
     private void start() {
         Log.d(TAG, "Регистрация обратного вызова готовности к воспроизведению");
-        mediaPlayer.setOnPreparedListener(mp -> mp.start());
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                Log.d(TAG, "Старт");
+                mp.start();
+                statusSoundtrackListener.onPlayingStatusSoundtrack(true);
+            }
+        });
         Log.d(TAG, "Асинхронная подготовка проигрывателя к воспроизведению");
         mediaPlayer.prepareAsync();
     }

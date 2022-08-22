@@ -121,31 +121,35 @@
                 android:id="@+id/button_to_start"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:background="@drawable/ic_previous"
                 android:layout_marginHorizontal="8dp" />
-            <!--                app:icon = ""-->
 
             <Button
                 android:id="@+id/button_previous"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:background="@drawable/ic_previous"
                 android:layout_marginHorizontal="8dp" />
 
             <Button
                 android:id="@+id/button_play_pause"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
             <Button
                 android:id="@+id/button_next"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:background="@drawable/ic_next"
                 android:layout_marginHorizontal="8dp" />
 
             <Button
                 android:id="@+id/button_change_state_mode"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
 

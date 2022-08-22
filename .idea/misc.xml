@@ -3,6 +3,28 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_add.xml" value="0.2265" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_back.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_close.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_find.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_loop.xml" value="0.2265" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_menu.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_menu_2.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_menu_3.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_micro.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_next.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_pause.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_play.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_previous.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_repeat.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_save.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_search_24px.xml" value="0.229" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_settings.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_shake.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_song.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_sort.xml" value="0.1" />
+        <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/ic_stop.xml" value="0.1" />
         <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_container_layout.xml" value="0.34601449275362317" />
         <entry key="..\:/Users/Orion/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_container_layout2.xml" value="0.24895833333333334" />

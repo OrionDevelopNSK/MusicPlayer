@@ -7,11 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.slider.Slider;
@@ -68,6 +70,8 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
         soundtracksModel = new ViewModelProvider(requireActivity()).get(SoundtracksModel.class);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
+        buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
+        buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
 
         changeLabelFormat();
         setListenerSliderTouch();
@@ -79,6 +83,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         createDurationObserver();
         createPositionObserver();
         createStateModeObserver();
+        createPlayingStateObserver();
         return currentView;
     }
 
@@ -102,16 +107,15 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private void createStateModeObserver() {
         Log.d(TAG, "Создание обсервера изменения состояния режима воспроизведения");
         soundtrackPlayerModel.getStateModeLiveData().observe(requireActivity(), stateMode -> {
-            //TODO
             if (stateMode == StateMode.LOOP) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_loop\"");
-                //buttonChangeStateMode.setBackground("drawable_loop");
+                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
             } else if (stateMode == StateMode.REPEAT) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_repeat\"");
-                //buttonChangeStateMode.setBackground("drawable_repeat");
-            } else {
+                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_repeat);
+            } else if (stateMode == StateMode.RANDOM){
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_random\"");
-                //buttonChangeStateMode.setBackground("drawable_random");
+                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_shake);
             }
         });
     }
@@ -121,18 +125,28 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         soundtrackPlayerModel.getPositionLiveData().observe(requireActivity(), position -> {
             List<Soundtrack> soundtrackList = soundtracksModel.getSoundtracks().getValue();
             Soundtrack soundtrack = soundtrackList.get(position);
-
             Log.d(TAG, "Изменение значений элементов UI");
             textSoundtrackTitle.setText(soundtrack.getTitle());
             textArtistTitle.setText(soundtrack.getArtist());
             textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
             slider.setValueTo(soundtrack.getDuration());
             slider.setValueFrom(0);
-
-            //soundtrackPlayerModel.playOrPause(position, soundtrackList);
-
         });
     }
+
+
+    private void createPlayingStateObserver(){
+        soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
+            if (aBoolean == true){
+                Log.d(TAG, "Начало воспроизведения");
+                buttonPlayOrPause.setBackgroundResource(R.drawable.ic_pause);
+            }else{
+                Log.d(TAG, "Остановка воспроизведения");
+                buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
+            }
+        });
+    }
+
 
     private void createDurationObserver() {
         Log.d(TAG, "Создание обсервера изменения текущего времени воспроизведения песни");
@@ -174,9 +188,14 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
     private void setListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
-        buttonPlayOrPause.setOnClickListener(view -> soundtrackPlayerModel.playOrPause(
-                soundtrackPlayerModel.getPositionLiveData().getValue(),
-                soundtracksModel.getSoundtracks().getValue()));
+        buttonPlayOrPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                soundtrackPlayerModel.playOrPause(
+                        soundtrackPlayerModel.getPositionLiveData().getValue(),
+                        soundtracksModel.getSoundtracks().getValue());
+            }
+        });
     }
 
     private void changeLabelFormat() {
