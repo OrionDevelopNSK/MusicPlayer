@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection serviceConnection;
     private MediaPlaybackService.MediaPlaybackServiceBinder playerServiceBinder;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,44 +61,45 @@ public class MainActivity extends AppCompatActivity {
         Button buttonDialog = findViewById(R.id.open_dialog);
         setDialogClickListener(buttonDialog);
 
-
-        callback = new MediaControllerCompat.Callback() {
-            @Override
-            public void onPlaybackStateChanged(PlaybackStateCompat state) {
-                if (state == null)
-                    return;
-                boolean playing = state.getState() == PlaybackStateCompat.STATE_PLAYING;
-//                playButton.setEnabled(!playing);
-//                pauseButton.setEnabled(playing);
-//                stopButton.setEnabled(playing);
-            }
-        };
-
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                playerServiceBinder = (MediaPlaybackService.MediaPlaybackServiceBinder) service;
-                try {
-                    mediaController = new MediaControllerCompat(MainActivity.this, playerServiceBinder.getMediaSessionToken());
-                    mediaController.registerCallback(callback);
-                    callback.onPlaybackStateChanged(mediaController.getPlaybackState());
-                }
-                catch (RemoteException e) {
-                    mediaController = null;
-                }
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                playerServiceBinder = null;
-                if (mediaController != null) {
-                    mediaController.unregisterCallback(callback);
-                    mediaController = null;
-                }
-            }
-        };
-
-        bindService(new Intent(this, MediaPlaybackService.class), serviceConnection, BIND_AUTO_CREATE);
+//        new NotificationPlayer(this);
+//
+//        callback = new MediaControllerCompat.Callback() {
+//            @Override
+//            public void onPlaybackStateChanged(PlaybackStateCompat state) {
+//                if (state == null)
+//                    return;
+//                boolean playing = state.getState() == PlaybackStateCompat.STATE_PLAYING;
+////                playButton.setEnabled(!playing);
+////                pauseButton.setEnabled(playing);
+////                stopButton.setEnabled(playing);
+//            }
+//        };
+//
+//        serviceConnection = new ServiceConnection() {
+//            @Override
+//            public void onServiceConnected(ComponentName name, IBinder service) {
+//                playerServiceBinder = (MediaPlaybackService.MediaPlaybackServiceBinder) service;
+//                try {
+//                    mediaController = new MediaControllerCompat(MainActivity.this, playerServiceBinder.getMediaSessionToken());
+//                    mediaController.registerCallback(callback);
+//                    callback.onPlaybackStateChanged(mediaController.getPlaybackState());
+//                }
+//                catch (RemoteException e) {
+//                    mediaController = null;
+//                }
+//            }
+//
+//            @Override
+//            public void onServiceDisconnected(ComponentName name) {
+//                playerServiceBinder = null;
+//                if (mediaController != null) {
+//                    mediaController.unregisterCallback(callback);
+//                    mediaController = null;
+//                }
+//            }
+//        };
+//
+//        bindService(new Intent(this, MediaPlaybackService.class), serviceConnection, BIND_AUTO_CREATE);
 
     }
 

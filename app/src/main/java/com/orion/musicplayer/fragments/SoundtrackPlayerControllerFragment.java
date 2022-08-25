@@ -1,6 +1,7 @@
 package com.orion.musicplayer.fragments;
 
-import android.os.AsyncTask;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -29,6 +29,8 @@ import java.util.List;
 
 public class SoundtrackPlayerControllerFragment extends Fragment {
     private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private final static String KEY_DATA = "currentSoundtrackTitle";
+    private static final String KEY_DURATION = "currentSoundtrackDuration";
 
     private boolean isTouch;
     private TextView textSoundtrackTitle;
@@ -43,6 +45,9 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private Button buttonChangeStateMode;
     private SoundtracksModel soundtracksModel;
     private SoundtrackPlayerModel soundtrackPlayerModel;
+    private SharedPreferences defaultsSharedPreferences;
+    private String soundTitle;
+    private int currentDuration;
 
     public static SoundtrackPlayerControllerFragment newInstance() {
         return new SoundtrackPlayerControllerFragment();
@@ -51,6 +56,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        load();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -88,6 +94,27 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         return currentView;
     }
 
+    public void defaultDescription() {
+        soundtracksModel.getIsLoaded().observe(requireActivity(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                List<Soundtrack> soundtracks = soundtracksModel.getSoundtracks().getValue();
+
+                int position = 0;
+                for (int i = 0; i < soundtracks.size(); i++) {
+                    if (soundtracks.get(i).getData().equals(soundTitle)){
+                        position = i;
+                        Log.d(TAG, "Найдена последняя воиспроизводимая песня");
+                        break;
+                    }
+                }
+                soundtrackPlayerModel.getPositionLiveData().setValue(position);
+                textCurrentDuration.setText("00:00");
+            }
+        });
+    }
+
+
     private void setListenerSliderTouch() {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
@@ -122,26 +149,11 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-
-    }
-
-    public void defaultDescription() {
-        soundtracksModel.getIsLoaded().observe(requireActivity(), new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                soundtrackPlayerModel.getPositionLiveData().setValue(0);
-            }
-        });
-    }
-
     private void createPositionObserver() {
         Log.d(TAG, "Создание обсервера изменения номера воспроизведения песни");
         soundtrackPlayerModel.getPositionLiveData().observe(requireActivity(), position -> {
             List<Soundtrack> soundtrackList = soundtracksModel.getSoundtracks().getValue();
+            if (soundtrackList.size() == 0) return;
             Soundtrack soundtrack = soundtrackList.get(position);
             Log.d(TAG, "Изменение значений элементов UI");
             textSoundtrackTitle.setText(soundtrack.getTitle());
@@ -151,7 +163,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             slider.setValueFrom(0);
         });
     }
-
 
     private void createPlayingStateObserver() {
         soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
@@ -164,7 +175,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             }
         });
     }
-
 
     private void createDurationObserver() {
         Log.d(TAG, "Создание обсервера изменения текущего времени воспроизведения песни");
@@ -183,7 +193,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
                 0,
                 soundtracksModel.getSoundtracks().getValue()));
     }
-
 
     private void setListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
@@ -206,18 +215,39 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
     private void setListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
-        buttonPlayOrPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                soundtrackPlayerModel.playOrPause(
-                        soundtrackPlayerModel.getPositionLiveData().getValue(),
-                        soundtracksModel.getSoundtracks().getValue());
-            }
-        });
+        buttonPlayOrPause.setOnClickListener(view -> soundtrackPlayerModel.playOrPause(
+                soundtrackPlayerModel.getPositionLiveData().getValue(),
+                soundtracksModel.getSoundtracks().getValue()));
     }
 
     private void changeLabelFormat() {
         Log.d(TAG, "Установка формата отображения времени на бейдже ползунка");
         slider.setLabelFormatter(value -> TimeConverter.toMinutesAndSeconds((int) value));
+    }
+
+    private void save(){
+        Log.d(TAG, "Сохранить состояние " + soundTitle);
+        defaultsSharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = defaultsSharedPreferences.edit();
+        currentDuration = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
+        soundTitle = soundtracksModel.getSoundtracks().getValue().get(soundtrackPlayerModel.getPositionLiveData().getValue()).getData();
+        editor.putString(KEY_DATA, soundTitle);
+        editor.putInt(KEY_DURATION, currentDuration);
+        editor.commit();
+    }
+
+    private void load(){
+        defaultsSharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        currentDuration = defaultsSharedPreferences.getInt(KEY_DURATION, 0);
+        soundTitle = defaultsSharedPreferences.getString(KEY_DATA, "");
+        Log.d(TAG, "Получить состояния " + soundTitle);
+    }
+
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        save();
     }
 }

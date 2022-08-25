@@ -83,8 +83,9 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
                     soundtrackPlayer.setVolume(.5f, .5f);
                     break;
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    Log.d(TAG, "Другое приложение закончило воспроизведение. Возврат фокуса");
+                    Log.d(TAG, "Другое приложение возвратило фокус");
                     soundtrackPlayer.setVolume(1, 1);
+                    playOrPause(currentPosition, countSoundtracks);
                     break;
             }
         });
@@ -97,7 +98,7 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
             isPlayingLiveData.setValue(isPlay);
 
             if (isPlay) audioPlayerFocus.gainAudioFocus();
-            else audioPlayerFocus.loseAudioFocus();
+//            else audioPlayerFocus.loseAudioFocus();
         });
     }
 
@@ -115,6 +116,7 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     }
 
     public void playOrPause(int position, List<Soundtrack> countSoundtracks) {
+        if (countSoundtracks.isEmpty()) return;
         Log.d(TAG, "Начало или пауза песни");
         this.countSoundtracks = countSoundtracks;
         this.currentPosition = position;
@@ -134,6 +136,8 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
 
 
     public void next(int position, List<Soundtrack> countSoundtracks) {
+        if (countSoundtracks.isEmpty()) return;
+
         if (reverseOrder.peek() != null) {
             Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", directOrder.size()));
             int pop = reverseOrder.pop();
@@ -160,6 +164,8 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     }
 
     public void previous(int position, List<Soundtrack> countSoundtracks) {
+        if (countSoundtracks.isEmpty()) return;
+
         if (directOrder.peek() != null) {
             Log.d(TAG, String.format("Получение порядкового номера песни из очереди. В очереди %d элементов", directOrder.size()));
             int pop = directOrder.pop();

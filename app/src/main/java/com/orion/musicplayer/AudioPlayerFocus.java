@@ -36,7 +36,7 @@ public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener
     public void gainAudioFocus(){
         Log.d(TAG, "Получение аудиофокуса");
         focusRequest = new AudioFocusRequest
-                .Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .Builder(AudioManager.AUDIOFOCUS_GAIN | AudioManager.STREAM_MUSIC)
                 .setOnAudioFocusChangeListener(this)
                 .build();
         audioManager.requestAudioFocus(focusRequest);
@@ -48,6 +48,9 @@ public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener
     public void onAudioFocusChange(int i) {
         Log.d(TAG, "Смена фокуса " + i);
         onAudioFocusChangeStateListener.onAudioFocusChangeState(i);
+
+
+
     }
 
 

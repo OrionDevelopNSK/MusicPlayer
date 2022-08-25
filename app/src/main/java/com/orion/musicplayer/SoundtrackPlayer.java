@@ -99,13 +99,10 @@ public class SoundtrackPlayer {
 
     private void start() {
         Log.d(TAG, "Регистрация обратного вызова готовности к воспроизведению");
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                Log.d(TAG, "Старт");
-                mp.start();
-                statusSoundtrackListener.onPlayingStatusSoundtrack(true);
-            }
+        mediaPlayer.setOnPreparedListener(mp -> {
+            Log.d(TAG, "Старт");
+            mp.start();
+            statusSoundtrackListener.onPlayingStatusSoundtrack(true);
         });
         Log.d(TAG, "Асинхронная подготовка проигрывателя к воспроизведению");
         mediaPlayer.prepareAsync();
