@@ -1,5 +1,6 @@
 package com.orion.musicplayer.fragments;
 
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -72,7 +73,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
         buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
         buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
-
         changeLabelFormat();
         setListenerSliderTouch();
         setListenerButtonToStart();
@@ -84,6 +84,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         createPositionObserver();
         createStateModeObserver();
         createPlayingStateObserver();
+        defaultDescription();
         return currentView;
     }
 
@@ -94,6 +95,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
                 Log.d(TAG, "Касание слайдера прокрутки");
                 isTouch = true;
             }
+
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
                 Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
@@ -113,9 +115,25 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             } else if (stateMode == StateMode.REPEAT) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_repeat\"");
                 buttonChangeStateMode.setBackgroundResource(R.drawable.ic_repeat);
-            } else if (stateMode == StateMode.RANDOM){
+            } else if (stateMode == StateMode.RANDOM) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_random\"");
                 buttonChangeStateMode.setBackgroundResource(R.drawable.ic_shake);
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+    }
+
+    public void defaultDescription() {
+        soundtracksModel.getIsLoaded().observe(requireActivity(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                soundtrackPlayerModel.getPositionLiveData().setValue(0);
             }
         });
     }
@@ -135,12 +153,12 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     }
 
 
-    private void createPlayingStateObserver(){
+    private void createPlayingStateObserver() {
         soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
-            if (aBoolean == true){
+            if (aBoolean == true) {
                 Log.d(TAG, "Начало воспроизведения");
                 buttonPlayOrPause.setBackgroundResource(R.drawable.ic_pause);
-            }else{
+            } else {
                 Log.d(TAG, "Остановка воспроизведения");
                 buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
             }

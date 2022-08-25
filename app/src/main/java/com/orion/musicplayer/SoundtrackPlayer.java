@@ -9,30 +9,22 @@ import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 import java.io.IOException;
 
 public class SoundtrackPlayer {
-
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
-
     public interface OnSoundtrackFinishedListener {
         void onSoundtrackFinish();
     }
+
 
     public interface OnPlayingStatusSoundtrackListener {
         void onPlayingStatusSoundtrack(boolean isPlay);
     }
 
 
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+
     private final MediaPlayer mediaPlayer = new MediaPlayer();
     private Soundtrack currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
     private OnPlayingStatusSoundtrackListener statusSoundtrackListener;
-
-    public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener){
-        this.onSoundtrackFinishedListener = onSoundtrackFinishedListener;
-    }
-
-    public void setOnPlayingStatusSoundtrackListener(OnPlayingStatusSoundtrackListener statusSoundtrackListener){
-        this.statusSoundtrackListener = statusSoundtrackListener;
-    }
 
     public SoundtrackPlayer() {
         Log.d(TAG, "Установка слушателя на событие окончания песни");
@@ -46,18 +38,32 @@ public class SoundtrackPlayer {
             mediaPlayer.seekTo(0);
             onSoundtrackFinishedListener.onSoundtrackFinish();
         });
+
     }
 
-    public boolean isPlaying(){
-        return mediaPlayer.isPlaying();
+    public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener){
+        this.onSoundtrackFinishedListener = onSoundtrackFinishedListener;
     }
 
+    public void setOnPlayingStatusSoundtrackListener(OnPlayingStatusSoundtrackListener statusSoundtrackListener){
+        this.statusSoundtrackListener = statusSoundtrackListener;
+    }
+
+    public void setCurrentDuration(int position){
+        mediaPlayer.seekTo(position);
+    }
+
+    public void setVolume(float leftVolume, float rightVolume ){
+        mediaPlayer.setVolume(leftVolume, rightVolume);
+    }
+
+    public long getCurrentTime(){
+        return mediaPlayer.getCurrentPosition();
+    }
 
     public void playOrPause(Soundtrack soundtrack) {
-
         if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
             if (mediaPlayer.isPlaying()) {
-                Log.d(TAG, "Пауза");
                 pause();
             }
             else {
@@ -75,28 +81,21 @@ public class SoundtrackPlayer {
     }
 
 
-    private void pause() {
+    public void pause() {
         if (mediaPlayer.isPlaying()) {
+            Log.d(TAG, "Пауза");
             mediaPlayer.pause();
             statusSoundtrackListener.onPlayingStatusSoundtrack(false);
         }
     }
 
-    private void stop() {
+    public void stop() {
         if (mediaPlayer.isPlaying()) {
+            Log.d(TAG, "Стоп");
             mediaPlayer.stop();
             statusSoundtrackListener.onPlayingStatusSoundtrack(false);
         }
     }
-
-    public long getCurrentTime(){
-        return mediaPlayer.getCurrentPosition();
-    }
-
-    public void setCurrentDuration(int position){
-        mediaPlayer.seekTo(position);
-    }
-
 
     private void start() {
         Log.d(TAG, "Регистрация обратного вызова готовности к воспроизведению");

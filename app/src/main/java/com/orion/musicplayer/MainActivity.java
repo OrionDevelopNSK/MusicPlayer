@@ -1,10 +1,21 @@
 package com.orion.musicplayer;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -27,8 +38,16 @@ import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
 import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+
+
+    private MediaControllerCompat mediaController;
+    private MediaControllerCompat.Callback callback;
+    private ServiceConnection serviceConnection;
+    private MediaPlaybackService.MediaPlaybackServiceBinder playerServiceBinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +57,47 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
         addFragmentControlPanel();
         Button buttonDialog = findViewById(R.id.open_dialog);
-
         setDialogClickListener(buttonDialog);
+
+
+        callback = new MediaControllerCompat.Callback() {
+            @Override
+            public void onPlaybackStateChanged(PlaybackStateCompat state) {
+                if (state == null)
+                    return;
+                boolean playing = state.getState() == PlaybackStateCompat.STATE_PLAYING;
+//                playButton.setEnabled(!playing);
+//                pauseButton.setEnabled(playing);
+//                stopButton.setEnabled(playing);
+            }
+        };
+
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                playerServiceBinder = (MediaPlaybackService.MediaPlaybackServiceBinder) service;
+                try {
+                    mediaController = new MediaControllerCompat(MainActivity.this, playerServiceBinder.getMediaSessionToken());
+                    mediaController.registerCallback(callback);
+                    callback.onPlaybackStateChanged(mediaController.getPlaybackState());
+                }
+                catch (RemoteException e) {
+                    mediaController = null;
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                playerServiceBinder = null;
+                if (mediaController != null) {
+                    mediaController.unregisterCallback(callback);
+                    mediaController = null;
+                }
+            }
+        };
+
+        bindService(new Intent(this, MediaPlaybackService.class), serviceConnection, BIND_AUTO_CREATE);
+
     }
 
     private void setDialogClickListener(Button buttonDialog) {
@@ -181,6 +239,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "Уничтожение активити");
         super.onDestroy();
+        playerServiceBinder = null;
+        if (mediaController != null) {
+            mediaController.unregisterCallback(callback);
+            mediaController = null;
+        }
+        unbindService(serviceConnection);
 
     }
+
+
+
 }

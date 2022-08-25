@@ -3,6 +3,7 @@ package com.orion.musicplayer.viewmodels;
 import static android.os.Looper.getMainLooper;
 
 import android.app.Application;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
@@ -11,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.orion.musicplayer.AudioPlayerFocus;
 import com.orion.musicplayer.SoundtrackPlayer;
 import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.database.AppDatabase;
@@ -32,12 +34,12 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     private final MutableLiveData<Integer> positionLiveData = new MutableLiveData<>();
 
     private final SoundtrackPlayer soundtrackPlayer = new SoundtrackPlayer();
+    private final AudioPlayerFocus audioPlayerFocus = new AudioPlayerFocus(getApplication());
     private List<Soundtrack> countSoundtracks;
-    private Deque<Integer> directOrder;
-    private Deque<Integer> reverseOrder;
+    private final Deque<Integer> directOrder;
+    private final Deque<Integer> reverseOrder;
     private int currentPosition = -1;
     private StateMode stateMode = StateMode.LOOP;
-    private boolean isPlaying;
 
     public MutableLiveData<StateMode> getStateModeLiveData() {
         return stateModeLiveData;
@@ -59,12 +61,43 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         super(application);
         setSoundtrackFinishListener();
         setPlayingStatusSoundtrackListener();
+        directOrder = new ArrayDeque<>();
+        reverseOrder = new ArrayDeque<>();
+        setAudioFocusChangeStateListener();
+    }
+
+    private void setAudioFocusChangeStateListener() {
+        Log.d(TAG, "Установка слушателя состояния аудиофокуса");
+        audioPlayerFocus.setOnAudioFocusChangeStateListener(eventCode -> {
+            switch (eventCode) {
+                case AudioManager.AUDIOFOCUS_LOSS:
+                    Log.d(TAG, "Фокус потерян. Запрос на долгое воспроизведение. Приостановка воспроизведения");
+                    soundtrackPlayer.pause();
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                    Log.d(TAG, "Фокус потерян. Запрос на короткое воспроизведение. Приостановка воспроизведения");
+                    soundtrackPlayer.pause();
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    Log.d(TAG, "Фокус потерян. Запрос на короткое воспроизведение. Приглушение воспроизведения");
+                    soundtrackPlayer.setVolume(.5f, .5f);
+                    break;
+                case AudioManager.AUDIOFOCUS_GAIN:
+                    Log.d(TAG, "Другое приложение закончило воспроизведение. Возврат фокуса");
+                    soundtrackPlayer.setVolume(1, 1);
+                    break;
+            }
+        });
     }
 
     private void setPlayingStatusSoundtrackListener() {
         Log.d(TAG, "Установка слушателя начала воспроизведения");
         soundtrackPlayer.setOnPlayingStatusSoundtrackListener(isPlay -> {
+
             isPlayingLiveData.setValue(isPlay);
+
+            if (isPlay) audioPlayerFocus.gainAudioFocus();
+            else audioPlayerFocus.loseAudioFocus();
         });
     }
 
@@ -98,6 +131,7 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
             handler.postDelayed(this, 1000);
         }
     };
+
 
     public void next(int position, List<Soundtrack> countSoundtracks) {
         if (reverseOrder.peek() != null) {
@@ -155,8 +189,6 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         switch (stateMode) {
             case LOOP:
                 stateMode = StateMode.RANDOM;
-                directOrder = new ArrayDeque<>();
-                reverseOrder = new ArrayDeque<>();
                 break;
             case RANDOM:
                 stateMode = StateMode.REPEAT;
@@ -202,5 +234,9 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         });
     }
 
-
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        audioPlayerFocus.loseAudioFocus();
+    }
 }

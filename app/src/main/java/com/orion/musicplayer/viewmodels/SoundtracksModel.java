@@ -23,6 +23,8 @@ public class SoundtracksModel extends AndroidViewModel {
     private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
     private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoaded = new MutableLiveData<>();
+
     private AppDatabase database;
 
     public SoundtracksModel(@NonNull Application application) {
@@ -32,6 +34,10 @@ public class SoundtracksModel extends AndroidViewModel {
 
     public LiveData<List<Soundtrack>> getSoundtracks() {
         return soundtracksLiveData;
+    }
+
+    public MutableLiveData<Boolean> getIsLoaded() {
+        return isLoaded;
     }
 
     public void execute() {
@@ -48,6 +54,7 @@ public class SoundtracksModel extends AndroidViewModel {
             List<SoundtrackDbEntity> all = soundtrackDao.getAll();
             deleteNotValidDataFromDatabase(roomSoundtrackRepository, all);
             soundtracksLiveData.postValue(roomSoundtrackRepository.getAll());
+            isLoaded.postValue(true);
         });
     }
 

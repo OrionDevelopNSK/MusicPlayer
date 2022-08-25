@@ -110,7 +110,7 @@
         <LinearLayout
             android:id="@+id/linearLayout3"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="60dp"
             android:gravity="center_horizontal"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -119,8 +119,8 @@
 
             <Button
                 android:id="@+id/button_to_start"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="@drawable/ic_previous"
                 android:layout_marginHorizontal="8dp" />
 
@@ -133,8 +133,8 @@
 
             <Button
                 android:id="@+id/button_play_pause"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
@@ -147,8 +147,8 @@
 
             <Button
                 android:id="@+id/button_change_state_mode"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
