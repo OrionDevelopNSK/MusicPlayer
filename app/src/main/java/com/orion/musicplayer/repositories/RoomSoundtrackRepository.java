@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RoomSoundtrackRepository{
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private static final String TAG = RoomSoundtrackRepository.class.getSimpleName();
 
     private final SoundtrackDao soundtrackDao;
 

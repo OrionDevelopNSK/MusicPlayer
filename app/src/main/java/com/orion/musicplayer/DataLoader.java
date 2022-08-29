@@ -1,15 +1,9 @@
-package com.orion.musicplayer.viewmodels;
+package com.orion.musicplayer;
 
 import android.app.Application;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-
-import com.orion.musicplayer.AudioReader;
 import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.database.AppDatabase;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
@@ -19,32 +13,50 @@ import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
 import java.io.File;
 import java.util.List;
 
-public class SoundtracksModel extends AndroidViewModel {
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+public class DataLoader {
 
-    private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> isLoaded = new MutableLiveData<>();
+    interface OnDatabaseLoadListener {
+        void onDatabaseLoad(List<Soundtrack> soundtracks);
+    }
+
+    interface OnDatabaseLoadCompleteListener {
+        void onDatabaseLoadComplete();
+    }
+
+    interface OnDatabaseChangeListener {
+        void onDatabaseChange(List<Soundtrack> soundtracks);
+    }
+
+
+    private static final String TAG = DataLoader.class.getSimpleName();
 
     private AppDatabase database;
+    private final Application application;
+    private OnDatabaseLoadListener onDatabaseLoadListener;
+    private OnDatabaseLoadCompleteListener onDatabaseLoadCompleteListener;
+    private OnDatabaseChangeListener onDatabaseChangeListener;
+    private List<Soundtrack> soundtracksFromRepo;
 
-    public SoundtracksModel(@NonNull Application application) {
-        super(application);
-        execute();
+    public DataLoader(Application application) {
+        this.application = application;
     }
 
-    public LiveData<List<Soundtrack>> getSoundtracks() {
-        return soundtracksLiveData;
+    public void setOnDatabaseLoadListener(OnDatabaseLoadListener onDatabaseLoadListener) {
+        this.onDatabaseLoadListener = onDatabaseLoadListener;
     }
 
-    public MutableLiveData<Boolean> getIsLoaded() {
-        return isLoaded;
+    public void setOnDatabaseLoadCompleteListener(OnDatabaseLoadCompleteListener onDatabaseLoadCompleteListener) {
+        this.onDatabaseLoadCompleteListener = onDatabaseLoadCompleteListener;
+    }
+
+    public void setOnDatabaseChangeListener(OnDatabaseChangeListener onDatabaseChangeListener) {
+        this.onDatabaseChangeListener = onDatabaseChangeListener;
     }
 
     public void execute() {
         Log.d(TAG, "Манипуляции с базой данных");
-        AudioReader audioReader = new AudioReader(getApplication());
-        database = AppDatabase.getDatabase(getApplication());
-
+        AudioReader audioReader = new AudioReader(application);
+        database = AppDatabase.getDatabase(application);
 
         AsyncTask.execute(() -> {
             SoundtrackDao soundtrackDao = database.soundtrackDao();
@@ -54,8 +66,9 @@ public class SoundtracksModel extends AndroidViewModel {
             Log.d(TAG, "Получение всех сущностей из базы данных");
             List<SoundtrackDbEntity> all = soundtrackDao.getAll();
             deleteNotValidDataFromDatabase(roomSoundtrackRepository, all);
-            soundtracksLiveData.postValue(roomSoundtrackRepository.getAll());
-            isLoaded.postValue(true);
+            soundtracksFromRepo = roomSoundtrackRepository.getAll();
+            onDatabaseLoadListener.onDatabaseLoad(soundtracksFromRepo);
+            onDatabaseLoadCompleteListener.onDatabaseLoadComplete();
         });
     }
 
@@ -70,9 +83,7 @@ public class SoundtracksModel extends AndroidViewModel {
         }
     }
 
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        //database.close();
+    public List<Soundtrack> getSoundtracksFromRepo() {
+        return soundtracksFromRepo;
     }
 }

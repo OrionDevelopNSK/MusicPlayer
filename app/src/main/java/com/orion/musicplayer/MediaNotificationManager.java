@@ -26,12 +26,10 @@ import androidx.core.content.ContextCompat;
  * required so that the music service don't get killed during playback.
  */
 public class MediaNotificationManager {
-
-    public static final int NOTIFICATION_ID = 412;
-
     private static final String TAG = MediaNotificationManager.class.getSimpleName();
     private static final String CHANNEL_ID = "com.example.android.musicplayer.channel";
     private static final int REQUEST_CODE = 501;
+    public static final int NOTIFICATION_ID = 412;
 
     private final MediaSessionService service;
 

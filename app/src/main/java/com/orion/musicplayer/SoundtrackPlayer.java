@@ -17,14 +17,12 @@ public class SoundtrackPlayer {
         void onPlayingStatusSoundtrack(boolean isPlay);
     }
 
-    private static volatile SoundtrackPlayer soundtrackPlayer;
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
     private Soundtrack currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
     private OnPlayingStatusSoundtrackListener statusSoundtrackListener;
-
     private MediaPlayer mediaPlayer;
 
     public SoundtrackPlayer() {

@@ -1,28 +1,26 @@
 package com.orion.musicplayer.utils;
 
+import android.app.Activity;
 import android.database.ContentObserver;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.ViewModelProvider;
-
+import com.orion.musicplayer.MediaSessionService;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
-import com.orion.musicplayer.viewmodels.SoundtracksModel;
 
 public class MediaScannerObserver extends ContentObserver {
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private static final String TAG = MediaScannerObserver.class.getSimpleName();
 
-    private final FragmentActivity fragmentActivity;
+    private final MediaSessionService mediaSessionService;
 
-    public MediaScannerObserver(Handler handler, FragmentActivity fragmentActivity) {
+    public MediaScannerObserver(Handler handler, Activity activity, MediaSessionService mediaSessionService) {
         super(handler);
-        this.fragmentActivity = fragmentActivity;
+        this.mediaSessionService = mediaSessionService;
 
         Log.d(TAG, "Регистрация обсервера хранилища мультимедиа");
-        fragmentActivity.getContentResolver().registerContentObserver(
+        activity.getContentResolver().registerContentObserver(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 true, this
         );
@@ -32,8 +30,7 @@ public class MediaScannerObserver extends ContentObserver {
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
         Log.d(TAG, "Изменение хранилища аудиофайлов");
-        SoundtracksModel soundtracksModel = new ViewModelProvider(fragmentActivity).get(SoundtracksModel.class);
-        AsyncTask.execute(()-> soundtracksModel.execute());
+        AsyncTask.execute(()-> mediaSessionService.getDataLoader().execute());
     }
 
 

@@ -5,7 +5,6 @@ import com.orion.musicplayer.entities.SoundtrackDbEntity;
 import java.util.Objects;
 
 public class Soundtrack {
-
     private String data;
     private long id;
     private String title;

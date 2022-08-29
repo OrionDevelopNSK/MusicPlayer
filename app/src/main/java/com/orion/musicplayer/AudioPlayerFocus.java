@@ -13,8 +13,7 @@ public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener
         void  onAudioFocusChangeState(int eventCode);
     }
 
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
-
+    private static final String TAG = AudioPlayerFocus.class.getSimpleName();
 
     private OnAudioFocusChangeStateListener onAudioFocusChangeStateListener;
     private AudioManager audioManager;
@@ -42,16 +41,9 @@ public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener
         audioManager.requestAudioFocus(focusRequest);
     }
 
-
-
     @Override
     public void onAudioFocusChange(int i) {
         Log.d(TAG, "Смена фокуса " + i);
         onAudioFocusChangeStateListener.onAudioFocusChangeState(i);
-
-
-
     }
-
-
 }

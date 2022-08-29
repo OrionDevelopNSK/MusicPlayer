@@ -15,23 +15,11 @@ import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 
+import com.orion.musicplayer.models.Soundtrack;
+
+import java.util.List;
+
 public class MediaSessionService extends Service {
-
-    interface OnStartClickListener {
-        void onStartClick();
-    }
-
-    interface OnPauseClickListener {
-        void onPauseClick();
-    }
-
-    interface OnNextClickListener {
-        void onNextClick();
-    }
-
-    interface OnPreviousClickListener {
-        void onPreviousClick();
-    }
 
     private static final String TAG = MediaSessionService.class.getSimpleName();
     public static final int NOTIFICATION_ID = 888;
@@ -39,31 +27,24 @@ public class MediaSessionService extends Service {
     private MediaNotificationManager mediaNotificationManager;
     private MediaSessionCompat mediaSession;
     private BinderService binderService = new BinderService();
+    private SoundsController soundsController;
+    private DataLoader dataLoader;
 
-    private OnStartClickListener onStartClickListener;
-    private OnPauseClickListener onPauseClickListener;
-    private OnNextClickListener onNextClickListener;
-    private OnPreviousClickListener onPreviousClickListener;
 
-    public void setOnStartClickListener(OnStartClickListener onStartClickListener) {
-        this.onStartClickListener = onStartClickListener;
+    public SoundsController getSoundsController() {
+        return soundsController;
     }
 
-    public void setOnPauseClickListener(OnPauseClickListener onPauseClickListener) {
-        this.onPauseClickListener = onPauseClickListener;
+    public DataLoader getDataLoader() {
+        return dataLoader;
     }
 
-    public void setOnNextClickListener(OnNextClickListener onNextClickListener) {
-        this.onNextClickListener = onNextClickListener;
-    }
-
-    public void setOnPreviousClickListener(OnPreviousClickListener onPreviousClickListener) {
-        this.onPreviousClickListener = onPreviousClickListener;
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        soundsController = new SoundsController(getApplication());
+        dataLoader = new DataLoader(getApplication());
         mediaNotificationManager = new MediaNotificationManager(this);
         mediaSession = new MediaSessionCompat(this, "PlayerService", null,
                 PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_IMMUTABLE));
@@ -73,7 +54,7 @@ public class MediaSessionService extends Service {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
 
             public boolean onMediaButtonEvent(Intent mediaButtonIntent) {
-                System.out.println("onMediaButtonEvent called: ****************************************************** " + mediaButtonIntent);
+                System.out.println("onMediaButtonEvent called: ********************77777777777777777777777********************* " + mediaButtonIntent);
                 return false;
             }
 
@@ -106,6 +87,7 @@ public class MediaSessionService extends Service {
         });
 
         mediaSession.setActive(true);
+        dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
         startForeground(NOTIFICATION_ID, notification);
     }
 
@@ -146,19 +128,19 @@ public class MediaSessionService extends Service {
             switch (keyEvent.getKeyCode()) {
                 case KeyEvent.KEYCODE_MEDIA_PAUSE:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PAUSE");
-                    onPauseClickListener.onPauseClick();
+                    soundsController.playOrPause();
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PLAY:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PLAY");
-                    onStartClickListener.onStartClick();
+                    soundsController.playOrPause();
                     break;
                 case KeyEvent.KEYCODE_MEDIA_NEXT:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_NEXT");
-                    onNextClickListener.onNextClick();
+                    soundsController.next();
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PREVIOUS");
-                    onPreviousClickListener.onPreviousClick();
+                    soundsController.previous();
                     break;
             }
         }
@@ -193,7 +175,11 @@ public class MediaSessionService extends Service {
 
     @Override
     public void onDestroy() {
+        soundsController.loseAudioFocusAndStopPlayer();
         Log.d(TAG, "Уничтожение службы");
         super.onDestroy();
     }
+
+
+
 }

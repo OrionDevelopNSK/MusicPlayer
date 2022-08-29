@@ -7,7 +7,9 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
@@ -17,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -26,17 +29,20 @@ import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
 import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
 import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
+import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.utils.Action;
+import com.orion.musicplayer.utils.MediaScannerObserver;
+import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
-import com.orion.musicplayer.viewmodels.SoundtracksModel;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private MediaSessionService mediaSessionService;
     private ServiceConnection serviceConnection;
-    private SoundtracksModel soundtracksModel;
     private SoundtrackPlayerModel soundtrackPlayerModel;
-    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         addFragmentControlPanel();
         Button buttonDialog = findViewById(R.id.open_dialog);
         setDialogClickListener(buttonDialog);
-        soundtracksModel = new ViewModelProvider(this).get(SoundtracksModel.class);
         soundtrackPlayerModel = new ViewModelProvider(this).get(SoundtrackPlayerModel.class);
         createServiceConnection();
         Intent intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
@@ -61,7 +66,11 @@ public class MainActivity extends AppCompatActivity {
             public void onServiceConnected(ComponentName componentName, IBinder binder) {
                 Log.d(TAG, "Подключение сервиса");
                 mediaSessionService = ((MediaSessionService.BinderService) binder).getService();
-                setButtonsNotificationClickListeners();
+                setDatabaseLoadListeners();
+                mediaSessionService.getDataLoader().execute();
+                setSoundsControllerListeners();
+                createMediaScannerObserver();
+                createActions();
             }
 
             @Override
@@ -71,30 +80,60 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    private void setButtonsNotificationClickListeners() {
-        mediaSessionService.setOnStartClickListener(() -> {
-            Log.d(TAG, "Нажата кнопка в уведомлении: Start");
-            soundtrackPlayerModel.playOrPause();
+    private void createMediaScannerObserver() {
+        @SuppressWarnings("unused")
+        MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
+                new Handler(Looper.getMainLooper()),
+                this, mediaSessionService);;
+    }
+
+    private void setSoundsControllerListeners() {
+        SoundsController soundsController = mediaSessionService.getSoundsController();
+        soundsController.setOnChangeStateModeListener(new SoundsController.OnChangeStateModeListener() {
+            @Override
+            public void onChangeStateMode(StateMode stateMode) {
+                soundtrackPlayerModel.getStateModeLiveData().setValue(stateMode);
+            }
         });
 
-        mediaSessionService.setOnPauseClickListener(() -> {
-            Log.d(TAG, "Нажата кнопка в уведомлении: Pause");
-
-            soundtrackPlayerModel.playOrPause();
-
+        soundsController.setOnCurrentDurationListener(new SoundsController.OnCurrentDurationListener() {
+            @Override
+            public void onCurrentDuration(int duration) {
+                soundtrackPlayerModel.getCurrentDurationLiveData().setValue(duration);
+            }
         });
 
-        mediaSessionService.setOnNextClickListener(() -> {
-            Log.d(TAG, "Нажата кнопка в уведомлении: Next");
-            soundtrackPlayerModel.next();
+        soundsController.setOnCurrentPositionListener(new SoundsController.OnCurrentPositionListener() {
+            @Override
+            public void onCurrentPosition(int position) {
+                soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
+            }
         });
 
-        mediaSessionService.setOnPreviousClickListener(() -> {
-            Log.d(TAG, "Нажата кнопка в уведомлении: Previous");
-            soundtrackPlayerModel.previous();
+        soundsController.setOnPlayingStatusListener(new SoundsController.OnPlayingStatusListener() {
+            @Override
+            public void onPlayingStatus(boolean isPlay) {
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(isPlay);
+            }
         });
     }
 
+    private void setDatabaseLoadListeners() {
+        DataLoader dataLoader = mediaSessionService.getDataLoader();
+        dataLoader.setOnDatabaseLoadCompleteListener(new DataLoader.OnDatabaseLoadCompleteListener() {
+            @Override
+            public void onDatabaseLoadComplete() {
+                soundtrackPlayerModel.getIsLoaded().postValue(true);
+            }
+        });
+
+        dataLoader.setOnDatabaseLoadListener(new DataLoader.OnDatabaseLoadListener() {
+            @Override
+            public void onDatabaseLoad(List<Soundtrack> soundtracks) {
+                soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks);
+            }
+        });
+    }
 
     private void setDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
@@ -148,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void createTabs() {
+    private void createTabs() {
         MusicStateAdapter musicStateAdapter = new MusicStateAdapter(this);
         TabLayout tabLayout = findViewById(R.id.tab_layout_media);
         ViewPager2 viewPager = findViewById(R.id.pager);
@@ -227,6 +266,44 @@ public class MainActivity extends AppCompatActivity {
         ).attach();
     }
 
+    private void createActions(){
+        Log.d(TAG, "Создание обсервера нажатия кнопок плеера");
+        soundtrackPlayerModel.getPlayerAction().observe(this, new Observer<Action>() {
+            @Override
+            public void onChanged(Action action) {
+                switch (action) {
+                    case PLAY_OR_PAUSE:
+                        mediaSessionService.getSoundsController().playOrPause(
+                                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                        break;
+                    case PREVIOUS:
+                        mediaSessionService.getSoundsController().previous(
+                                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                        break;
+                    case NEXT:
+                        mediaSessionService.getSoundsController().next(
+                                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                        break;
+                    case SWITCH_MODE:
+                        mediaSessionService.getSoundsController().switchMode();
+                        break;
+                    case TO_START:
+                        mediaSessionService.getSoundsController().playOrPause(
+                                0,
+                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                        break;
+                    case SLIDER_MANIPULATE:
+                        mediaSessionService.getSoundsController().setCurrentDuration(
+                                soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
+                        break;
+                }
+                Log.d(TAG, "Выбрано действие: " + action);
+            }
+        });
+    }
 
     @Override
     protected void onDestroy() {
