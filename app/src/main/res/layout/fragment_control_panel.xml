@@ -120,14 +120,14 @@
                 android:id="@+id/button_to_start"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@drawable/ic_previous"
+                android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
             <Button
                 android:id="@+id/button_previous"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:background="@drawable/ic_previous"
+                android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
             <Button
@@ -141,7 +141,7 @@
                 android:id="@+id/button_next"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:background="@drawable/ic_next"
+                android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp" />
 
             <Button

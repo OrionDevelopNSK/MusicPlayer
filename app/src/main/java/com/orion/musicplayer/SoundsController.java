@@ -67,6 +67,10 @@ public class SoundsController {
         reverseOrder = new ArrayDeque<>();
     }
 
+    public void setCurrentPosition(int currentPosition) {
+        this.currentPosition = currentPosition;
+    }
+
     public void setSoundtracks(List<Soundtrack> soundtracks) {
         this.soundtracks = soundtracks;
     }
@@ -152,7 +156,7 @@ public class SoundsController {
     }
 
     public void playOrPause(int position, List<Soundtrack> soundtracks) {
-        if (soundtracks.isEmpty()) return;
+        if (soundtracks != null && soundtracks.isEmpty()) return;
         Log.d(TAG, "Начало или пауза песни " + position);
         this.soundtracks = soundtracks;
         this.currentPosition = position;

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AudioReader {
-    private static final String TAG = AudioReader.class.getSimpleName();
+    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
     private final Context context;
 

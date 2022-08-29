@@ -7,8 +7,7 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.orion.musicplayer.MediaSessionService;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.services.MediaSessionService;
 
 public class MediaScannerObserver extends ContentObserver {
     private static final String TAG = MediaScannerObserver.class.getSimpleName();

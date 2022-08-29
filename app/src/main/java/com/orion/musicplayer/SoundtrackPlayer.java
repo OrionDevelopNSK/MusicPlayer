@@ -47,8 +47,6 @@ public class SoundtrackPlayer {
 
     }
 
-
-
     public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener) {
         this.onSoundtrackFinishedListener = onSoundtrackFinishedListener;
     }

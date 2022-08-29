@@ -30,7 +30,7 @@
         </activity>
 
         <service
-            android:name=".MediaSessionService"
+            android:name=".services.MediaSessionService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

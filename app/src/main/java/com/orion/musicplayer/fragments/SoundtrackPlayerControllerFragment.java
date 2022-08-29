@@ -15,6 +15,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.slider.Slider;
@@ -29,8 +30,7 @@ import java.util.List;
 
 public class SoundtrackPlayerControllerFragment extends Fragment {
     private final static String TAG = SoundtrackPlayerControllerFragment.class.getSimpleName();
-    private final static String KEY_DATA = "currentSoundtrackTitle";
-    private final static String KEY_DURATION = "currentSoundtrackDuration";
+
 
     private boolean isTouch;
     private TextView textSoundtrackTitle;
@@ -44,7 +44,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private Button buttonNext;
     private Button buttonChangeStateMode;
     private SoundtrackPlayerModel soundtrackPlayerModel;
-    private SharedPreferences defaultsSharedPreferences;
     private String soundTitle;
     private int currentDuration;
 
@@ -55,7 +54,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        load();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -75,8 +73,14 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         buttonNext = currentView.findViewById(R.id.button_next);
         buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
+
         buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
         buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
+        buttonToStart.setBackgroundResource(R.drawable.ic_play);
+        buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
+        buttonNext.setBackgroundResource(R.drawable.ic_next);
+
+
         changeLabelFormat();
         setListenerSliderTouch();
         setListenerButtonToStart();
@@ -88,26 +92,12 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         createPositionObserver();
         createStateModeObserver();
         createPlayingStateObserver();
-        defaultDescription();
+        createDataValidateObserver();
         return currentView;
     }
 
-    public void defaultDescription() {
-        soundtrackPlayerModel.getIsLoaded().observe(requireActivity(), aBoolean -> {
-            List<Soundtrack> soundtracks = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
-            if (soundtracks.size() == 0) return;
-            int position = 0;
-            for (int i = 0; i < soundtracks.size(); i++) {
-                if (soundtracks.get(i).getData().equals(soundTitle)) {
-                    position = i;
-                    Log.d(TAG, "Найдена последняя воиспроизводимая песня");
-                    break;
-                }
-            }
-            soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            textCurrentDuration.setText("00:00");
-        });
-    }
+    //TODO
+
 
 
     private void setListenerSliderTouch() {
@@ -183,6 +173,31 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         });
     }
 
+    private void createDataValidateObserver() {
+        soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
+            if (soundtracks.isEmpty()) {
+                Log.d(TAG, "Список пуст");
+                slider.setEnabled(false);
+                buttonToStart.setEnabled(false);
+                buttonPlayOrPause.setEnabled(false);
+                buttonPrevious.setEnabled(false);
+                buttonNext.setEnabled(false);
+                buttonChangeStateMode.setEnabled(false);
+                textCurrentDuration.setText("");
+            } else {
+                Log.d(TAG, "Список не пуст");
+                textCurrentDuration.setText("00:00");
+                if (buttonToStart.isEnabled() == true) return;
+                slider.setEnabled(true);
+                buttonToStart.setEnabled(true);
+                buttonPlayOrPause.setEnabled(true);
+                buttonPrevious.setEnabled(true);
+                buttonNext.setEnabled(true);
+                buttonChangeStateMode.setEnabled(true);
+            }
+        });
+    }
+
 
 
     private void setListenerButtonToStart() {
@@ -216,29 +231,11 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     }
 
 
-    @SuppressLint("ApplySharedPref")
-    private void save() {
-        Log.d(TAG, "Сохранить состояние " + soundTitle);
-        defaultsSharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = defaultsSharedPreferences.edit();
-        currentDuration = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
-        soundTitle = soundtrackPlayerModel.getSoundtracksLiveData().getValue().get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue()).getData();
-        editor.putString(KEY_DATA, soundTitle);
-        editor.putInt(KEY_DURATION, currentDuration);
-        editor.commit();
-    }
 
-    private void load() {
-        defaultsSharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
-        currentDuration = defaultsSharedPreferences.getInt(KEY_DURATION, 0);
-        soundTitle = defaultsSharedPreferences.getString(KEY_DATA, "");
-        Log.d(TAG, "Получить состояния " + soundTitle);
-    }
 
     @Override
     public void onStop() {
         super.onStop();
-        save();
     }
 
 

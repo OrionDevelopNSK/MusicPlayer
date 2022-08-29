@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
-            android:id="@+id/sortedImageButton"
+            android:id="@+id/sorted_soundtrack"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="20dp"
@@ -45,7 +45,7 @@
             app:errorEnabled="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/open_dialog"
-            app:layout_constraintStart_toEndOf="@+id/sortedImageButton"
+            app:layout_constraintStart_toEndOf="@+id/sorted_soundtrack"
             app:layout_constraintTop_toTopOf="parent"
             app:startIconDrawable="@drawable/ic_search_24px"
             tools:ignore="MissingConstraints">

@@ -1,4 +1,4 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.services;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -15,6 +15,10 @@ import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 
+import com.orion.musicplayer.DataLoader;
+import com.orion.musicplayer.MainActivity;
+import com.orion.musicplayer.MediaNotificationManager;
+import com.orion.musicplayer.SoundsController;
 import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.List;
@@ -30,7 +34,6 @@ public class MediaSessionService extends Service {
     private SoundsController soundsController;
     private DataLoader dataLoader;
 
-
     public SoundsController getSoundsController() {
         return soundsController;
     }
@@ -39,12 +42,13 @@ public class MediaSessionService extends Service {
         return dataLoader;
     }
 
-
     @Override
     public void onCreate() {
+        Log.e(TAG, "Создание сервиса");
         super.onCreate();
-        soundsController = new SoundsController(getApplication());
         dataLoader = new DataLoader(getApplication());
+        soundsController = new SoundsController(getApplication());
+        dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
         mediaNotificationManager = new MediaNotificationManager(this);
         mediaSession = new MediaSessionCompat(this, "PlayerService", null,
                 PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_IMMUTABLE));
@@ -87,7 +91,6 @@ public class MediaSessionService extends Service {
         });
 
         mediaSession.setActive(true);
-        dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
         startForeground(NOTIFICATION_ID, notification);
     }
 
@@ -122,7 +125,6 @@ public class MediaSessionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
             KeyEvent keyEvent = (KeyEvent) intent.getExtras().get(Intent.EXTRA_KEY_EVENT);
             switch (keyEvent.getKeyCode()) {
@@ -157,18 +159,18 @@ public class MediaSessionService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "Событие отвязки от сервиса");
-        stopForeground(true);
+//        stopForeground(true);
         return true;
     }
 
     @Override
     public void onRebind(Intent intent) {
-        Log.d(TAG, "Событие повторной привязки к сервису");
+        Log.e(TAG, "Событие повторной привязки к сервису");
         super.onRebind(intent);
     }
 
-    class BinderService extends Binder {
-        MediaSessionService getService() {
+    public class BinderService extends Binder {
+        public MediaSessionService getService() {
             return MediaSessionService.this;
         }
     }
@@ -179,7 +181,5 @@ public class MediaSessionService extends Service {
         Log.d(TAG, "Уничтожение службы");
         super.onDestroy();
     }
-
-
-
+    
 }

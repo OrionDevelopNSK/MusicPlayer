@@ -23,7 +23,7 @@ public class DataLoader {
         void onDatabaseLoadComplete();
     }
 
-    interface OnDatabaseChangeListener {
+    public interface OnDatabaseChangeListener {
         void onDatabaseChange(List<Soundtrack> soundtracks);
     }
 
@@ -69,6 +69,7 @@ public class DataLoader {
             soundtracksFromRepo = roomSoundtrackRepository.getAll();
             onDatabaseLoadListener.onDatabaseLoad(soundtracksFromRepo);
             onDatabaseLoadCompleteListener.onDatabaseLoadComplete();
+            onDatabaseChangeListener.onDatabaseChange(soundtracksFromRepo);
         });
     }
 
