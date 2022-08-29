@@ -36,7 +36,7 @@ public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener
     public void gainAudioFocus(){
         Log.d(TAG, "Получение аудиофокуса");
         focusRequest = new AudioFocusRequest
-                .Builder(AudioManager.AUDIOFOCUS_GAIN | AudioManager.STREAM_MUSIC)
+                .Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setOnAudioFocusChangeListener(this)
                 .build();
         audioManager.requestAudioFocus(focusRequest);

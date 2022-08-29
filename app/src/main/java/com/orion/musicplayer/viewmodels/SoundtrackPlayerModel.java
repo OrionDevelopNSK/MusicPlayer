@@ -32,8 +32,10 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> currentDurationLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> positionLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoaded = new MutableLiveData<>();
 
-    private final SoundtrackPlayer soundtrackPlayer = new SoundtrackPlayer();
+    private SoundtrackPlayer soundtrackPlayer;
     private final AudioPlayerFocus audioPlayerFocus = new AudioPlayerFocus(getApplication());
     private List<Soundtrack> countSoundtracks;
     private final Deque<Integer> directOrder;
@@ -59,11 +61,13 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
 
     public SoundtrackPlayerModel(@NonNull Application application) {
         super(application);
+        soundtrackPlayer = new SoundtrackPlayer();
         setSoundtrackFinishListener();
         setPlayingStatusSoundtrackListener();
+        setAudioFocusChangeStateListener();
         directOrder = new ArrayDeque<>();
         reverseOrder = new ArrayDeque<>();
-        setAudioFocusChangeStateListener();
+
     }
 
     private void setAudioFocusChangeStateListener() {
@@ -94,11 +98,8 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     private void setPlayingStatusSoundtrackListener() {
         Log.d(TAG, "Установка слушателя начала воспроизведения");
         soundtrackPlayer.setOnPlayingStatusSoundtrackListener(isPlay -> {
-
             isPlayingLiveData.setValue(isPlay);
-
             if (isPlay) audioPlayerFocus.gainAudioFocus();
-//            else audioPlayerFocus.loseAudioFocus();
         });
     }
 
@@ -115,6 +116,21 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         });
     }
 
+    public void playOrPause(){
+        playOrPause(currentPosition, countSoundtracks);
+    }
+
+    public void next(){
+        next(currentPosition, countSoundtracks);
+    }
+
+    public void previous(){
+        previous(currentPosition, countSoundtracks);
+    }
+
+
+
+
     public void playOrPause(int position, List<Soundtrack> countSoundtracks) {
         if (countSoundtracks.isEmpty()) return;
         Log.d(TAG, "Начало или пауза песни");
@@ -124,6 +140,7 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
         handler.removeCallbacks(runnable);
         handler.postDelayed(runnable, 0);
     }
+
 
     Handler handler = new Handler(getMainLooper());
     Runnable runnable = new Runnable() {
@@ -244,5 +261,6 @@ public class SoundtrackPlayerModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
         audioPlayerFocus.loseAudioFocus();
+        soundtrackPlayer.stop();
     }
 }

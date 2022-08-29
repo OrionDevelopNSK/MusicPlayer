@@ -2,32 +2,22 @@ package com.orion.musicplayer;
 
 import android.Manifest;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -37,19 +27,16 @@ import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
 import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
 import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
-
-import java.util.List;
+import com.orion.musicplayer.viewmodels.SoundtracksModel;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private static final String TAG = MainActivity.class.getSimpleName();
 
-
-    private MediaControllerCompat mediaController;
-    private MediaControllerCompat.Callback callback;
+    private MediaSessionService mediaSessionService;
     private ServiceConnection serviceConnection;
-    private MediaPlaybackService.MediaPlaybackServiceBinder playerServiceBinder;
-
-
+    private SoundtracksModel soundtracksModel;
+    private SoundtrackPlayerModel soundtrackPlayerModel;
+    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,48 +47,54 @@ public class MainActivity extends AppCompatActivity {
         addFragmentControlPanel();
         Button buttonDialog = findViewById(R.id.open_dialog);
         setDialogClickListener(buttonDialog);
-
-//        new NotificationPlayer(this);
-//
-//        callback = new MediaControllerCompat.Callback() {
-//            @Override
-//            public void onPlaybackStateChanged(PlaybackStateCompat state) {
-//                if (state == null)
-//                    return;
-//                boolean playing = state.getState() == PlaybackStateCompat.STATE_PLAYING;
-////                playButton.setEnabled(!playing);
-////                pauseButton.setEnabled(playing);
-////                stopButton.setEnabled(playing);
-//            }
-//        };
-//
-//        serviceConnection = new ServiceConnection() {
-//            @Override
-//            public void onServiceConnected(ComponentName name, IBinder service) {
-//                playerServiceBinder = (MediaPlaybackService.MediaPlaybackServiceBinder) service;
-//                try {
-//                    mediaController = new MediaControllerCompat(MainActivity.this, playerServiceBinder.getMediaSessionToken());
-//                    mediaController.registerCallback(callback);
-//                    callback.onPlaybackStateChanged(mediaController.getPlaybackState());
-//                }
-//                catch (RemoteException e) {
-//                    mediaController = null;
-//                }
-//            }
-//
-//            @Override
-//            public void onServiceDisconnected(ComponentName name) {
-//                playerServiceBinder = null;
-//                if (mediaController != null) {
-//                    mediaController.unregisterCallback(callback);
-//                    mediaController = null;
-//                }
-//            }
-//        };
-//
-//        bindService(new Intent(this, MediaPlaybackService.class), serviceConnection, BIND_AUTO_CREATE);
-
+        soundtracksModel = new ViewModelProvider(this).get(SoundtracksModel.class);
+        soundtrackPlayerModel = new ViewModelProvider(this).get(SoundtrackPlayerModel.class);
+        createServiceConnection();
+        Intent intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
+        ContextCompat.startForegroundService(getApplicationContext(), intent);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
+
+    private void createServiceConnection() {
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName componentName, IBinder binder) {
+                Log.d(TAG, "Подключение сервиса");
+                mediaSessionService = ((MediaSessionService.BinderService) binder).getService();
+                setButtonsNotificationClickListeners();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                Log.d(TAG, "Отключение сервиса");
+            }
+        };
+    }
+
+    private void setButtonsNotificationClickListeners() {
+        mediaSessionService.setOnStartClickListener(() -> {
+            Log.d(TAG, "Нажата кнопка в уведомлении: Start");
+            soundtrackPlayerModel.playOrPause();
+        });
+
+        mediaSessionService.setOnPauseClickListener(() -> {
+            Log.d(TAG, "Нажата кнопка в уведомлении: Pause");
+
+            soundtrackPlayerModel.playOrPause();
+
+        });
+
+        mediaSessionService.setOnNextClickListener(() -> {
+            Log.d(TAG, "Нажата кнопка в уведомлении: Next");
+            soundtrackPlayerModel.next();
+        });
+
+        mediaSessionService.setOnPreviousClickListener(() -> {
+            Log.d(TAG, "Нажата кнопка в уведомлении: Previous");
+            soundtrackPlayerModel.previous();
+        });
+    }
+
 
     private void setDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
@@ -110,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     private void addFragmentControlPanel() {
         Log.d(TAG, "Добавление фрагмента к Активити");
         getSupportFragmentManager()
@@ -118,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
                 .add(R.id.fragment_container_control_panel, SoundtrackPlayerControllerFragment.newInstance())
                 .commit();
     }
-
 
     private void checkPermissions() {
         Log.d(TAG, "Проверка разрешений чтения и записи внутренней памяти");
@@ -217,40 +208,34 @@ public class MainActivity extends AppCompatActivity {
 
     private void createTabLayoutMediator(TabLayout tabLayout, ViewPager2 viewPager) {
         Log.d(TAG, "Создание медиатора для связывания TabLayout с ViewPager2");
-        new TabLayoutMediator(tabLayout, viewPager,
-                (tab, position) -> {
-                    switch (position) {
-                        case 0:
-                            tab.setText("Music");
-                            break;
-                        case 1:
-                            tab.setText("Playlist");
-                            break;
-                        case 2:
-                            tab.setText("VK");
-                            break;
-                        default:
-                            tab.setText("NULL");
-                            break;
-                    }
-                }
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            switch (position) {
+                case 0:
+                    tab.setText("Music");
+                    break;
+                case 1:
+                    tab.setText("Playlist");
+                    break;
+                case 2:
+                    tab.setText("VK");
+                    break;
+                default:
+                    tab.setText("NULL");
+                    break;
+            }
+        }
         ).attach();
     }
 
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "Отсоединение сервиса");
+        unbindService(serviceConnection);
+//        stopService(intent);
         Log.d(TAG, "Уничтожение активити");
         super.onDestroy();
-        playerServiceBinder = null;
-        if (mediaController != null) {
-            mediaController.unregisterCallback(callback);
-            mediaController = null;
-        }
-        unbindService(serviceConnection);
-
     }
-
 
 
 }

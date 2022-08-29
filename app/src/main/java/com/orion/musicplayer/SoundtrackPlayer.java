@@ -13,51 +13,61 @@ public class SoundtrackPlayer {
         void onSoundtrackFinish();
     }
 
-
     public interface OnPlayingStatusSoundtrackListener {
         void onPlayingStatusSoundtrack(boolean isPlay);
     }
 
-
+    private static volatile SoundtrackPlayer soundtrackPlayer;
     private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
-    private final MediaPlayer mediaPlayer = new MediaPlayer();
+
     private Soundtrack currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
     private OnPlayingStatusSoundtrackListener statusSoundtrackListener;
 
+    private MediaPlayer mediaPlayer;
+
     public SoundtrackPlayer() {
+        mediaPlayer = new MediaPlayer();
         Log.d(TAG, "Установка слушателя на событие окончания песни");
-        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-            mediaPlayer.stop();
-            try {
-                mediaPlayer.prepare();
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                if (mediaPlayer == null && mediaPlayer.isPlaying()) return;
+                mediaPlayer.stop();
+                try {
+                    mediaPlayer.prepare();
+                } catch (IllegalStateException | NullPointerException e) {
+                }
+                catch (IOException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+                mediaPlayer.seekTo(0);
+                onSoundtrackFinishedListener.onSoundtrackFinish();
             }
-            mediaPlayer.seekTo(0);
-            onSoundtrackFinishedListener.onSoundtrackFinish();
         });
 
     }
 
-    public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener){
+
+
+    public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener) {
         this.onSoundtrackFinishedListener = onSoundtrackFinishedListener;
     }
 
-    public void setOnPlayingStatusSoundtrackListener(OnPlayingStatusSoundtrackListener statusSoundtrackListener){
+    public void setOnPlayingStatusSoundtrackListener(OnPlayingStatusSoundtrackListener statusSoundtrackListener) {
         this.statusSoundtrackListener = statusSoundtrackListener;
     }
 
-    public void setCurrentDuration(int position){
+    public void setCurrentDuration(int position) {
         mediaPlayer.seekTo(position);
     }
 
-    public void setVolume(float leftVolume, float rightVolume ){
+    public void setVolume(float leftVolume, float rightVolume) {
         mediaPlayer.setVolume(leftVolume, rightVolume);
     }
 
-    public long getCurrentTime(){
+    public long getCurrentTime() {
         return mediaPlayer.getCurrentPosition();
     }
 
@@ -65,8 +75,7 @@ public class SoundtrackPlayer {
         if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
             if (mediaPlayer.isPlaying()) {
                 pause();
-            }
-            else {
+            } else {
                 Log.d(TAG, "Старт");
                 mediaPlayer.start();
                 statusSoundtrackListener.onPlayingStatusSoundtrack(true);
@@ -80,12 +89,14 @@ public class SoundtrackPlayer {
         currentPlayingSong = soundtrack;
     }
 
-
+    //TODO
     public void pause() {
         if (mediaPlayer.isPlaying()) {
             Log.d(TAG, "Пауза");
             mediaPlayer.pause();
             statusSoundtrackListener.onPlayingStatusSoundtrack(false);
+        } else {
+            mediaPlayer.pause();
         }
     }
 

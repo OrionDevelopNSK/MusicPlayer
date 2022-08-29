@@ -45,6 +45,7 @@ public class SoundtracksModel extends AndroidViewModel {
         AudioReader audioReader = new AudioReader(getApplication());
         database = AppDatabase.getDatabase(getApplication());
 
+
         AsyncTask.execute(() -> {
             SoundtrackDao soundtrackDao = database.soundtrackDao();
             List<Soundtrack> soundtracks = audioReader.readMediaData();
@@ -72,6 +73,6 @@ public class SoundtracksModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        database.close();
+        //database.close();
     }
 }

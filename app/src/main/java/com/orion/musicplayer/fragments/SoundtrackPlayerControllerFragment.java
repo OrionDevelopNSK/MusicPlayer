@@ -1,5 +1,6 @@
 package com.orion.musicplayer.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -14,7 +15,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.slider.Slider;
@@ -95,22 +95,19 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     }
 
     public void defaultDescription() {
-        soundtracksModel.getIsLoaded().observe(requireActivity(), new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                List<Soundtrack> soundtracks = soundtracksModel.getSoundtracks().getValue();
+        soundtracksModel.getIsLoaded().observe(requireActivity(), aBoolean -> {
+            List<Soundtrack> soundtracks = soundtracksModel.getSoundtracks().getValue();
 
-                int position = 0;
-                for (int i = 0; i < soundtracks.size(); i++) {
-                    if (soundtracks.get(i).getData().equals(soundTitle)){
-                        position = i;
-                        Log.d(TAG, "Найдена последняя воиспроизводимая песня");
-                        break;
-                    }
+            int position = 0;
+            for (int i = 0; i < soundtracks.size(); i++) {
+                if (soundtracks.get(i).getData().equals(soundTitle)){
+                    position = i;
+                    Log.d(TAG, "Найдена последняя воиспроизводимая песня");
+                    break;
                 }
-                soundtrackPlayerModel.getPositionLiveData().setValue(position);
-                textCurrentDuration.setText("00:00");
             }
+            soundtrackPlayerModel.getPositionLiveData().setValue(position);
+            textCurrentDuration.setText("00:00");
         });
     }
 
@@ -166,7 +163,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
     private void createPlayingStateObserver() {
         soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
-            if (aBoolean == true) {
+            if (aBoolean) {
                 Log.d(TAG, "Начало воспроизведения");
                 buttonPlayOrPause.setBackgroundResource(R.drawable.ic_pause);
             } else {
@@ -225,6 +222,8 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         slider.setLabelFormatter(value -> TimeConverter.toMinutesAndSeconds((int) value));
     }
 
+
+    @SuppressLint("ApplySharedPref")
     private void save(){
         Log.d(TAG, "Сохранить состояние " + soundTitle);
         defaultsSharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
@@ -250,4 +249,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         super.onStop();
         save();
     }
+
+
 }
