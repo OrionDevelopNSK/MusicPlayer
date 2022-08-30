@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -14,12 +15,13 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.KeyEvent;
 import android.widget.Button;
 import android.widget.Toast;
 
+
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -52,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private MediaSessionService mediaSessionService;
     private ServiceConnection serviceConnection;
     private SoundtrackPlayerModel soundtrackPlayerModel;
-
     private SharedPreferences defaultsSharedPreferences;
+    private Intent intent;
     private String soundTitle;
     private int currentDuration;
 
@@ -76,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         setDialogClickListener(buttonDialog);
 
         createServiceConnection();
-        Intent intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
+        intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
         ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
         load();
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 mediaSessionService.getDataLoader().execute();
                 setSoundsControllerListeners();
                 createMediaScannerObserver();
-                createActions();
+                bindActions();
                 defaultDescription();
                 createDataValidateObserver();
             }
@@ -310,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
         ).attach();
     }
 
-    private void createActions(){
+    private void bindActions(){
         Log.d(TAG, "Создание обсервера нажатия кнопок плеера");
         soundtrackPlayerModel.getPlayerAction().observe(this, new Observer<Action>() {
             @Override
@@ -350,14 +352,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        Log.d(TAG, "Отсоединение сервиса");
-        unbindService(serviceConnection);
-        Log.d(TAG, "Сохранение настроек");
-        save();
-//        stopService(intent);
-        Log.d(TAG, "Уничтожение активити");
-        super.onDestroy();
+    public void onBackPressed() {
+        showDialogExit();
+    }
+
+    private void showDialogExit() {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.dialog_close_app)
+                .setPositiveButton(R.string.yes_dialog, (DialogInterface.OnClickListener) (dialogInterface, i) -> {
+                    stopService( intent);
+                    finish();
+                })
+                .setNegativeButton(R.string.no_dialog, (DialogInterface.OnClickListener) (dialogInterface, i) -> {
+
+                })
+                .show();
     }
 
     @SuppressLint("ApplySharedPref")
@@ -394,6 +403,18 @@ public class MainActivity extends AppCompatActivity {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
             mediaSessionService.getSoundsController().setCurrentPosition(position);
         });
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "Отсоединение сервиса");
+        unbindService(serviceConnection);
+        Log.d(TAG, "Сохранение настроек");
+        save();
+//        stopService(intent);
+        Log.d(TAG, "Уничтожение активити");
+        super.onDestroy();
     }
 
 
