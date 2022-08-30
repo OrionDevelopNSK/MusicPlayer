@@ -1,8 +1,6 @@
 package com.orion.musicplayer.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.slider.Slider;
@@ -44,8 +41,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private Button buttonNext;
     private Button buttonChangeStateMode;
     private SoundtrackPlayerModel soundtrackPlayerModel;
-    private String soundTitle;
-    private int currentDuration;
 
     public static SoundtrackPlayerControllerFragment newInstance() {
         return new SoundtrackPlayerControllerFragment();
@@ -173,6 +168,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         });
     }
 
+    @SuppressLint("SetTextI18n")
     private void createDataValidateObserver() {
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
             if (soundtracks.isEmpty()) {
@@ -187,7 +183,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             } else {
                 Log.d(TAG, "Список не пуст");
                 textCurrentDuration.setText("00:00");
-                if (buttonToStart.isEnabled() == true) return;
+                if (buttonToStart.isEnabled()) return;
                 slider.setEnabled(true);
                 buttonToStart.setEnabled(true);
                 buttonPlayOrPause.setEnabled(true);

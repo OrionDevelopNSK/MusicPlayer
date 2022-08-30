@@ -23,28 +23,23 @@ public class SoundtrackPlayer {
     private Soundtrack currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
     private OnPlayingStatusSoundtrackListener statusSoundtrackListener;
-    private MediaPlayer mediaPlayer;
+    private final MediaPlayer mediaPlayer;
 
     public SoundtrackPlayer() {
         mediaPlayer = new MediaPlayer();
         Log.d(TAG, "Установка слушателя на событие окончания песни");
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                if (mediaPlayer == null && mediaPlayer.isPlaying()) return;
-                mediaPlayer.stop();
-                try {
-                    mediaPlayer.prepare();
-                } catch (IllegalStateException | NullPointerException e) {
-                }
-                catch (IOException e) {
-                    Log.e(TAG, e.getMessage());
-                }
-                mediaPlayer.seekTo(0);
-                onSoundtrackFinishedListener.onSoundtrackFinish();
+        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+//            if (mediaPlayer == null && mediaPlayer.isPlaying()) return;
+            mediaPlayer.stop();
+            try {
+                mediaPlayer.prepare();
             }
+            catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+            }
+            mediaPlayer.seekTo(0);
+            onSoundtrackFinishedListener.onSoundtrackFinish();
         });
-
     }
 
     public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener) {

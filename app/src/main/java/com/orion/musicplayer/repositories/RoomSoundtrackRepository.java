@@ -5,7 +5,6 @@ import android.util.Log;
 import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
 import com.orion.musicplayer.models.Soundtrack;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.ArrayList;
 import java.util.List;

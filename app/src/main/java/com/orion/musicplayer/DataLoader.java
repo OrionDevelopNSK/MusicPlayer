@@ -83,8 +83,4 @@ public class DataLoader {
             }
         }
     }
-
-    public List<Soundtrack> getSoundtracksFromRepo() {
-        return soundtracksFromRepo;
-    }
 }

@@ -5,8 +5,6 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.util.Log;
 
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
-
 public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener {
 
     public interface OnAudioFocusChangeStateListener{
@@ -15,9 +13,9 @@ public class AudioPlayerFocus implements AudioManager.OnAudioFocusChangeListener
 
     private static final String TAG = AudioPlayerFocus.class.getSimpleName();
 
-    private OnAudioFocusChangeStateListener onAudioFocusChangeStateListener;
-    private AudioManager audioManager;
+    private final AudioManager audioManager;
     private AudioFocusRequest focusRequest;
+    private OnAudioFocusChangeStateListener onAudioFocusChangeStateListener;
 
     public AudioPlayerFocus(Context context) {
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);

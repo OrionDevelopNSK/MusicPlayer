@@ -19,9 +19,6 @@ import com.orion.musicplayer.DataLoader;
 import com.orion.musicplayer.MainActivity;
 import com.orion.musicplayer.MediaNotificationManager;
 import com.orion.musicplayer.SoundsController;
-import com.orion.musicplayer.models.Soundtrack;
-
-import java.util.List;
 
 public class MediaSessionService extends Service {
 

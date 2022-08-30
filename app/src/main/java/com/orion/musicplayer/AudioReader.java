@@ -7,8 +7,6 @@ import android.database.Cursor;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 

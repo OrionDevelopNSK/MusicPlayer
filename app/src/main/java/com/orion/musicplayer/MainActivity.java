@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -15,10 +14,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.widget.Button;
 import android.widget.Toast;
-
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -26,7 +23,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -39,9 +35,7 @@ import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
 import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.services.MediaSessionService;
-import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.MediaScannerObserver;
-import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.List;
@@ -110,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         @SuppressWarnings("unused")
         MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
                 new Handler(Looper.getMainLooper()),
-                this, mediaSessionService);;
+                this, mediaSessionService);
     }
 
     private void createDataValidateObserver() {
@@ -123,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 //TODO ((View)tabLayout).setEnabled(false);
             } else {
                 Log.d(TAG, "Список не пуст");
-                if (buttonDialog.isEnabled() == true) return;
+                if (buttonDialog.isEnabled()) return;
                 Log.d(TAG, "Список пуст");
                 buttonDialog.setEnabled(true);
                 buttonSortedSoundtrack.setEnabled(true);
@@ -135,50 +129,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void setSoundsControllerListeners() {
         SoundsController soundsController = mediaSessionService.getSoundsController();
-        soundsController.setOnChangeStateModeListener(new SoundsController.OnChangeStateModeListener() {
-            @Override
-            public void onChangeStateMode(StateMode stateMode) {
-                soundtrackPlayerModel.getStateModeLiveData().setValue(stateMode);
-            }
-        });
-
-        soundsController.setOnCurrentDurationListener(new SoundsController.OnCurrentDurationListener() {
-            @Override
-            public void onCurrentDuration(int duration) {
-                soundtrackPlayerModel.getCurrentDurationLiveData().setValue(duration);
-            }
-        });
-
-        soundsController.setOnCurrentPositionListener(new SoundsController.OnCurrentPositionListener() {
-            @Override
-            public void onCurrentPosition(int position) {
-                soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            }
-        });
-
-        soundsController.setOnPlayingStatusListener(new SoundsController.OnPlayingStatusListener() {
-            @Override
-            public void onPlayingStatus(boolean isPlay) {
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(isPlay);
-            }
-        });
+        soundsController.setOnChangeStateModeListener(stateMode -> soundtrackPlayerModel.getStateModeLiveData().setValue(stateMode));
+        soundsController.setOnCurrentDurationListener(duration -> soundtrackPlayerModel.getCurrentDurationLiveData().setValue(duration));
+        soundsController.setOnCurrentPositionListener(position -> soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position));
+        soundsController.setOnPlayingStatusListener(isPlay -> soundtrackPlayerModel.getIsPlayingLiveData().setValue(isPlay));
     }
 
     private void setDatabaseLoadListeners() {
         DataLoader dataLoader = mediaSessionService.getDataLoader();
-        dataLoader.setOnDatabaseLoadCompleteListener(new DataLoader.OnDatabaseLoadCompleteListener() {
-            @Override
-            public void onDatabaseLoadComplete() {
-                soundtrackPlayerModel.getIsLoaded().postValue(true);
-            }
-        });
-
-        dataLoader.setOnDatabaseLoadListener(new DataLoader.OnDatabaseLoadListener() {
-            @Override
-            public void onDatabaseLoad(List<Soundtrack> soundtracks) {
-                soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks);
-            }
-        });
+        dataLoader.setOnDatabaseLoadCompleteListener(() -> soundtrackPlayerModel.getIsLoaded().postValue(true));
+        dataLoader.setOnDatabaseLoadListener(soundtracks -> soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks));
     }
 
     private void setDialogClickListener(Button buttonDialog) {
@@ -314,40 +274,37 @@ public class MainActivity extends AppCompatActivity {
 
     private void bindActions(){
         Log.d(TAG, "Создание обсервера нажатия кнопок плеера");
-        soundtrackPlayerModel.getPlayerAction().observe(this, new Observer<Action>() {
-            @Override
-            public void onChanged(Action action) {
-                switch (action) {
-                    case PLAY_OR_PAUSE:
-                        mediaSessionService.getSoundsController().playOrPause(
-                                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
-                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
-                        break;
-                    case PREVIOUS:
-                        mediaSessionService.getSoundsController().previous(
-                                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
-                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
-                        break;
-                    case NEXT:
-                        mediaSessionService.getSoundsController().next(
-                                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
-                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
-                        break;
-                    case SWITCH_MODE:
-                        mediaSessionService.getSoundsController().switchMode();
-                        break;
-                    case TO_START:
-                        mediaSessionService.getSoundsController().playOrPause(
-                                0,
-                                soundtrackPlayerModel.getSoundtracksLiveData().getValue());
-                        break;
-                    case SLIDER_MANIPULATE:
-                        mediaSessionService.getSoundsController().setCurrentDuration(
-                                soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
-                        break;
-                }
-                Log.d(TAG, "Выбрано действие: " + action);
+        soundtrackPlayerModel.getPlayerAction().observe(this, action -> {
+            switch (action) {
+                case PLAY_OR_PAUSE:
+                    mediaSessionService.getSoundsController().playOrPause(
+                            soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                            soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                    break;
+                case PREVIOUS:
+                    mediaSessionService.getSoundsController().previous(
+                            soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                            soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                    break;
+                case NEXT:
+                    mediaSessionService.getSoundsController().next(
+                            soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                            soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                    break;
+                case SWITCH_MODE:
+                    mediaSessionService.getSoundsController().switchMode();
+                    break;
+                case TO_START:
+                    mediaSessionService.getSoundsController().playOrPause(
+                            0,
+                            soundtrackPlayerModel.getSoundtracksLiveData().getValue());
+                    break;
+                case SLIDER_MANIPULATE:
+                    mediaSessionService.getSoundsController().setCurrentDuration(
+                            soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
+                    break;
             }
+            Log.d(TAG, "Выбрано действие: " + action);
         });
     }
 
@@ -359,11 +316,11 @@ public class MainActivity extends AppCompatActivity {
     private void showDialogExit() {
         new AlertDialog.Builder(this)
                 .setMessage(R.string.dialog_close_app)
-                .setPositiveButton(R.string.yes_dialog, (DialogInterface.OnClickListener) (dialogInterface, i) -> {
+                .setPositiveButton(R.string.yes_dialog, (dialogInterface, i) -> {
                     stopService( intent);
                     finish();
                 })
-                .setNegativeButton(R.string.no_dialog, (DialogInterface.OnClickListener) (dialogInterface, i) -> {
+                .setNegativeButton(R.string.no_dialog, (dialogInterface, i) -> {
 
                 })
                 .show();

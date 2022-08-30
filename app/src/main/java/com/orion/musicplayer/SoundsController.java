@@ -13,7 +13,6 @@ import com.orion.musicplayer.database.AppDatabase;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
 import com.orion.musicplayer.utils.StateMode;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

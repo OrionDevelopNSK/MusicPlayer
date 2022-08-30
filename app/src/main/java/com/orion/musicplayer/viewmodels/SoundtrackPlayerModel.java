@@ -1,14 +1,8 @@
 package com.orion.musicplayer.viewmodels;
 
-import android.app.Application;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.orion.musicplayer.AudioPlayerFocus;
-import com.orion.musicplayer.SoundtrackPlayer;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.StateMode;
@@ -16,7 +10,6 @@ import com.orion.musicplayer.utils.StateMode;
 import java.util.List;
 
 public class SoundtrackPlayerModel extends ViewModel {
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
 
     private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>();
