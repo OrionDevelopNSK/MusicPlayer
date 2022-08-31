@@ -1,5 +1,6 @@
 package com.orion.musicplayer;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -21,6 +22,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.orion.musicplayer.services.MediaSessionService;
+import com.orion.musicplayer.utils.StateMode;
 
 
 /**
@@ -39,12 +41,14 @@ public class MediaNotificationManager {
     private final NotificationCompat.Action pauseAction;
     private final NotificationCompat.Action nextAction;
     private final NotificationCompat.Action previousAction;
-//    private final NotificationCompat.Action switchModeLoopAction;
-//    private final NotificationCompat.Action switchModeRepeatAction;
-//    private final NotificationCompat.Action switchModeRandomAction;
+    private final NotificationCompat.Action switchModeRatingAction;
+    private final NotificationCompat.Action switchModeLoopAction;
+    private final NotificationCompat.Action switchModeRepeatAction;
+    private final NotificationCompat.Action switchModeRandomAction;
 
     private final NotificationManager notificationManager;
 
+    @SuppressLint("RestrictedApi")
     public MediaNotificationManager(MediaSessionService musicContext) {
         service = musicContext;
         notificationManager = (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
@@ -69,23 +73,25 @@ public class MediaNotificationManager {
                 "Next",
                 getPendingIntentPrevious()).build();
 
-        //TODO
+        switchModeLoopAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_loop_24,
+                "LoopMode",
+                getPendingIntentRandom()).build();
 
-//        switchModeLoopAction = new NotificationCompat.Action.Builder(
-//                R.drawable.ic_loop_24,
-//                "LoopMode",
-//                getPendingIntentLoop()).build();
-//
-//        switchModeRepeatAction = new NotificationCompat.Action.Builder(
-//                R.drawable.ic_repeat_24,
-//                "RepeatMode",
-//                getPendingIntentOne()).build();
-//
-//        switchModeRandomAction = new NotificationCompat.Action.Builder(
-//                R.drawable.ic_shake_24,
-//                "RandomMode",
-//                getPendingIntentRandom()).build();
+        switchModeRatingAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_loop_24,
+                "Rating",
+                getPendingIntentRating()).build();
 
+        switchModeRepeatAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_repeat_24,
+                "RepeatMode",
+                getPendingIntentRepeatOne()).build();
+
+        switchModeRandomAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_shake_24,
+                "RandomMode",
+                getPendingIntentRandom()).build();
 
         notificationManager.cancelAll();
     }
@@ -110,18 +116,42 @@ public class MediaNotificationManager {
         return createPendingIntent(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
     }
 
-//    private PendingIntent getPendingIntentRandom() {
-//        return createPendingIntent(Long.valueOf(PlaybackStateCompat.SHUFFLE_MODE_ALL));
-//    }
-//
-//    private PendingIntent getPendingIntentLoop() {
-//        return createPendingIntent2(Long.valueOf(PlaybackStateCompat.REPEAT_MODE_ALL));
-//    }
-//
-//    private PendingIntent getPendingIntentOne() {
-//        return createPendingIntent(Long.valueOf(PlaybackStateCompat.REPEAT_MODE_ONE));
-//    }
+    @SuppressLint("RestrictedApi")
+    private PendingIntent getPendingIntentRandom() {
+        Intent intent = new Intent(service, MediaSessionService.class);
+        intent.setAction(StateMode.RANDOM.toString());
+        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
 
+    private PendingIntent getPendingIntentLoop() {
+        Intent intent = new Intent(service, MediaSessionService.class);
+        intent.setAction(StateMode.LOOP.toString());
+        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    private PendingIntent getPendingIntentRepeatOne() {
+        Intent intent = new Intent(service, MediaSessionService.class);
+        intent.setAction(StateMode.REPEAT.toString());
+        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    private PendingIntent getPendingIntentRating() {
+        Intent intent = new Intent(service, MediaSessionService.class);
+        intent.setAction("RATING");
+        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
+
+
+    private NotificationCompat.Action changeStateMode(StateMode stateMode){
+        switch (stateMode) {
+            case REPEAT:
+                return switchModeRepeatAction;
+            case RANDOM:
+                return switchModeRandomAction;
+            default:
+                return switchModeLoopAction;
+        }
+    }
 
 
     private PendingIntent createPendingIntent(Long actionCode) {
@@ -133,17 +163,18 @@ public class MediaNotificationManager {
 
     public Notification getNotification(MediaMetadataCompat metadata,
                                         @NonNull PlaybackStateCompat state,
-                                        MediaSessionCompat.Token token) {
+                                        MediaSessionCompat.Token token,
+                                        StateMode stateMode) {
         boolean isPlaying = state.getState() == PlaybackStateCompat.STATE_PLAYING;
         MediaDescriptionCompat description = metadata.getDescription();
-        NotificationCompat.Builder builder = buildNotification(state, token, isPlaying, description);
+        NotificationCompat.Builder builder = buildNotification(token, isPlaying, description, stateMode);
         return builder.build();
     }
 
-    private NotificationCompat.Builder buildNotification(@NonNull PlaybackStateCompat state,
-                                                         MediaSessionCompat.Token token,
+    private NotificationCompat.Builder buildNotification(MediaSessionCompat.Token token,
                                                          boolean isPlaying,
-                                                         MediaDescriptionCompat description) {
+                                                         MediaDescriptionCompat description,
+                                                         StateMode stateMode) {
 
         // Create the (mandatory) notification channel when running on Android Oreo.
         if (isAndroidOOrHigher()) {
@@ -164,10 +195,11 @@ public class MediaNotificationManager {
                 .setDeleteIntent(getPendingIntentPause());
 
         builder
+                .addAction(switchModeRatingAction)
                 .addAction(previousAction)
                 .addAction(isPlaying ? pauseAction : playAction)
-                .addAction(nextAction);
-//                .addAction(switchModeLoopAction);
+                .addAction(nextAction)
+                .addAction(changeStateMode(stateMode));
         return builder;
     }
 

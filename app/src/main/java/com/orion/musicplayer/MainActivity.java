@@ -305,7 +305,9 @@ public class MainActivity extends AppCompatActivity {
                             soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
                     break;
             }
-            mediaSessionService.createNotification(soundtrackPlayerModel.getCurrentPositionLiveData().getValue());
+            mediaSessionService.createNotification(
+                    soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
+                    soundtrackPlayerModel.getStateModeLiveData().getValue());
             Log.d(TAG, "Выбрано действие: " + action);
         });
     }

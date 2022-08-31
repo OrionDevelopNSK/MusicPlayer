@@ -3,18 +3,24 @@ package com.orion.musicplayer.services;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
+import androidx.media.session.MediaButtonReceiver;
 
 import com.orion.musicplayer.MainActivity;
 import com.orion.musicplayer.MediaNotificationManager;
@@ -22,6 +28,7 @@ import com.orion.musicplayer.SoundsController;
 import com.orion.musicplayer.SoundtrackPlayer;
 import com.orion.musicplayer.database.DataLoader;
 import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {
 
@@ -53,8 +60,6 @@ public class MediaSessionService extends Service {
 
         mediaSession = new MediaSessionCompat(this, "PlayerService", null,
                 PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_IMMUTABLE));
-
-
     }
 
     public MediaMetadataCompat getMetadata(int position) {
@@ -101,30 +106,19 @@ public class MediaSessionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
-            KeyEvent keyEvent = (KeyEvent) intent.getExtras().get(Intent.EXTRA_KEY_EVENT);
-            switch (keyEvent.getKeyCode()) {
-                case KeyEvent.KEYCODE_MEDIA_PAUSE:
-                    Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PAUSE");
-                    soundsController.playOrPause();
-                    createNotification(pos);
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_PLAY:
-                    Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PLAY");
-                    soundsController.playOrPause();
-                    createNotification(pos);
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_NEXT:
-                    Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_NEXT");
-                    createNotification(soundsController.next());
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                    Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PREVIOUS");
-                    createNotification(soundsController.previous());
-                    break;
-            }
-        }
+        changeStateMode(intent);
+        MediaButtonReceiver.handleIntent(mediaSession, intent);
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void changeStateMode(Intent intent) {
+        if (StateMode.REPEAT.toString().equals(intent.getAction()) ||
+                StateMode.LOOP.toString().equals(intent.getAction()) ||
+                StateMode.RANDOM.toString().equals(intent.getAction())){
+            Log.d(TAG, "Смена режима воспроизведения");
+            soundsController.switchMode();
+            createNotification(pos, soundsController.switchMode());
+        }
     }
 
     @Nullable
@@ -150,28 +144,63 @@ public class MediaSessionService extends Service {
     Runnable runnable;
     private int pos;
 
-    public void createNotification(int position) {
+    public void createNotification(int position, StateMode mode) {
+        Log.e(TAG, "Создание/обновление Notification");
         pos = position;
         handler.removeCallbacks(runnable);
         MediaMetadataCompat mediaMetadataCompat = getMetadata(position);
         PlaybackStateCompat.Builder builderState = getBuilderState();
+
         runnable = new Runnable() {
             @Override
             public void run() {
                 Notification notification = mediaNotificationManager.getNotification(
-                        mediaMetadataCompat, getState(builderState), mediaSession.getSessionToken());
+                        mediaMetadataCompat,
+                        getState(builderState),
+                        mediaSession.getSessionToken(),
+                        mode);
                 startForeground(NOTIFICATION_ID, notification);
                 handler.postDelayed(this, 500);
             }
         };
         handler.postDelayed(runnable, 0);
+
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onSeekTo(long pos) {
                 soundsController.getSoundtrackPlayer().setCurrentDuration((int) pos);
             }
-        });
 
+            @Override
+            public void onPlay() {
+                Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PLAY");
+                soundsController.playOrPause();
+                createNotification(position, mode);
+                super.onPlay();
+            }
+
+            @Override
+            public void onPause() {
+                Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PAUSE");
+                soundsController.playOrPause();
+                createNotification(position, mode);
+                super.onPause();
+            }
+
+            @Override
+            public void onSkipToNext() {
+                Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_NEXT");
+                createNotification(soundsController.next(), mode);
+                super.onSkipToNext();
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PREVIOUS");
+                createNotification(soundsController.previous(), mode);
+                super.onSkipToPrevious();
+            }
+        });
         mediaSession.setActive(true);
     }
 
@@ -187,5 +216,4 @@ public class MediaSessionService extends Service {
         Log.d(TAG, "Уничтожение службы");
         super.onDestroy();
     }
-
 }

@@ -11,7 +11,7 @@ import java.util.List;
 
 public class SoundtrackPlayerModel extends ViewModel {
 
-    private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>();
+    private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>(StateMode.LOOP);
     private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> currentDurationLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> positionLiveData = new MutableLiveData<>();

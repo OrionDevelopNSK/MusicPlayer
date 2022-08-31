@@ -241,7 +241,7 @@ public class SoundsController {
         handler.postDelayed(runnable, 0);
     }
 
-    public void switchMode() {
+    public StateMode switchMode() {
         switch (stateMode) {
             case LOOP:
                 stateMode = StateMode.RANDOM;
@@ -255,6 +255,7 @@ public class SoundsController {
         }
         Log.d(TAG, "Переключение режима воспроизведения, текущее : " + stateMode.name());
         onChangeStateModeListener.onChangeStateMode(stateMode);
+        return stateMode;
     }
 
     public void setCurrentDuration(int position) {
