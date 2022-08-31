@@ -12,6 +12,7 @@ import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.database.AppDatabase;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
+import com.orion.musicplayer.utils.AudioPlayerFocus;
 import com.orion.musicplayer.utils.StateMode;
 
 import java.util.ArrayDeque;
@@ -54,7 +55,6 @@ public class SoundsController {
     private OnCurrentDurationListener onCurrentDurationListener;
     private OnCurrentPositionListener onCurrentPositionListener;
 
-
     public SoundsController(Application app) {
         application = app;
         soundtrackPlayer = new SoundtrackPlayer();
@@ -64,6 +64,14 @@ public class SoundsController {
         setAudioFocusChangeStateListener();
         directOrder = new ArrayDeque<>();
         reverseOrder = new ArrayDeque<>();
+    }
+
+    public SoundtrackPlayer getSoundtrackPlayer() {
+        return soundtrackPlayer;
+    }
+
+    public List<Soundtrack> getSoundtracks() {
+        return soundtracks;
     }
 
     public void setCurrentPosition(int currentPosition) {
@@ -89,6 +97,8 @@ public class SoundsController {
     public void setOnCurrentPositionListener(OnCurrentPositionListener onCurrentPositionListener) {
         this.onCurrentPositionListener = onCurrentPositionListener;
     }
+
+
 
     public void loseAudioFocusAndStopPlayer() {
         Log.d(TAG, "отдача аудиофокуса, остановка плайера");
@@ -146,12 +156,14 @@ public class SoundsController {
         playOrPause(currentPosition, soundtracks);
     }
 
-    public void next() {
+    public int next() {
         next(currentPosition, soundtracks);
+        return currentPosition;
     }
 
-    public void previous() {
+    public int previous() {
         previous(currentPosition, soundtracks);
+        return currentPosition;
     }
 
     public void playOrPause(int position, List<Soundtrack> soundtracks) {

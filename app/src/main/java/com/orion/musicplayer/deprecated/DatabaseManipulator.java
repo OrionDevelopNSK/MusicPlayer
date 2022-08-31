@@ -6,7 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.orion.musicplayer.AudioReader;
+import com.orion.musicplayer.database.AudioReader;
 import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.ArrayList;

@@ -39,11 +39,14 @@ public class MediaNotificationManager {
     private final NotificationCompat.Action pauseAction;
     private final NotificationCompat.Action nextAction;
     private final NotificationCompat.Action previousAction;
+//    private final NotificationCompat.Action switchModeLoopAction;
+//    private final NotificationCompat.Action switchModeRepeatAction;
+//    private final NotificationCompat.Action switchModeRandomAction;
+
     private final NotificationManager notificationManager;
 
     public MediaNotificationManager(MediaSessionService musicContext) {
         service = musicContext;
-
         notificationManager = (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
 
         playAction = new NotificationCompat.Action.Builder(
@@ -65,6 +68,24 @@ public class MediaNotificationManager {
                 R.drawable.ic_previous_24,
                 "Next",
                 getPendingIntentPrevious()).build();
+
+        //TODO
+
+//        switchModeLoopAction = new NotificationCompat.Action.Builder(
+//                R.drawable.ic_loop_24,
+//                "LoopMode",
+//                getPendingIntentLoop()).build();
+//
+//        switchModeRepeatAction = new NotificationCompat.Action.Builder(
+//                R.drawable.ic_repeat_24,
+//                "RepeatMode",
+//                getPendingIntentOne()).build();
+//
+//        switchModeRandomAction = new NotificationCompat.Action.Builder(
+//                R.drawable.ic_shake_24,
+//                "RandomMode",
+//                getPendingIntentRandom()).build();
+
 
         notificationManager.cancelAll();
     }
@@ -89,14 +110,26 @@ public class MediaNotificationManager {
         return createPendingIntent(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
     }
 
+//    private PendingIntent getPendingIntentRandom() {
+//        return createPendingIntent(Long.valueOf(PlaybackStateCompat.SHUFFLE_MODE_ALL));
+//    }
+//
+//    private PendingIntent getPendingIntentLoop() {
+//        return createPendingIntent2(Long.valueOf(PlaybackStateCompat.REPEAT_MODE_ALL));
+//    }
+//
+//    private PendingIntent getPendingIntentOne() {
+//        return createPendingIntent(Long.valueOf(PlaybackStateCompat.REPEAT_MODE_ONE));
+//    }
 
-    private PendingIntent createPendingIntent(Long actionCode){
-        int keyCodePlay = PlaybackStateCompat.toKeyCode(actionCode);
-        Intent intentStart = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        intentStart.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyCodePlay));
-        return PendingIntent.getService(service, keyCodePlay, intentStart, PendingIntent.FLAG_IMMUTABLE);
+
+
+    private PendingIntent createPendingIntent(Long actionCode) {
+        int keyCode = PlaybackStateCompat.toKeyCode(actionCode);
+        Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        intent.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyCode));
+        return PendingIntent.getService(service, keyCode, intent, PendingIntent.FLAG_IMMUTABLE);
     }
-
 
     public Notification getNotification(MediaMetadataCompat metadata,
                                         @NonNull PlaybackStateCompat state,
@@ -106,8 +139,6 @@ public class MediaNotificationManager {
         NotificationCompat.Builder builder = buildNotification(state, token, isPlaying, description);
         return builder.build();
     }
-
-
 
     private NotificationCompat.Builder buildNotification(@NonNull PlaybackStateCompat state,
                                                          MediaSessionCompat.Token token,
@@ -136,6 +167,7 @@ public class MediaNotificationManager {
                 .addAction(previousAction)
                 .addAction(isPlaying ? pauseAction : playAction)
                 .addAction(nextAction);
+//                .addAction(switchModeLoopAction);
         return builder;
     }
 

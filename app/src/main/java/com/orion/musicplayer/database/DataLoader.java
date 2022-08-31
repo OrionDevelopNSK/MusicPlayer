@@ -1,11 +1,10 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.database;
 
 import android.app.Application;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.orion.musicplayer.dao.SoundtrackDao;
-import com.orion.musicplayer.database.AppDatabase;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
@@ -15,13 +14,15 @@ import java.util.List;
 
 public class DataLoader {
 
-    interface OnDatabaseLoadListener {
+    public interface OnDatabaseLoadListener {
         void onDatabaseLoad(List<Soundtrack> soundtracks);
     }
 
-    interface OnDatabaseLoadCompleteListener {
+    public interface OnDatabaseLoadCompleteListener {
         void onDatabaseLoadComplete();
     }
+
+
 
     public interface OnDatabaseChangeListener {
         void onDatabaseChange(List<Soundtrack> soundtracks);
@@ -39,6 +40,10 @@ public class DataLoader {
 
     public DataLoader(Application application) {
         this.application = application;
+    }
+
+    public List<Soundtrack> getSoundtracksFromRepo() {
+        return soundtracksFromRepo;
     }
 
     public void setOnDatabaseLoadListener(OnDatabaseLoadListener onDatabaseLoadListener) {

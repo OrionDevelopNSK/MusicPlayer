@@ -4,9 +4,10 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.media.session.PlaybackState;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -15,10 +16,12 @@ import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 
-import com.orion.musicplayer.DataLoader;
 import com.orion.musicplayer.MainActivity;
 import com.orion.musicplayer.MediaNotificationManager;
 import com.orion.musicplayer.SoundsController;
+import com.orion.musicplayer.SoundtrackPlayer;
+import com.orion.musicplayer.database.DataLoader;
+import com.orion.musicplayer.models.Soundtrack;
 
 public class MediaSessionService extends Service {
 
@@ -27,9 +30,9 @@ public class MediaSessionService extends Service {
 
     private MediaNotificationManager mediaNotificationManager;
     private MediaSessionCompat mediaSession;
-    private BinderService binderService = new BinderService();
     private SoundsController soundsController;
     private DataLoader dataLoader;
+    private final BinderService binderService = new BinderService();
 
     public SoundsController getSoundsController() {
         return soundsController;
@@ -47,78 +50,54 @@ public class MediaSessionService extends Service {
         soundsController = new SoundsController(getApplication());
         dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
         mediaNotificationManager = new MediaNotificationManager(this);
+
         mediaSession = new MediaSessionCompat(this, "PlayerService", null,
                 PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_IMMUTABLE));
 
-        Notification notification = mediaNotificationManager.getNotification(
-                getMetadata(), getState(), mediaSession.getSessionToken());
-        mediaSession.setCallback(new MediaSessionCompat.Callback() {
 
-            public boolean onMediaButtonEvent(Intent mediaButtonIntent) {
-                System.out.println("onMediaButtonEvent called: ********************77777777777777777777777********************* " + mediaButtonIntent);
-                return false;
-            }
-
-            @Override
-            public void onPlay() {
-                System.out.println("onPlay");
-
-            }
-
-            @Override
-            public void onPause() {
-                System.out.println("onPause");
-
-            }
-
-            @Override
-            public void onSkipToNext() {
-                System.out.println("onSkipToNext");
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                System.out.println("onSkipToPrevious");
-            }
-
-            @Override
-            public void onSeekTo(long pos) {
-//                soundtrackPlayer.setCurrentDuration((int) pos);
-            }
-        });
-
-        mediaSession.setActive(true);
-        startForeground(NOTIFICATION_ID, notification);
     }
 
-    public MediaMetadataCompat getMetadata() {
-        MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-
-        builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "artist");
-        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, "title");
-//        builder.putRating(MediaMetadataCompat.METADATA_KEY_USER_RATING, newUnratedRating(RatingCompat.RATING_5_STARS));
-//        builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, soundtrackPlayer.getCurrentTime());
-        return builder.build();
+    public MediaMetadataCompat getMetadata(int position) {
+        Soundtrack soundtrack = dataLoader.getSoundtracksFromRepo().get(position);
+        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundtrack.getTitle())
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, soundtrack.getArtist())
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, soundtrack.getDuration())
+                .build();
+        mediaSession.setMetadata(metadata);
+        return metadata;
     }
 
-    private PlaybackStateCompat getState() {
-
-//        boolean value = soundtrackPlayerModel.getIsPlayingLiveData().getValue();
-
-
-//        long actions = true ? PlaybackStateCompat.ACTION_PAUSE : PlaybackStateCompat.ACTION_PLAY;
-//        int state = true ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
-
-
-        long actions = PlaybackStateCompat.ACTION_PLAY;
-        int state = PlaybackStateCompat.STATE_PAUSED;
-
-        final PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder();
-        stateBuilder.setActions(actions);
-        stateBuilder.setState(PlaybackStateCompat.STATE_STOPPED, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0);
-        return stateBuilder.build();
+    public PlaybackStateCompat.Builder getBuilderState(){
+        SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
+        return new PlaybackStateCompat.Builder()
+                .setBufferedPosition(soundtrackPlayer.getCurrentTime())
+                .setActions(
+                        PlaybackStateCompat.ACTION_PLAY |
+                                PlaybackStateCompat.ACTION_PAUSE |
+                                PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
+                                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                                PlaybackStateCompat.ACTION_SEEK_TO |
+                                PlaybackStateCompat.ACTION_PLAY_PAUSE
+                );
     }
 
+    public PlaybackStateCompat getState(PlaybackStateCompat.Builder builder){
+        SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
+        PlaybackStateCompat state = builder.setState(
+                getPlaybackState(soundtrackPlayer),
+                soundtrackPlayer.getCurrentTime(),
+                1,
+                SystemClock.elapsedRealtime()).build();
+        mediaSession.setPlaybackState(state);
+        return state;
+    }
+
+
+    private int getPlaybackState(SoundtrackPlayer soundtrackPlayer) {
+        if (soundtrackPlayer.isPlaying()) return PlaybackStateCompat.STATE_PLAYING;
+        return PlaybackStateCompat.STATE_PAUSED;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -128,18 +107,20 @@ public class MediaSessionService extends Service {
                 case KeyEvent.KEYCODE_MEDIA_PAUSE:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PAUSE");
                     soundsController.playOrPause();
+                    createNotification(pos);
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PLAY:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PLAY");
                     soundsController.playOrPause();
+                    createNotification(pos);
                     break;
                 case KeyEvent.KEYCODE_MEDIA_NEXT:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_NEXT");
-                    soundsController.next();
+                    createNotification(soundsController.next());
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                     Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PREVIOUS");
-                    soundsController.previous();
+                    createNotification(soundsController.previous());
                     break;
             }
         }
@@ -156,7 +137,6 @@ public class MediaSessionService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "Событие отвязки от сервиса");
-//        stopForeground(true);
         return true;
     }
 
@@ -164,6 +144,35 @@ public class MediaSessionService extends Service {
     public void onRebind(Intent intent) {
         Log.e(TAG, "Событие повторной привязки к сервису");
         super.onRebind(intent);
+    }
+
+    Handler handler = new Handler();
+    Runnable runnable;
+    private int pos;
+
+    public void createNotification(int position) {
+        pos = position;
+        handler.removeCallbacks(runnable);
+        MediaMetadataCompat mediaMetadataCompat = getMetadata(position);
+        PlaybackStateCompat.Builder builderState = getBuilderState();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                Notification notification = mediaNotificationManager.getNotification(
+                        mediaMetadataCompat, getState(builderState), mediaSession.getSessionToken());
+                startForeground(NOTIFICATION_ID, notification);
+                handler.postDelayed(this, 500);
+            }
+        };
+        handler.postDelayed(runnable, 0);
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public void onSeekTo(long pos) {
+                soundsController.getSoundtrackPlayer().setCurrentDuration((int) pos);
+            }
+        });
+
+        mediaSession.setActive(true);
     }
 
     public class BinderService extends Binder {
@@ -178,5 +187,5 @@ public class MediaSessionService extends Service {
         Log.d(TAG, "Уничтожение службы");
         super.onDestroy();
     }
-    
+
 }

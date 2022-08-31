@@ -29,17 +29,13 @@ public class SoundtrackPlayer {
         mediaPlayer = new MediaPlayer();
         Log.d(TAG, "Установка слушателя на событие окончания песни");
         mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-//            if (mediaPlayer == null && mediaPlayer.isPlaying()) return;
-            mediaPlayer.stop();
-            try {
-                mediaPlayer.prepare();
-            }
-            catch (IOException e) {
-                Log.e(TAG, e.getMessage());
-            }
-            mediaPlayer.seekTo(0);
+            if (mediaPlayer.isPlaying()) mediaPlayer.stop();
             onSoundtrackFinishedListener.onSoundtrackFinish();
         });
+    }
+
+    public boolean isPlaying(){
+        return mediaPlayer.isPlaying();
     }
 
     public void setOnSoundtrackFinishedListener(OnSoundtrackFinishedListener onSoundtrackFinishedListener) {

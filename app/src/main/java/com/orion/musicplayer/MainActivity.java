@@ -30,6 +30,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.textfield.TextInputLayout;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
+import com.orion.musicplayer.database.DataLoader;
 import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
 import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
 import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
@@ -70,12 +71,12 @@ public class MainActivity extends AppCompatActivity {
         buttonSortedSoundtrack = findViewById(R.id.sorted_soundtrack);
         textInputLayout = findViewById(R.id.textInputLayout);
         setDialogClickListener(buttonDialog);
-
+        load();
         createServiceConnection();
         intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
         ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
-        load();
+
     }
 
     private void createServiceConnection() {
@@ -304,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
                             soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
                     break;
             }
+            mediaSessionService.createNotification(soundtrackPlayerModel.getCurrentPositionLiveData().getValue());
             Log.d(TAG, "Выбрано действие: " + action);
         });
     }
@@ -353,12 +355,13 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < soundtracks.size(); i++) {
                 if (soundtracks.get(i).getData().equals(soundTitle)) {
                     position = i;
-                    Log.d(TAG, "Найдена последняя воиспроизводимая песня");
+                    Log.d(TAG, "Найдена последняя воиспроизводимая песня, номер: " + position);
                     break;
                 }
             }
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
             mediaSessionService.getSoundsController().setCurrentPosition(position);
+            //mediaSessionService.createDefaultNotification(position);
         });
     }
 

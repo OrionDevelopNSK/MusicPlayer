@@ -1,4 +1,4 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.database;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
