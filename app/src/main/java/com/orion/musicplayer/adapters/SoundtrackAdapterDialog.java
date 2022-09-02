@@ -30,7 +30,7 @@ public class SoundtrackAdapterDialog extends RecyclerView.Adapter<SoundtrackAdap
 
         ViewHolder(View view){
             super(view);
-            textView = view.findViewById(R.id.item);
+            textView = view.findViewById(R.id.soundtrack_title_list);
             musicButton = view.findViewById(R.id.playMusicButton);
             checkBox = view.findViewById(R.id.checkbox_soundtrack);
         }

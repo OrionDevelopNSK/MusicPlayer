@@ -52,7 +52,16 @@ public class SoundTrackListDialogFragment extends DialogFragment {
 
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY_OR_PAUSE);
+
+            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
+                soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY);
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+            }
+            else {
+                soundtrackPlayerModel.getPlayerAction().setValue(Action.PAUSE);
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+            }
+
         });
 
         return view;

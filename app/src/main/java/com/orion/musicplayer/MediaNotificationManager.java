@@ -76,20 +76,20 @@ public class MediaNotificationManager {
         switchModeLoopAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_loop_24,
                 "LoopMode",
-                getPendingIntentRandom()).build();
+                getPendingIntentLoop()).build();
 
         switchModeRatingAction = new NotificationCompat.Action.Builder(
-                R.drawable.ic_loop_24,
+                R.drawable.ic_unlike_24,
                 "Rating",
                 getPendingIntentRating()).build();
 
         switchModeRepeatAction = new NotificationCompat.Action.Builder(
-                R.drawable.ic_repeat_24,
+                R.drawable.ic_repeat_one_24,
                 "RepeatMode",
                 getPendingIntentRepeatOne()).build();
 
         switchModeRandomAction = new NotificationCompat.Action.Builder(
-                R.drawable.ic_shake_24,
+                R.drawable.ic_random_24,
                 "RandomMode",
                 getPendingIntentRandom()).build();
 

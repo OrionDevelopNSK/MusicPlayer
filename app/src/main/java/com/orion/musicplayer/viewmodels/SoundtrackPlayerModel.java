@@ -7,17 +7,18 @@ import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.StateMode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SoundtrackPlayerModel extends ViewModel {
 
     private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>(StateMode.LOOP);
-    private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Integer> currentDurationLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>(false);
+    private final MutableLiveData<Long> currentDurationLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> positionLiveData = new MutableLiveData<>();
     private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoaded = new MutableLiveData<>();
-    private final MutableLiveData<Action> playerAction = new MutableLiveData<>();
+    private final MutableLiveData<Action> playerAction = new MutableLiveData<>(Action.UNKNOWN);
 
     public MutableLiveData<StateMode> getStateModeLiveData() {
         return stateModeLiveData;
@@ -27,7 +28,7 @@ public class SoundtrackPlayerModel extends ViewModel {
         return isPlayingLiveData;
     }
 
-    public MutableLiveData<Integer> getCurrentDurationLiveData() {
+    public MutableLiveData<Long> getCurrentDurationLiveData() {
         return currentDurationLiveData;
     }
 

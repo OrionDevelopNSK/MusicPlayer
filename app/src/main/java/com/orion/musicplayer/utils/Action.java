@@ -1,7 +1,9 @@
 package com.orion.musicplayer.utils;
 
 public enum Action {
-    PLAY_OR_PAUSE,
+    UNKNOWN,
+    PLAY,
+    PAUSE,
     NEXT,
     PREVIOUS,
     TO_START,

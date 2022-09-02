@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.adapters.SoundtrackAdapter;
+import com.orion.musicplayer.adapters.SoundRecycleViewAdapter;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
@@ -47,7 +47,15 @@ public class SoundRecyclerViewFragment extends Fragment {
 
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY_OR_PAUSE);
+
+            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
+                soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY);
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+            }
+            else {
+                soundtrackPlayerModel.getPlayerAction().setValue(Action.PAUSE);
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+            }
         });
 
         createPositionObserver();
@@ -61,14 +69,14 @@ public class SoundRecyclerViewFragment extends Fragment {
                 requireActivity(), integer -> Objects.requireNonNull(recyclerView.getAdapter()).notifyDataSetChanged());
     }
 
-    private void createSoundtracksObserver(SoundtrackAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
+    private void createSoundtracksObserver(SoundRecycleViewAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
-            SoundtrackAdapter soundtrackAdapter = new SoundtrackAdapter(
+            SoundRecycleViewAdapter soundRecycleViewAdapter = new SoundRecycleViewAdapter(
                     SoundRecyclerViewFragment.this.getContext(),
                     soundtracks,
                     onSoundtrackClickListener);
-            recyclerView.setAdapter(soundtrackAdapter);
+            recyclerView.setAdapter(soundRecycleViewAdapter);
         });
     }
 

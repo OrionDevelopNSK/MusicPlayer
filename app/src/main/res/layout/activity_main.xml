@@ -67,21 +67,21 @@
             android:layout_height="40dp"
             android:layout_marginRight="16dp"
             android:contentDescription="TODO"
-            android:background="@drawable/ic_add"
+            android:background="@drawable/ic_playlist_add"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@android:drawable/ic_btn_speak_now"
             tools:ignore="MissingConstraints" />
 
-        <View
-            android:id="@+id/divider2"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginTop="5dp"
-            android:background="?android:attr/listDivider"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:ignore="MissingConstraints" />
+<!--        <View-->
+<!--            android:id="@+id/divider2"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="2dp"-->
+<!--            android:layout_marginTop="5dp"-->
+<!--            android:background="?android:attr/listDivider"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            tools:ignore="MissingConstraints" />-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

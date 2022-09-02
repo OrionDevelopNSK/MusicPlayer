@@ -32,7 +32,7 @@ public class SoundsController {
     }
 
     interface OnCurrentDurationListener {
-        void onCurrentDuration(int duration);
+        void onCurrentDuration(long duration);
     }
 
     interface OnCurrentPositionListener {
@@ -72,6 +72,10 @@ public class SoundsController {
 
     public List<Soundtrack> getSoundtracks() {
         return soundtracks;
+    }
+
+    public void setStateMode(StateMode stateMode) {
+        this.stateMode = stateMode;
     }
 
     public void setCurrentPosition(int currentPosition) {
@@ -180,7 +184,7 @@ public class SoundsController {
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            onCurrentDurationListener.onCurrentDuration((int) soundtrackPlayer.getCurrentTime());
+            onCurrentDurationListener.onCurrentDuration(soundtrackPlayer.getCurrentTime());
             handler.postDelayed(this, 1000);
         }
     };
@@ -258,8 +262,8 @@ public class SoundsController {
         return stateMode;
     }
 
-    public void setCurrentDuration(int position) {
-        soundtrackPlayer.setCurrentDuration(position);
+    public void setCurrentDuration(long position) {
+        soundtrackPlayer.setCurrentTime(position);
     }
 
     public void setRating(int position, List<Soundtrack> countSoundtracks, int rating) {

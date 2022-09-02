@@ -49,6 +49,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -58,7 +59,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
         Log.d(TAG, "Биндинг Views");
         textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
-        textArtistTitle = currentView.findViewById(R.id.text_artist_title);
+        textArtistTitle = currentView.findViewById(R.id.text_soundtrack_artist);
         textTimeDuration = currentView.findViewById(R.id.text_time_duration);
         textCurrentDuration = currentView.findViewById(R.id.text_current_duration);
         slider = currentView.findViewById(R.id.slider_soundtrack);
@@ -71,7 +72,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
         buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
         buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
-        buttonToStart.setBackgroundResource(R.drawable.ic_play);
+        buttonToStart.setBackgroundResource(R.drawable.ic_to_start);
         buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
         buttonNext.setBackgroundResource(R.drawable.ic_next);
 
@@ -94,6 +95,11 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     //TODO
 
 
+    @Override
+    public void onStart() {
+        System.out.println("9999999999999999999999999999999999999999999999999999999999");
+        super.onStart();
+    }
 
     private void setListenerSliderTouch() {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
@@ -106,11 +112,12 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
                 Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
-                soundtrackPlayerModel.getCurrentDurationLiveData().setValue((int) slider.getValue());
+                soundtrackPlayerModel.getCurrentDurationLiveData().setValue((long) slider.getValue());
                 Log.d(TAG, "Отпускание слайдера прокрутки");
                 soundtrackPlayerModel.getPlayerAction().setValue(Action.SLIDER_MANIPULATE);
                 isTouch = false;
             }
+
         });
     }
 
@@ -119,7 +126,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         soundtrackPlayerModel.getCurrentDurationLiveData().observe(requireActivity(), integer -> {
             textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getCurrentDurationLiveData().getValue()));
             if (isTouch) return;
-            int value = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
+            long value = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
             if (value > slider.getValueTo()) return;
             slider.setValue(soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
         });
@@ -133,10 +140,10 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
                 buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
             } else if (stateMode == StateMode.REPEAT) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_repeat\"");
-                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_repeat);
+                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_repeat_one);
             } else if (stateMode == StateMode.RANDOM) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_random\"");
-                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_shake);
+                buttonChangeStateMode.setBackgroundResource(R.drawable.ic_random);
             }
         });
     }
@@ -148,16 +155,25 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             if (soundtrackList.size() == 0) return;
             Soundtrack soundtrack = soundtrackList.get(position);
             Log.d(TAG, "Изменение значений элементов UI");
-            textSoundtrackTitle.setText(soundtrack.getTitle());
-            textArtistTitle.setText(soundtrack.getArtist());
+
+            if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")){
+                textArtistTitle.setText(soundtrack.getTitle());
+                textSoundtrackTitle.setText("********");
+            }
+            else{
+                textArtistTitle.setText(soundtrack.getArtist());
+                textSoundtrackTitle.setText(soundtrack.getTitle());
+            }
+
             textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
             slider.setValueTo(soundtrack.getDuration());
-            slider.setValueFrom(0);
         });
     }
 
     private void createPlayingStateObserver() {
         soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
+
+            if (aBoolean == null) return;
             if (aBoolean) {
                 Log.d(TAG, "Начало воспроизведения");
                 buttonPlayOrPause.setBackgroundResource(R.drawable.ic_pause);
@@ -218,7 +234,19 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
     private void setListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
-        buttonPlayOrPause.setOnClickListener(view -> soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY_OR_PAUSE));
+        buttonPlayOrPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
+                    soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY);
+                    soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+                }
+                else {
+                    soundtrackPlayerModel.getPlayerAction().setValue(Action.PAUSE);
+                    soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+                }
+            }
+        });
     }
 
     private void changeLabelFormat() {
@@ -234,5 +262,10 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         super.onStop();
     }
 
-
+    @Override
+    public void onDestroy() {
+        System.out.println("7777777777777777777777777777777777777777777777777777777");
+        getFragmentManager().beginTransaction().remove(this).commitNow();
+        super.onDestroy();
+    }
 }

@@ -18,7 +18,7 @@ public class SoundtrackPlayer {
     }
 
 
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private static final String TAG = SoundtrackPlayer.class.getSimpleName();
 
     private Soundtrack currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
@@ -46,8 +46,8 @@ public class SoundtrackPlayer {
         this.statusSoundtrackListener = statusSoundtrackListener;
     }
 
-    public void setCurrentDuration(int position) {
-        mediaPlayer.seekTo(position);
+    public void setCurrentTime(long position) {
+        mediaPlayer.seekTo((int)position);
     }
 
     public void setVolume(float leftVolume, float rightVolume) {
@@ -82,8 +82,6 @@ public class SoundtrackPlayer {
             Log.d(TAG, "Пауза");
             mediaPlayer.pause();
             statusSoundtrackListener.onPlayingStatusSoundtrack(false);
-        } else {
-            mediaPlayer.pause();
         }
     }
 

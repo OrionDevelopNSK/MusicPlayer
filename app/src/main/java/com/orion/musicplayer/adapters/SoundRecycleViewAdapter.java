@@ -16,19 +16,21 @@ import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.List;
 
-public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.ViewHolder> {
+public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleViewAdapter.ViewHolder> {
 
     public interface OnSoundtrackClickListener{
         void onSoundtrackClick(Soundtrack soundtrack, int position);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
-        final TextView textView;
+        final TextView textViewSoundtrackTitle;
+        final TextView textViewSoundtrackArtist;
         final Button musicButton;
 
         ViewHolder(View view){
             super(view);
-            textView = view.findViewById(R.id.item);
+            textViewSoundtrackTitle = view.findViewById(R.id.soundtrack_title_list);
+            textViewSoundtrackArtist = view.findViewById(R.id.soundtrack_artist_list);
             musicButton = view.findViewById(R.id.playMusicButton);
         }
     }
@@ -37,7 +39,7 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
     private final List<Soundtrack> soundtrackList;
     private final OnSoundtrackClickListener onClickListener;
 
-    public SoundtrackAdapter(
+    public SoundRecycleViewAdapter(
             Context context,
             List<Soundtrack> soundtrackList,
             OnSoundtrackClickListener onClickListener) {
@@ -48,20 +50,26 @@ public class SoundtrackAdapter extends RecyclerView.Adapter<SoundtrackAdapter.Vi
 
     @NonNull
     @Override
-    public SoundtrackAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public SoundRecycleViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = layoutInflater.inflate(R.layout.list_item, parent, false);
         return new ViewHolder(view);
     }
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull SoundtrackAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+    public void onBindViewHolder(@NonNull SoundRecycleViewAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Soundtrack soundtrack = soundtrackList.get(position);
-        holder.textView.setText(soundtrack.getData() + "\n"
-                                + soundtrack.getTitle() + "\n"
-                                + soundtrack.getArtist() + "\n"
-                                + soundtrack.getRating() + "\n"
-                                + soundtrack.getCountOfLaunches() + "\n");
+
+
+        if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")){
+            holder.textViewSoundtrackArtist.setText(soundtrack.getTitle());
+            holder.textViewSoundtrackTitle.setText("********");
+        }
+        else{
+            holder.textViewSoundtrackArtist.setText(soundtrack.getArtist());
+            holder.textViewSoundtrackTitle.setText(soundtrack.getTitle());
+        }
+
 
 
         holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));

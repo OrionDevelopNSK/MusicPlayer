@@ -1,23 +1,19 @@
 package com.orion.musicplayer.services;
 
+import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.RatingCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
@@ -31,7 +27,6 @@ import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {
-
     private static final String TAG = MediaSessionService.class.getSimpleName();
     public static final int NOTIFICATION_ID = 888;
 
@@ -53,6 +48,7 @@ public class MediaSessionService extends Service {
     public void onCreate() {
         Log.e(TAG, "Создание сервиса");
         super.onCreate();
+
         dataLoader = new DataLoader(getApplication());
         soundsController = new SoundsController(getApplication());
         dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
@@ -93,7 +89,8 @@ public class MediaSessionService extends Service {
                 getPlaybackState(soundtrackPlayer),
                 soundtrackPlayer.getCurrentTime(),
                 1,
-                SystemClock.elapsedRealtime()).build();
+                SystemClock.elapsedRealtime())
+                .build();
         mediaSession.setPlaybackState(state);
         return state;
     }
@@ -143,6 +140,7 @@ public class MediaSessionService extends Service {
     Handler handler = new Handler();
     Runnable runnable;
     private int pos;
+    private boolean isTouch = false;
 
     public void createNotification(int position, StateMode mode) {
         Log.e(TAG, "Создание/обновление Notification");
@@ -150,6 +148,9 @@ public class MediaSessionService extends Service {
         handler.removeCallbacks(runnable);
         MediaMetadataCompat mediaMetadataCompat = getMetadata(position);
         PlaybackStateCompat.Builder builderState = getBuilderState();
+
+        int identifier = getResources().getIdentifier("mediacontroller_progress", "id", "android");
+        MediaControllerCompat controller = mediaSession.getController();
 
         runnable = new Runnable() {
             @Override
@@ -164,11 +165,15 @@ public class MediaSessionService extends Service {
             }
         };
         handler.postDelayed(runnable, 0);
+        createCallbacksMediaSession(position, mode);
+    }
 
+    private void createCallbacksMediaSession(int position, StateMode mode) {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onSeekTo(long pos) {
-                soundsController.getSoundtrackPlayer().setCurrentDuration((int) pos);
+                super.onSeekTo(pos);
+                soundsController.getSoundtrackPlayer().setCurrentTime((int) pos);
             }
 
             @Override
@@ -212,8 +217,10 @@ public class MediaSessionService extends Service {
 
     @Override
     public void onDestroy() {
-        soundsController.loseAudioFocusAndStopPlayer();
-        Log.d(TAG, "Уничтожение службы");
+        if (soundsController.getSoundtrackPlayer().isPlaying()){
+            soundsController.loseAudioFocusAndStopPlayer();
+            Log.d(TAG, "Уничтожение службы");
+        }
         super.onDestroy();
     }
 }
