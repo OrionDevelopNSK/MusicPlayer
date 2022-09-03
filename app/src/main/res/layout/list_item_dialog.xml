@@ -6,7 +6,7 @@
     android:layout_height="60dp">
 
     <Button
-        android:id="@+id/playMusicButton"
+        android:id="@+id/play_music_dialog"
         style="@style/Widget.AppCompat.Button"
         android:layout_width="40dp"
         android:layout_height="40dp"
@@ -37,7 +37,7 @@
         android:textSize="11sp"
         android:gravity="center_vertical"
         app:layout_constraintEnd_toStartOf="@+id/checkbox_soundtrack"
-        app:layout_constraintStart_toEndOf="@+id/playMusicButton"
+        app:layout_constraintStart_toEndOf="@+id/play_music_dialog"
         android:layout_marginBottom="4dp"
         android:layout_marginTop="4dp"
         android:layout_marginStart="10dp"

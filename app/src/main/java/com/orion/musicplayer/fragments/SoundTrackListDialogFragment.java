@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
 import androidx.fragment.app.DialogFragment;
@@ -13,7 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.adapters.SoundtrackAdapterDialog;
+import com.orion.musicplayer.adapters.SoundtrackDialogAdapter;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
@@ -24,6 +26,7 @@ public class SoundTrackListDialogFragment extends DialogFragment {
     private SoundtrackPlayerModel soundtrackPlayerModel;
     private Button saveButton;
     private Button closeButton;
+    private Animation buttonAnimationClick;
 
     public static SoundTrackListDialogFragment newInstance() {
         return new SoundTrackListDialogFragment();
@@ -46,8 +49,10 @@ public class SoundTrackListDialogFragment extends DialogFragment {
         recyclerView = view.findViewById(R.id.list_songs_dialog);
         saveButton = view.findViewById(R.id.save_playlist);
         closeButton = view.findViewById(R.id.close_dialog);
+        buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
-        subscribeListenerDialogClose();
+        subscribeDialogCloseButtonClickListener();
+        subscribeSaveButtonClickListener();
         setListenerPlaylistSave();
 
         createSoundtracksObserver((soundtrack, position) -> {
@@ -60,13 +65,25 @@ public class SoundTrackListDialogFragment extends DialogFragment {
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
+
         });
         return view;
     }
 
-    private void subscribeListenerDialogClose() {
+    private void subscribeDialogCloseButtonClickListener() {
         Log.d(TAG, "Установка слушателя DialogClose");
-        closeButton.setOnClickListener(view -> dismiss());
+        closeButton.setOnClickListener(view -> {
+            closeButton.startAnimation(buttonAnimationClick);
+            SoundTrackListDialogFragment.this.dismiss();
+        });
+    }
+
+    private void subscribeSaveButtonClickListener() {
+        Log.d(TAG, "Установка слушателя DialogClose");
+        saveButton.setOnClickListener(view -> {
+            saveButton.startAnimation(buttonAnimationClick);
+            //TODO
+        });
     }
 
     private void setListenerPlaylistSave(){
@@ -74,10 +91,10 @@ public class SoundTrackListDialogFragment extends DialogFragment {
         //TODO
     }
 
-    private void createSoundtracksObserver(SoundtrackAdapterDialog.OnSoundtrackClickListener onSoundtrackClickListener) {
+    private void createSoundtracksObserver(SoundtrackDialogAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
-            SoundtrackAdapterDialog soundtrackAdapter = new SoundtrackAdapterDialog(
+            SoundtrackDialogAdapter soundtrackAdapter = new SoundtrackDialogAdapter(
                     this.getContext(),
                     soundtracks,
                     onSoundtrackClickListener);

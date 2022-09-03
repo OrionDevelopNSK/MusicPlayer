@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.adapters.SoundRecycleViewAdapter;
+import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
@@ -25,6 +28,7 @@ public class SoundRecyclerViewFragment extends Fragment {
     private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
     private RecyclerView recyclerView;
     private SoundtrackPlayerModel soundtrackPlayerModel;
+
 
     public static SoundRecyclerViewFragment newInstance() {
         return new SoundRecyclerViewFragment();
@@ -41,17 +45,20 @@ public class SoundRecyclerViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sound_list_view, container, false);
         recyclerView = view.findViewById(R.id.list_songs);
+
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
 
-        createSoundtracksObserver((soundtrack, position) -> {
-            soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
-            }
-            else {
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+        createSoundtracksObserver(new SoundRecycleViewAdapter.OnSoundtrackClickListener() {
+            @Override
+            public void onSoundtrackClick(Soundtrack soundtrack, int position) {
+                soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
+                if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
+                    soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
+                    soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+                } else {
+                    soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+                    soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+                }
             }
         });
         createPositionObserver();

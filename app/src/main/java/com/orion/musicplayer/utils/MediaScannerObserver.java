@@ -13,10 +13,12 @@ public class MediaScannerObserver extends ContentObserver {
     private static final String TAG = MediaScannerObserver.class.getSimpleName();
 
     private final MediaSessionService mediaSessionService;
+    private SortingType sortingType;
 
-    public MediaScannerObserver(Handler handler, Activity activity, MediaSessionService mediaSessionService) {
+    public MediaScannerObserver(Handler handler, Activity activity, MediaSessionService mediaSessionService, SortingType sortingType) {
         super(handler);
         this.mediaSessionService = mediaSessionService;
+        this.sortingType = sortingType;
 
         Log.d(TAG, "Регистрация обсервера хранилища мультимедиа");
         activity.getContentResolver().registerContentObserver(
@@ -25,11 +27,20 @@ public class MediaScannerObserver extends ContentObserver {
         );
     }
 
+    public void setSortingType(SortingType sortingType) {
+        this.sortingType = sortingType;
+    }
+
     @Override
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
         Log.d(TAG, "Изменение хранилища аудиофайлов");
-        AsyncTask.execute(()-> mediaSessionService.getDataLoader().execute());
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                mediaSessionService.getDataLoader().execute(sortingType);
+            }
+        });
     }
 
 

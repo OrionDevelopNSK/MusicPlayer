@@ -8,6 +8,8 @@ import com.orion.musicplayer.dao.SoundtrackDao;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
+import com.orion.musicplayer.utils.Sorting;
+import com.orion.musicplayer.utils.SortingType;
 
 import java.io.File;
 import java.util.List;
@@ -23,7 +25,6 @@ public class DataLoader {
     }
 
 
-
     public interface OnDatabaseChangeListener {
         void onDatabaseChange(List<Soundtrack> soundtracks);
     }
@@ -36,14 +37,14 @@ public class DataLoader {
     private OnDatabaseLoadListener onDatabaseLoadListener;
     private OnDatabaseLoadCompleteListener onDatabaseLoadCompleteListener;
     private OnDatabaseChangeListener onDatabaseChangeListener;
-    private List<Soundtrack> soundtracksFromRepo;
+    private List<Soundtrack> soundtrackListCashed;
 
     public DataLoader(Application application) {
         this.application = application;
     }
 
-    public List<Soundtrack> getSoundtracksFromRepo() {
-        return soundtracksFromRepo;
+    public List<Soundtrack> getSoundtracksCashed() {
+        return soundtrackListCashed;
     }
 
     public void setOnDatabaseLoadListener(OnDatabaseLoadListener onDatabaseLoadListener) {
@@ -58,7 +59,7 @@ public class DataLoader {
         this.onDatabaseChangeListener = onDatabaseChangeListener;
     }
 
-    public void execute() {
+    public void execute(SortingType sortingType) {
         Log.d(TAG, "Манипуляции с базой данных");
         AudioReader audioReader = new AudioReader(application);
         database = AppDatabase.getDatabase(application);
@@ -71,11 +72,30 @@ public class DataLoader {
             Log.d(TAG, "Получение всех сущностей из базы данных");
             List<SoundtrackDbEntity> all = soundtrackDao.getAll();
             deleteNotValidDataFromDatabase(roomSoundtrackRepository, all);
-            soundtracksFromRepo = roomSoundtrackRepository.getAll();
-            onDatabaseLoadListener.onDatabaseLoad(soundtracksFromRepo);
+            soundtrackListCashed = sort(roomSoundtrackRepository.getAll(), sortingType);
+            onDatabaseLoadListener.onDatabaseLoad(soundtrackListCashed);
             onDatabaseLoadCompleteListener.onDatabaseLoadComplete();
-            onDatabaseChangeListener.onDatabaseChange(soundtracksFromRepo);
+            onDatabaseChangeListener.onDatabaseChange(soundtrackListCashed);
         });
+    }
+
+    public void refresh(SortingType sortingType){
+        if (soundtrackListCashed == null) return;
+        List<Soundtrack> sorted = sort(soundtrackListCashed, sortingType);
+        onDatabaseLoadListener.onDatabaseLoad(sorted);
+        onDatabaseLoadCompleteListener.onDatabaseLoadComplete();
+        onDatabaseChangeListener.onDatabaseChange(sorted);
+    }
+
+    private List<Soundtrack> sort(final List<Soundtrack> soundtracks, SortingType sortingType){
+        switch (sortingType) {
+            case REPEATABILITY:
+                return Sorting.byRepeatability(soundtracks);
+            case RATING:
+                return Sorting.byRating(soundtracks);
+            default:
+                return Sorting.byDate(soundtracks);
+        }
     }
 
     private void deleteNotValidDataFromDatabase(RoomSoundtrackRepository roomSoundtrackRepository, List<SoundtrackDbEntity> all) {

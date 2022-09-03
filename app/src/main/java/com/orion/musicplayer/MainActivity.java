@@ -14,6 +14,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -38,6 +41,7 @@ import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.MediaScannerObserver;
+import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
@@ -48,21 +52,25 @@ public class MainActivity extends AppCompatActivity {
     private final static String KEY_DATA = "currentSoundtrackTitle";
     private final static String KEY_DURATION = "currentSoundtrackDuration";
     private final static String KEY_STATE_MODE = "currentStateModePlaying";
+    private final static String KEY_SORTING_TYPE = "currentSortingType";
 
     private MediaSessionService mediaSessionService;
     private ServiceConnection serviceConnection;
     private SoundtrackPlayerModel soundtrackPlayerModel;
     private SharedPreferences defaultsSharedPreferences;
+    private MediaScannerObserver mediaScannerObserver;
     private Intent intent;
 
     private Button buttonDialog;
-    private Button buttonSortedSoundtrack;
+    private Button buttonSortingMode;
     private TextInputLayout textInputLayout;
     private TabLayout tabLayout;
+    private Animation buttonAnimationClick;
 
     private String soundTitle;
     private long currentDuration;
     private StateMode currentState;
+    private SortingType sortingType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,10 +80,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         checkPermissions();
         addFragmentControlPanel();
+        buttonAnimationClick = AnimationUtils.loadAnimation(this, R.anim.button_click);
         buttonDialog = findViewById(R.id.open_dialog);
-        buttonSortedSoundtrack = findViewById(R.id.sorted_soundtrack);
+        buttonSortingMode = findViewById(R.id.sorted_soundtrack);
         textInputLayout = findViewById(R.id.textInputLayout);
-        subscribeDialogClickListener(buttonDialog);
+        subscribeButtonDialogClickListener(buttonDialog);
+        subscribeButtonSortingClickListener();
         load();
         createServiceConnection();
         intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
@@ -84,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
+
+
     private void createServiceConnection() {
         serviceConnection = new ServiceConnection() {
             @Override
@@ -91,13 +103,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Подключение сервиса");
                 mediaSessionService = ((MediaSessionService.BinderService) binder).getService();
                 subscribeDatabaseLoadListeners();
-                mediaSessionService.getDataLoader().execute();
+                mediaSessionService.getDataLoader().execute(soundtrackPlayerModel.getSortingTypeLiveData().getValue());
                 subscribeSoundsControllerListeners();
                 createMediaScannerObserver();
                 bindActions();
                 defaultDescription();
                 createDataValidateObserver();
                 createStateModeObserver();
+                createSortingTypeObserver();
+
             }
 
             @Override
@@ -112,11 +126,17 @@ public class MainActivity extends AppCompatActivity {
                 mediaSessionService.getSoundsController().setStateMode(stateMode));
     }
 
+    private void createSortingTypeObserver() {
+        soundtrackPlayerModel.getSortingTypeLiveData().observe(this, sortingType -> {
+            mediaScannerObserver.setSortingType(sortingType);
+            mediaSessionService.getDataLoader().refresh(sortingType);
+        });
+    }
+
     private void createMediaScannerObserver() {
-        @SuppressWarnings("unused")
-        MediaScannerObserver mediaScannerObserver = new MediaScannerObserver(
+        mediaScannerObserver = new MediaScannerObserver(
                 new Handler(Looper.getMainLooper()),
-                this, mediaSessionService);
+                this, mediaSessionService, sortingType);
     }
 
     private void createDataValidateObserver() {
@@ -124,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             if (soundtracks.isEmpty()) {
                 Log.d(TAG, "Список пуст");
                 buttonDialog.setEnabled(false);
-                buttonSortedSoundtrack.setEnabled(false);
+                buttonSortingMode.setEnabled(false);
                 textInputLayout.setEnabled(false);
                 //TODO ((View)tabLayout).setEnabled(false);
             } else {
@@ -132,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 if (buttonDialog.isEnabled()) return;
                 Log.d(TAG, "Список пуст");
                 buttonDialog.setEnabled(true);
-                buttonSortedSoundtrack.setEnabled(true);
+                buttonSortingMode.setEnabled(true);
                 textInputLayout.setEnabled(true);
                 tabLayout.setEnabled(true);
             }
@@ -142,21 +162,31 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeSoundsControllerListeners() {
         SoundsController soundsController = mediaSessionService.getSoundsController();
         soundsController.setOnChangeStateModeListener(stateMode -> soundtrackPlayerModel.getStateModeLiveData().setValue(stateMode));
-        soundsController.setOnCurrentDurationListener(duration -> soundtrackPlayerModel.getCurrentDurationLiveData().setValue(duration));
+        soundsController.setOnCurrentDurationListener(duration -> soundtrackPlayerModel.getDurationLiveData().setValue(duration));
         soundsController.setOnCurrentPositionListener(position -> soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position));
         soundsController.setOnPlayingStatusListener(isPlay -> soundtrackPlayerModel.getIsPlayingLiveData().setValue(isPlay));
     }
 
     private void subscribeDatabaseLoadListeners() {
         DataLoader dataLoader = mediaSessionService.getDataLoader();
-        dataLoader.setOnDatabaseLoadCompleteListener(() -> soundtrackPlayerModel.getIsLoadedLiveData().postValue(true));
+        dataLoader.setOnDatabaseLoadCompleteListener(() -> {
+            soundtrackPlayerModel.getIsLoadedLiveData().postValue(true);
+        });
         dataLoader.setOnDatabaseLoadListener(soundtracks -> soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks));
     }
 
-    private void subscribeDialogClickListener(Button buttonDialog) {
+    private void subscribeButtonDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
+            buttonDialog.startAnimation(buttonAnimationClick);
             SoundTrackListDialogFragment fragment = SoundTrackListDialogFragment.newInstance();
             fragment.show(getSupportFragmentManager(), "Выберите песни");
+        });
+    }
+
+    private void subscribeButtonSortingClickListener() {
+        buttonSortingMode.setOnClickListener(view -> {
+            buttonSortingMode.startAnimation(buttonAnimationClick);
+            //TODO
         });
     }
 
@@ -321,14 +351,14 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case SLIDER_MANIPULATE:
                     mediaSessionService.getSoundsController().setCurrentDuration(
-                            soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
+                            soundtrackPlayerModel.getDurationLiveData().getValue());
                     break;
             }
             Log.d(TAG, "Выбрано действие: " + action);
 
             mediaSessionService.createNotification(
                     soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
-                    soundtrackPlayerModel.getStateModeLiveData().getValue() );
+                    soundtrackPlayerModel.getStateModeLiveData().getValue());
             //Чтобы не было повторный отправки действий при повороте экрана
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.UNKNOWN);
         });
@@ -356,11 +386,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Сохранить состояние " + soundTitle);
         defaultsSharedPreferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = defaultsSharedPreferences.edit();
-        currentDuration = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
+        currentDuration = soundtrackPlayerModel.getDurationLiveData().getValue();
         soundTitle = soundtrackPlayerModel.getSoundtracksLiveData().getValue()
                 .get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue()).getData();
         currentState = soundtrackPlayerModel.getStateModeLiveData().getValue();
         editor.putString(KEY_DATA, soundTitle);
+        editor.putString(KEY_SORTING_TYPE, soundtrackPlayerModel.getSortingTypeLiveData().getValue().toString());
         editor.putLong(KEY_DURATION, currentDuration);
         editor.putString(KEY_STATE_MODE, soundtrackPlayerModel.getStateModeLiveData().getValue().toString());
         editor.commit();
@@ -371,6 +402,8 @@ public class MainActivity extends AppCompatActivity {
         currentDuration = defaultsSharedPreferences.getLong(KEY_DURATION, 0);
         soundTitle = defaultsSharedPreferences.getString(KEY_DATA, "");
         currentState = StateMode.valueOf(defaultsSharedPreferences.getString(KEY_STATE_MODE, "LOOP"));
+        sortingType = SortingType.valueOf(defaultsSharedPreferences.getString(KEY_SORTING_TYPE, "DATE"));
+        soundtrackPlayerModel.getSortingTypeLiveData().setValue(sortingType);
         soundtrackPlayerModel.getStateModeLiveData().setValue(currentState);
         Log.d(TAG, String.format("Получить состояния soundTitle: %s currentDuration: %d currentState: %s", soundTitle, currentDuration, currentState));
     }

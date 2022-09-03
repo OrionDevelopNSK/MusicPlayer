@@ -1,7 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">MusicPlayer</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name">Музыка</string>
     <string name="dialog_close_app" tools:ignore="ExtraTranslation">Выйти из приложения?</string>
     <string name="yes_dialog" tools:ignore="ExtraTranslation">Да</string>
     <string name="no_dialog" tools:ignore="ExtraTranslation">Нет</string>

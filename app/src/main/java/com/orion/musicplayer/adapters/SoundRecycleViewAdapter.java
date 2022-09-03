@@ -5,6 +5,8 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -26,18 +28,21 @@ public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleVi
         final TextView textViewSoundtrackTitle;
         final TextView textViewSoundtrackArtist;
         final Button musicButton;
+        final Button soundtrackSettings;
 
         ViewHolder(View view){
             super(view);
             textViewSoundtrackTitle = view.findViewById(R.id.soundtrack_title_list);
             textViewSoundtrackArtist = view.findViewById(R.id.soundtrack_artist_list);
-            musicButton = view.findViewById(R.id.playMusicButton);
+            musicButton = view.findViewById(R.id.play_music_list);
+            soundtrackSettings = view.findViewById(R.id.soundtrack_settings);
         }
     }
 
     private final LayoutInflater layoutInflater;
     private final List<Soundtrack> soundtrackList;
     private final OnSoundtrackClickListener onClickListener;
+    private final Animation buttonAnimationClick;
 
     public SoundRecycleViewAdapter(
             Context context,
@@ -46,6 +51,7 @@ public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleVi
         this.layoutInflater = LayoutInflater.from(context);
         this.soundtrackList = soundtrackList;
         this.onClickListener = onClickListener;
+        buttonAnimationClick = AnimationUtils.loadAnimation(context, R.anim.button_click);
     }
 
     @NonNull
@@ -60,11 +66,23 @@ public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleVi
     public void onBindViewHolder(@NonNull SoundRecycleViewAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Soundtrack soundtrack = soundtrackList.get(position);
         stylizedData(holder, soundtrack);
-        holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
+        holder.musicButton.setOnClickListener(view -> {
+            holder.musicButton.startAnimation(buttonAnimationClick);
+            //TODO не работает анимация пока снизу есть листенер
+            onClickListener.onSoundtrackClick(soundtrack, position);
+        });
+
         holder.itemView.setOnClickListener(view -> {
-            //TODO
+            //TODO открытие подробной справки
             //onClickListener.onSoundtrackClick(soundtrack, position);
         });
+
+        holder.soundtrackSettings.setOnClickListener(view -> {
+            holder.soundtrackSettings.startAnimation(buttonAnimationClick);
+            //TODO открытие меню действий
+        });
+
+
     }
 
     private void stylizedData(@NonNull ViewHolder holder, Soundtrack soundtrack) {

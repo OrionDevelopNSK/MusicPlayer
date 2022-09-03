@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
+import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.StateMode;
 
 import java.util.List;
@@ -12,11 +13,13 @@ import java.util.List;
 public class SoundtrackPlayerModel extends ViewModel {
     private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>(StateMode.LOOP);
     private final MutableLiveData<Boolean> isPlayingLiveData = new MutableLiveData<>(false);
-    private final MutableLiveData<Long> currentDurationLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Long> durationLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> positionLiveData = new MutableLiveData<>();
     private final MutableLiveData<List<Soundtrack>> soundtracksLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoadedLiveData = new MutableLiveData<>();
     private final MutableLiveData<Action> playerActionLiveData = new MutableLiveData<>(Action.UNKNOWN);
+    private final MutableLiveData<SortingType> sortingTypeLiveData = new MutableLiveData<>();
+
 
     public MutableLiveData<StateMode> getStateModeLiveData() {
         return stateModeLiveData;
@@ -26,8 +29,8 @@ public class SoundtrackPlayerModel extends ViewModel {
         return isPlayingLiveData;
     }
 
-    public MutableLiveData<Long> getCurrentDurationLiveData() {
-        return currentDurationLiveData;
+    public MutableLiveData<Long> getDurationLiveData() {
+        return durationLiveData;
     }
 
     public MutableLiveData<Integer> getCurrentPositionLiveData() {
@@ -44,5 +47,9 @@ public class SoundtrackPlayerModel extends ViewModel {
 
     public MutableLiveData<Action> getPlayerActionLiveData() {
         return playerActionLiveData;
+    }
+
+    public MutableLiveData<SortingType> getSortingTypeLiveData() {
+        return sortingTypeLiveData;
     }
 }

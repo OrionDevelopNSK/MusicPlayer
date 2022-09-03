@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -40,6 +42,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private Button buttonPrevious;
     private Button buttonNext;
     private Button buttonChangeStateMode;
+    private Animation buttonAnimationClick;
     private SoundtrackPlayerModel soundtrackPlayerModel;
 
     public static SoundtrackPlayerControllerFragment newInstance() {
@@ -67,6 +70,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         buttonPrevious = currentView.findViewById(R.id.button_previous);
         buttonNext = currentView.findViewById(R.id.button_next);
         buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
+        buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
 
         buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
@@ -74,7 +78,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         buttonToStart.setBackgroundResource(R.drawable.ic_to_start);
         buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
         buttonNext.setBackgroundResource(R.drawable.ic_next);
-
 
         changeLabelFormat();
         setListenerSliderTouch();
@@ -91,15 +94,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         return currentView;
     }
 
-    //TODO
-
-
-    @Override
-    public void onStart() {
-        System.out.println("9999999999999999999999999999999999999999999999999999999999");
-        super.onStart();
-    }
-
     private void setListenerSliderTouch() {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
@@ -111,23 +105,22 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
                 Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
-                soundtrackPlayerModel.getCurrentDurationLiveData().setValue((long) slider.getValue());
+                soundtrackPlayerModel.getDurationLiveData().setValue((long) slider.getValue());
                 Log.d(TAG, "Отпускание слайдера прокрутки");
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SLIDER_MANIPULATE);
                 isTouch = false;
             }
-
         });
     }
 
     private void createDurationObserver() {
         Log.d(TAG, "Создание обсервера изменения текущего времени воспроизведения песни");
-        soundtrackPlayerModel.getCurrentDurationLiveData().observe(requireActivity(), integer -> {
-            textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getCurrentDurationLiveData().getValue()));
+        soundtrackPlayerModel.getDurationLiveData().observe(requireActivity(), integer -> {
+            textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getDurationLiveData().getValue()));
             if (isTouch) return;
-            long value = soundtrackPlayerModel.getCurrentDurationLiveData().getValue();
+            long value = soundtrackPlayerModel.getDurationLiveData().getValue();
             if (value > slider.getValueTo()) return;
-            slider.setValue(soundtrackPlayerModel.getCurrentDurationLiveData().getValue());
+            slider.setValue(soundtrackPlayerModel.getDurationLiveData().getValue());
         });
     }
 
@@ -213,27 +206,40 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
     private void subscribeListenerButtonToStart() {
         Log.d(TAG, "Установка слушателя ButtonToStart");
-        buttonToStart.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.TO_START));
+        buttonToStart.setOnClickListener(view -> {
+            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.TO_START);
+            buttonToStart.startAnimation(buttonAnimationClick);
+        });
     }
 
     private void subscribeListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
-        buttonChangeStateMode.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE));
+        buttonChangeStateMode.setOnClickListener(view -> {
+            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE);
+            buttonChangeStateMode.startAnimation(buttonAnimationClick);
+        });
     }
 
     private void subscribeListenerButtonNext() {
         Log.d(TAG, "Установка слушателя ButtonNext");
-        buttonNext.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.NEXT));
+        buttonNext.setOnClickListener(view -> {
+            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.NEXT);
+            buttonNext.startAnimation(buttonAnimationClick);
+        });
     }
 
     private void subscribeListenerButtonPrevious() {
         Log.d(TAG, "Установка слушателя ButtonPrevious");
-        buttonPrevious.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PREVIOUS));
+        buttonPrevious.setOnClickListener(view -> {
+            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PREVIOUS);
+            buttonPrevious.startAnimation(buttonAnimationClick);
+        });
     }
 
     private void subscribeListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
         buttonPlayOrPause.setOnClickListener(view -> {
+            buttonPlayOrPause.startAnimation(buttonAnimationClick);
             if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);

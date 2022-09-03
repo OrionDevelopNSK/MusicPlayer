@@ -57,7 +57,7 @@ public class MediaSessionService extends Service {
     }
 
     public MediaMetadataCompat getMetadata(int position) {
-        Soundtrack soundtrack = dataLoader.getSoundtracksFromRepo().get(position);
+        Soundtrack soundtrack = dataLoader.getSoundtracksCashed().get(position);
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundtrack.getTitle())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, soundtrack.getArtist())
