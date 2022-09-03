@@ -49,7 +49,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -79,11 +78,11 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
 
         changeLabelFormat();
         setListenerSliderTouch();
-        setListenerButtonToStart();
-        setListenerButtonPlayOrPause();
-        setListenerButtonPrevious();
-        setListenerButtonNext();
-        setListenerButtonChangeStateMode();
+        subscribeListenerButtonToStart();
+        subscribeListenerButtonPlayOrPause();
+        subscribeListenerButtonPrevious();
+        subscribeListenerButtonNext();
+        subscribeListenerButtonChangeStateMode();
         createDurationObserver();
         createPositionObserver();
         createStateModeObserver();
@@ -114,7 +113,7 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
                 Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
                 soundtrackPlayerModel.getCurrentDurationLiveData().setValue((long) slider.getValue());
                 Log.d(TAG, "Отпускание слайдера прокрутки");
-                soundtrackPlayerModel.getPlayerAction().setValue(Action.SLIDER_MANIPULATE);
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SLIDER_MANIPULATE);
                 isTouch = false;
             }
 
@@ -155,26 +154,28 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             if (soundtrackList.size() == 0) return;
             Soundtrack soundtrack = soundtrackList.get(position);
             Log.d(TAG, "Изменение значений элементов UI");
-
-            if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")){
-                textArtistTitle.setText(soundtrack.getTitle());
-                textSoundtrackTitle.setText("********");
-            }
-            else{
-                textArtistTitle.setText(soundtrack.getArtist());
-                textSoundtrackTitle.setText(soundtrack.getTitle());
-            }
-
+            stylizedData(soundtrack);
             textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
             slider.setValueTo(soundtrack.getDuration());
         });
     }
 
-    private void createPlayingStateObserver() {
-        soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
+    private void stylizedData(Soundtrack soundtrack) {
+        if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")){
+            textArtistTitle.setText(soundtrack.getTitle());
+            textSoundtrackTitle.setText("********");
+        }
+        else{
+            textArtistTitle.setText(soundtrack.getArtist());
+            textSoundtrackTitle.setText(soundtrack.getTitle());
+        }
+    }
 
-            if (aBoolean == null) return;
-            if (aBoolean) {
+    private void createPlayingStateObserver() {
+        soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), isPlay -> {
+
+            if (isPlay == null) return;
+            if (isPlay) {
                 Log.d(TAG, "Начало воспроизведения");
                 buttonPlayOrPause.setBackgroundResource(R.drawable.ic_pause);
             } else {
@@ -210,41 +211,36 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         });
     }
 
-
-
-    private void setListenerButtonToStart() {
+    private void subscribeListenerButtonToStart() {
         Log.d(TAG, "Установка слушателя ButtonToStart");
-        buttonToStart.setOnClickListener(view -> soundtrackPlayerModel.getPlayerAction().setValue(Action.TO_START));
+        buttonToStart.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.TO_START));
     }
 
-    private void setListenerButtonChangeStateMode() {
+    private void subscribeListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
-        buttonChangeStateMode.setOnClickListener(view -> soundtrackPlayerModel.getPlayerAction().setValue(Action.SWITCH_MODE));
+        buttonChangeStateMode.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE));
     }
 
-    private void setListenerButtonNext() {
+    private void subscribeListenerButtonNext() {
         Log.d(TAG, "Установка слушателя ButtonNext");
-        buttonNext.setOnClickListener(view -> soundtrackPlayerModel.getPlayerAction().setValue(Action.NEXT));
+        buttonNext.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.NEXT));
     }
 
-    private void setListenerButtonPrevious() {
+    private void subscribeListenerButtonPrevious() {
         Log.d(TAG, "Установка слушателя ButtonPrevious");
-        buttonPrevious.setOnClickListener(view -> soundtrackPlayerModel.getPlayerAction().setValue(Action.PREVIOUS));
+        buttonPrevious.setOnClickListener(view -> soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PREVIOUS));
     }
 
-    private void setListenerButtonPlayOrPause() {
+    private void subscribeListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
-        buttonPlayOrPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
-                    soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY);
-                    soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
-                }
-                else {
-                    soundtrackPlayerModel.getPlayerAction().setValue(Action.PAUSE);
-                    soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
-                }
+        buttonPlayOrPause.setOnClickListener(view -> {
+            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+            }
+            else {
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+                soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
         });
     }
@@ -254,18 +250,4 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         slider.setLabelFormatter(value -> TimeConverter.toMinutesAndSeconds((int) value));
     }
 
-
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    public void onDestroy() {
-        System.out.println("7777777777777777777777777777777777777777777777777777777");
-        getFragmentManager().beginTransaction().remove(this).commitNow();
-        super.onDestroy();
-    }
 }

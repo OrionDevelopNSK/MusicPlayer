@@ -20,14 +20,13 @@
             android:id="@+id/sorted_soundtrack"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginLeft="20dp"
-            android:contentDescription="TODO"
+            android:layout_marginStart="20dp"
+            android:contentDescription="@string/sorting"
             android:background="@drawable/ic_sort"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_sort_by_size"
-            tools:ignore="MissingConstraints" />
+            app:srcCompat="@android:drawable/ic_menu_sort_by_size"/>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayout"
@@ -47,8 +46,7 @@
             app:layout_constraintEnd_toStartOf="@+id/open_dialog"
             app:layout_constraintStart_toEndOf="@+id/sorted_soundtrack"
             app:layout_constraintTop_toTopOf="parent"
-            app:startIconDrawable="@drawable/ic_search_24px"
-            tools:ignore="MissingConstraints">
+            app:startIconDrawable="@drawable/ic_search_24px">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
@@ -65,23 +63,13 @@
             android:id="@+id/open_dialog"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginRight="16dp"
-            android:contentDescription="TODO"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="@string/add_playlist"
             android:background="@drawable/ic_playlist_add"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_btn_speak_now"
-            tools:ignore="MissingConstraints" />
-
-<!--        <View-->
-<!--            android:id="@+id/divider2"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="2dp"-->
-<!--            android:layout_marginTop="5dp"-->
-<!--            android:background="?android:attr/listDivider"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            tools:ignore="MissingConstraints" />-->
+            app:srcCompat="@android:drawable/ic_btn_speak_now" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

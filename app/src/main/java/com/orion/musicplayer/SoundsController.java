@@ -102,8 +102,6 @@ public class SoundsController {
         this.onCurrentPositionListener = onCurrentPositionListener;
     }
 
-
-
     public void loseAudioFocusAndStopPlayer() {
         Log.d(TAG, "отдача аудиофокуса, остановка плайера");
         audioPlayerFocus.loseAudioFocus();
@@ -172,12 +170,14 @@ public class SoundsController {
 
     public void playOrPause(int position, List<Soundtrack> soundtracks) {
         if (soundtracks != null && soundtracks.isEmpty()) return;
-        Log.d(TAG, "Начало или пауза песни " + position);
-        this.soundtracks = soundtracks;
-        this.currentPosition = position;
-        soundtrackPlayer.playOrPause(soundtracks.get(position));
-        handler.removeCallbacks(runnable);
-        handler.postDelayed(runnable, 0);
+        if (soundtracks.get(position) != null){
+            Log.d(TAG, "Начало или пауза песни " + position);
+            this.soundtracks = soundtracks;
+            this.currentPosition = position;
+            soundtrackPlayer.playOrPause(soundtracks.get(position));
+            handler.removeCallbacks(runnable);
+            handler.postDelayed(runnable, 0);
+        }
     }
 
     Handler handler = new Handler(getMainLooper());

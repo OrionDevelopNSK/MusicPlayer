@@ -1,6 +1,5 @@
 package com.orion.musicplayer.services;
 
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,7 +9,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -140,7 +138,6 @@ public class MediaSessionService extends Service {
     Handler handler = new Handler();
     Runnable runnable;
     private int pos;
-    private boolean isTouch = false;
 
     public void createNotification(int position, StateMode mode) {
         Log.e(TAG, "Создание/обновление Notification");
@@ -149,8 +146,8 @@ public class MediaSessionService extends Service {
         MediaMetadataCompat mediaMetadataCompat = getMetadata(position);
         PlaybackStateCompat.Builder builderState = getBuilderState();
 
-        int identifier = getResources().getIdentifier("mediacontroller_progress", "id", "android");
-        MediaControllerCompat controller = mediaSession.getController();
+//        int identifier = getResources().getIdentifier("mediacontroller_progress", "id", "android");
+//        MediaControllerCompat controller = mediaSession.getController();
 
         runnable = new Runnable() {
             @Override

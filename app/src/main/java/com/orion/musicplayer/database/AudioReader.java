@@ -25,7 +25,6 @@ public class AudioReader {
     @SuppressLint("Range")
     public List<Soundtrack> readMediaData() {
         Log.d(TAG, "Чтение аудиофайла с внутреннего хранилища");
-
         String[] projection = new String[]{
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.ARTIST,

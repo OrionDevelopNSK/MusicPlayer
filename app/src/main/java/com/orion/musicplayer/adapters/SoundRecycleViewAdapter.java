@@ -59,8 +59,15 @@ public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleVi
     @Override
     public void onBindViewHolder(@NonNull SoundRecycleViewAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Soundtrack soundtrack = soundtrackList.get(position);
+        stylizedData(holder, soundtrack);
+        holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
+        holder.itemView.setOnClickListener(view -> {
+            //TODO
+            //onClickListener.onSoundtrackClick(soundtrack, position);
+        });
+    }
 
-
+    private void stylizedData(@NonNull ViewHolder holder, Soundtrack soundtrack) {
         if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")){
             holder.textViewSoundtrackArtist.setText(soundtrack.getTitle());
             holder.textViewSoundtrackTitle.setText("********");
@@ -69,14 +76,6 @@ public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleVi
             holder.textViewSoundtrackArtist.setText(soundtrack.getArtist());
             holder.textViewSoundtrackTitle.setText(soundtrack.getTitle());
         }
-
-
-
-        holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
-
-        holder.itemView.setOnClickListener(view -> {
-            //onClickListener.onSoundtrackClick(soundtrack, position);
-        });
     }
 
     @Override

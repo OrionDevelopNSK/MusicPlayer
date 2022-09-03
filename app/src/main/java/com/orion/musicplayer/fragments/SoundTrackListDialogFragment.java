@@ -47,33 +47,31 @@ public class SoundTrackListDialogFragment extends DialogFragment {
         saveButton = view.findViewById(R.id.save_playlist);
         closeButton = view.findViewById(R.id.close_dialog);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
-        setListenerDialogClose();
+        subscribeListenerDialogClose();
         setListenerPlaylistSave();
 
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-
             if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
-                soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY);
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
             }
             else {
-                soundtrackPlayerModel.getPlayerAction().setValue(Action.PAUSE);
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
-
         });
-
         return view;
     }
 
-    private void setListenerDialogClose() {
+    private void subscribeListenerDialogClose() {
         Log.d(TAG, "Установка слушателя DialogClose");
         closeButton.setOnClickListener(view -> dismiss());
     }
 
     private void setListenerPlaylistSave(){
         Log.d(TAG, "Установка слушателя PlaylistSave");
+        //TODO
     }
 
     private void createSoundtracksObserver(SoundtrackAdapterDialog.OnSoundtrackClickListener onSoundtrackClickListener) {

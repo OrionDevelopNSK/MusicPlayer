@@ -5,4 +5,14 @@
     <string name="dialog_close_app" tools:ignore="ExtraTranslation">Выйти из приложения?</string>
     <string name="yes_dialog" tools:ignore="ExtraTranslation">Да</string>
     <string name="no_dialog" tools:ignore="ExtraTranslation">Нет</string>
+    <string name="play">Играть</string>
+    <string name="pause">Пауза</string>
+    <string name="previous">Предыдущий</string>
+    <string name="next">Следующий</string>
+    <string name="loopMode">Зациклить</string>
+    <string name="repeatMode">Повторять</string>
+    <string name="randomMode">Случайный</string>
+    <string name="rating">Рейтинг</string>
+    <string name="sorting">Сортировка</string>
+    <string name="add_playlist">Добавить плейлист</string>
 </resources>

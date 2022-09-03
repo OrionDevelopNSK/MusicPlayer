@@ -93,8 +93,4 @@ public class Soundtrack {
         soundtrackDbEntity.countOfLaunches = getCountOfLaunches();
         return soundtrackDbEntity;
     }
-
-    public int getBitmapResId() {
-        return 0;
-    }
 }

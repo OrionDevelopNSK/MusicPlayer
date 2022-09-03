@@ -33,10 +33,8 @@ public class MediaNotificationManager {
     private static final String TAG = MediaNotificationManager.class.getSimpleName();
     private static final String CHANNEL_ID = "com.example.android.musicplayer.channel";
     private static final int REQUEST_CODE = 501;
-    public static final int NOTIFICATION_ID = 412;
 
     private final MediaSessionService service;
-
     private final NotificationCompat.Action playAction;
     private final NotificationCompat.Action pauseAction;
     private final NotificationCompat.Action nextAction;
@@ -52,47 +50,38 @@ public class MediaNotificationManager {
     public MediaNotificationManager(MediaSessionService musicContext) {
         service = musicContext;
         notificationManager = (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
-
         playAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_play_24,
-                "play",
+                musicContext.getString(R.string.play),
                 getPendingIntentStart()).build();
-
         pauseAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_pause_24,
-                "pause",
+                musicContext.getString(R.string.pause),
                 getPendingIntentPause()).build();
-
         nextAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_next_24,
-                "Previous",
+                musicContext.getString(R.string.previous),
                 getPendingIntentNext()).build();
-
         previousAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_previous_24,
-                "Next",
+                musicContext.getString(R.string.next),
                 getPendingIntentPrevious()).build();
-
         switchModeLoopAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_loop_24,
-                "LoopMode",
+                musicContext.getString(R.string.loopMode),
                 getPendingIntentLoop()).build();
-
-        switchModeRatingAction = new NotificationCompat.Action.Builder(
-                R.drawable.ic_unlike_24,
-                "Rating",
-                getPendingIntentRating()).build();
-
         switchModeRepeatAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_repeat_one_24,
-                "RepeatMode",
+                musicContext.getString(R.string.repeatMode),
                 getPendingIntentRepeatOne()).build();
-
         switchModeRandomAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_random_24,
-                "RandomMode",
+                musicContext.getString(R.string.randomMode),
                 getPendingIntentRandom()).build();
-
+        switchModeRatingAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_unlike_24,
+                musicContext.getString(R.string.rating),
+                getPendingIntentRating()).build();
         notificationManager.cancelAll();
     }
 
@@ -171,6 +160,7 @@ public class MediaNotificationManager {
         return builder.build();
     }
 
+    @SuppressLint("ResourceAsColor")
     private NotificationCompat.Builder buildNotification(MediaSessionCompat.Token token,
                                                          boolean isPlaying,
                                                          MediaDescriptionCompat description,
@@ -193,13 +183,12 @@ public class MediaNotificationManager {
                 .setContentIntent(createContentIntent())
                 .setContentTitle(description.getTitle())
                 .setDeleteIntent(getPendingIntentPause());
-
         builder
-                .addAction(switchModeRatingAction)
+                .addAction(changeStateMode(stateMode))
                 .addAction(previousAction)
                 .addAction(isPlaying ? pauseAction : playAction)
                 .addAction(nextAction)
-                .addAction(changeStateMode(stateMode));
+                .addAction(switchModeRatingAction);
         return builder;
     }
 
@@ -207,17 +196,12 @@ public class MediaNotificationManager {
     @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
-            // The user-visible name of the channel.
             CharSequence name = "MediaSession";
-            // The user-visible description of the channel.
             String description = "MediaSession and MediaPlayer";
             int importance = NotificationManager.IMPORTANCE_LOW;
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-            // Configure the notification channel.
             mChannel.setDescription(description);
             mChannel.enableLights(true);
-            // Sets the notification light color for notifications posted to this
-            // channel, if the device supports this feature.
             mChannel.setLightColor(Color.RED);
             mChannel.enableVibration(true);
             mChannel.setVibrationPattern(

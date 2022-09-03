@@ -5,4 +5,14 @@
     <string name="dialog_close_app" tools:ignore="ExtraTranslation">Close application?</string>
     <string name="yes_dialog" tools:ignore="ExtraTranslation">Yes</string>
     <string name="no_dialog" tools:ignore="ExtraTranslation">No</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="loopMode">Loop</string>
+    <string name="repeatMode">Repeat</string>
+    <string name="randomMode">Random</string>
+    <string name="rating">Rating</string>
+    <string name="sorting">Sorting</string>
+    <string name="add_playlist">Add playlist</string>
 </resources>

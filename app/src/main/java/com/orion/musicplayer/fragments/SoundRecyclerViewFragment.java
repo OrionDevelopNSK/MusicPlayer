@@ -26,8 +26,6 @@ public class SoundRecyclerViewFragment extends Fragment {
     private RecyclerView recyclerView;
     private SoundtrackPlayerModel soundtrackPlayerModel;
 
-
-
     public static SoundRecyclerViewFragment newInstance() {
         return new SoundRecyclerViewFragment();
     }
@@ -47,17 +45,15 @@ public class SoundRecyclerViewFragment extends Fragment {
 
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-
             if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
-                soundtrackPlayerModel.getPlayerAction().setValue(Action.PLAY);
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
             }
             else {
-                soundtrackPlayerModel.getPlayerAction().setValue(Action.PAUSE);
+                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
         });
-
         createPositionObserver();
         return view;
     }

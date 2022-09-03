@@ -18,10 +18,10 @@ import com.orion.musicplayer.models.Soundtrack;
 import java.util.List;
 
 public class SoundtrackAdapterDialog extends RecyclerView.Adapter<SoundtrackAdapterDialog.ViewHolder> {
-
     public interface OnSoundtrackClickListener{
         void onSoundtrackClick(Soundtrack soundtrack, int position);
     }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         final TextView textView;
@@ -62,7 +62,7 @@ public class SoundtrackAdapterDialog extends RecyclerView.Adapter<SoundtrackAdap
         Soundtrack soundtrack = soundtrackList.get(position);
         holder.textView.setText(soundtrack.getTitle() + "\n"
                                 + soundtrack.getArtist());
-
+        //TODO
 
         holder.musicButton.setOnClickListener(view -> onClickListener.onSoundtrackClick(soundtrack, position));
 
