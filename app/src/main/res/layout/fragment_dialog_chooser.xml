@@ -5,6 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:text="@string/select_soundtracks"
+        android:gravity="center"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
@@ -13,14 +26,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_default="wrap"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
         tools:ignore="MissingConstraints">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list_songs_dialog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
         </androidx.recyclerview.widget.RecyclerView>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -38,13 +55,14 @@
 
         <Button
             android:id="@+id/close_dialog"
-            style="@style/Widget.AppCompat.Button"
-            android:layout_width="60dp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:text="@string/back"
+            android:layout_width="100dp"
             android:layout_height="60dp"
             android:layout_margin="20dp"
             android:background="@drawable/ic_close"
             android:gravity="center"
-            android:textSize="11sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -54,14 +72,15 @@
 
         <Button
             android:id="@+id/save_playlist"
-            style="@style/Widget.AppCompat.Button"
-            android:layout_width="60dp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:text="@string/save"
+            android:layout_width="100dp"
             android:layout_height="60dp"
             android:layout_margin="20dp"
             android:layout_marginEnd="30dp"
             android:background="@drawable/ic_save"
             android:gravity="center"
-            android:textSize="11sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

@@ -27,8 +27,8 @@ import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.List;
 
-public class SoundtrackPlayerControllerFragment extends Fragment {
-    private final static String TAG = SoundtrackPlayerControllerFragment.class.getSimpleName();
+public class ControllerFragment extends Fragment {
+    private final static String TAG = ControllerFragment.class.getSimpleName();
 
 
     private boolean isTouch;
@@ -45,8 +45,8 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     private Animation buttonAnimationClick;
     private SoundtrackPlayerModel soundtrackPlayerModel;
 
-    public static SoundtrackPlayerControllerFragment newInstance() {
-        return new SoundtrackPlayerControllerFragment();
+    public static ControllerFragment newInstance() {
+        return new ControllerFragment();
     }
 
     @Override

@@ -14,4 +14,15 @@
     <string name="add_playlist">Добавить плейлист</string>
     <string name="rating_of">Не нравится</string>
     <string name="rating_on">Нравится</string>
+    <string name="select_soundtracks">Выберите песни</string>
+    <string name="create_playlist">Создать плейлист</string>
+    <string name="playlist_name">Название плейлиста</string>
+    <string name="back">НАЗАД</string>
+    <string name="create">СОЗДАТЬ</string>
+    <string name="save">СОХРАНИТЬ</string>
+    <string name="music">Музыка</string>
+    <string name="playlist">Плейлист</string>
+    <string name="sort_by_date_of_addition">Упорядочить по дате добавления</string>
+    <string name="sort_by_rating">Упорядочить по рейтингу</string>
+    <string name="sort_by_listening_frequency">Упорядочить по частоте прослушивания</string>
 </resources>

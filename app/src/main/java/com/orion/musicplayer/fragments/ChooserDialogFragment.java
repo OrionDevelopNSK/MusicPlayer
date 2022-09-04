@@ -10,7 +10,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
-import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,8 +18,8 @@ import com.orion.musicplayer.adapters.SoundtrackDialogAdapter;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
-public class SoundTrackListDialogFragment extends DialogFragment {
-    private static final String TAG = SoundTrackListDialogFragment.class.getSimpleName();
+public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment {
+    private static final String TAG = ChooserDialogFragment.class.getSimpleName();
 
     private RecyclerView recyclerView;
     private SoundtrackPlayerModel soundtrackPlayerModel;
@@ -28,8 +27,8 @@ public class SoundTrackListDialogFragment extends DialogFragment {
     private Button closeButton;
     private Animation buttonAnimationClick;
 
-    public static SoundTrackListDialogFragment newInstance() {
-        return new SoundTrackListDialogFragment();
+    public static ChooserDialogFragment newInstance() {
+        return new ChooserDialogFragment();
     }
 
     @Override
@@ -45,7 +44,7 @@ public class SoundTrackListDialogFragment extends DialogFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_dialog, container, false);
+        View view = inflater.inflate(R.layout.fragment_dialog_chooser, container, false);
         recyclerView = view.findViewById(R.id.list_songs_dialog);
         saveButton = view.findViewById(R.id.save_playlist);
         closeButton = view.findViewById(R.id.close_dialog);
@@ -54,7 +53,6 @@ public class SoundTrackListDialogFragment extends DialogFragment {
         subscribeDialogCloseButtonClickListener();
         subscribeSaveButtonClickListener();
         setListenerPlaylistSave();
-
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
             if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
@@ -74,7 +72,7 @@ public class SoundTrackListDialogFragment extends DialogFragment {
         Log.d(TAG, "Установка слушателя DialogClose");
         closeButton.setOnClickListener(view -> {
             closeButton.startAnimation(buttonAnimationClick);
-            SoundTrackListDialogFragment.this.dismiss();
+            ChooserDialogFragment.this.dismiss();
         });
     }
 

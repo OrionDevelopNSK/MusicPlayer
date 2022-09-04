@@ -3,14 +3,14 @@
     <item
         android:id="@+id/sort_by_date"
         android:icon="@drawable/ic_add"
-        android:title="Sort by date of addition" />
+        android:title="@string/sort_by_date_of_addition" />
     <item
         android:id="@+id/sort_by_rating"
         android:icon="@drawable/ic_add"
-        android:title="Sort by rating" />
+        android:title="@string/sort_by_rating" />
     <item
         android:id="@+id/sort_by_repeatability"
         android:icon="@drawable/ic_add"
-        android:title="Sort by listening frequency" />
+        android:title="@string/sort_by_listening_frequency" />
 
 </menu>

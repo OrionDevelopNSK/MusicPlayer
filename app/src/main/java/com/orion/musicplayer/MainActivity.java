@@ -14,7 +14,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -28,16 +30,19 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.transition.TransitionManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.transition.MaterialFade;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.database.DataLoader;
-import com.orion.musicplayer.fragments.SoundRecyclerViewFragment;
-import com.orion.musicplayer.fragments.SoundTrackListDialogFragment;
-import com.orion.musicplayer.fragments.SoundtrackPlayerControllerFragment;
+import com.orion.musicplayer.fragments.CreatorPlaylistDialogFragment;
+import com.orion.musicplayer.fragments.ListFragment;
+import com.orion.musicplayer.fragments.ChooserDialogFragment;
+import com.orion.musicplayer.fragments.ControllerFragment;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.Action;
@@ -106,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("NonConstantResourceId")
     public void showPopup(View view) {
-        PopupMenu popupMenu = new PopupMenu(this, view);
+        PopupMenu popupMenu = new PopupMenu(this, view, Gravity.BOTTOM);
         popupMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case R.id.sort_by_date:
@@ -124,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         });
         popupMenu.inflate(R.menu.sorting_menu);
         popupMenu.show();
+
     }
 
     private void createServiceConnection() {
@@ -213,7 +219,14 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeButtonDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
             buttonDialog.startAnimation(buttonAnimationClick);
-            SoundTrackListDialogFragment fragment = SoundTrackListDialogFragment.newInstance();
+
+            //TODO
+//            ChooserDialogFragment fragment = ChooserDialogFragment.newInstance();
+//            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
+
+            CreatorPlaylistDialogFragment fragment = CreatorPlaylistDialogFragment.newInstance();
+
+//            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
             fragment.show(getSupportFragmentManager(), "Выберите песни");
         });
     }
@@ -221,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeButtonSortingClickListener() {
         buttonSortingMode.setOnClickListener(view -> {
             buttonSortingMode.startAnimation(buttonAnimationClick);
+
             showPopup(view);
         });
     }
@@ -230,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportFragmentManager().findFragmentById(R.id.fragment_container_control_panel) == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragment_container_control_panel, SoundtrackPlayerControllerFragment.newInstance())
+                    .add(R.id.fragment_container_control_panel, ControllerFragment.newInstance())
                     .commit();
         }
     }
@@ -317,10 +331,10 @@ public class MainActivity extends AppCompatActivity {
 
         ///TODO
         Fragment fragment2 = getSupportFragmentManager().findFragmentById(R.id.fragment_container_control_panel);
-        fragment2 = SoundRecyclerViewFragment.newInstance();
+        fragment2 = ListFragment.newInstance();
 
         if (fragment == null) {
-            fragment = SoundRecyclerViewFragment.newInstance();
+            fragment = ListFragment.newInstance();
             musicStateAdapter.addFragment(fragment);
             ///TODO
             musicStateAdapter.addFragment(fragment2);
@@ -332,10 +346,10 @@ public class MainActivity extends AppCompatActivity {
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             switch (position) {
                 case 0:
-                    tab.setText("Music");
+                    tab.setText(R.string.music);
                     break;
                 case 1:
-                    tab.setText("Playlist");
+                    tab.setText(R.string.playlist);
                     break;
                 case 2:
                     tab.setText("VK");
@@ -359,25 +373,25 @@ public class MainActivity extends AppCompatActivity {
             switch (action) {
                 case PLAY:
                     if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
-                        mediaSessionService.getSoundsController().playOrPause(position,soundtracks);
+                        mediaSessionService.getSoundsController().playOrPause(position, soundtracks);
                         createOrRefreshNotification();
                     }
                     break;
                 case PAUSE:
                     if (soundtrackPlayerModel.getIsPlayingLiveData().getValue())
-                        mediaSessionService.getSoundsController().playOrPause(position,soundtracks);
+                        mediaSessionService.getSoundsController().playOrPause(position, soundtracks);
                     break;
                 case PREVIOUS:
-                    mediaSessionService.getSoundsController().previous(position,soundtracks);
+                    mediaSessionService.getSoundsController().previous(position, soundtracks);
                     break;
                 case NEXT:
-                    mediaSessionService.getSoundsController().next(position,soundtracks);
+                    mediaSessionService.getSoundsController().next(position, soundtracks);
                     break;
                 case SWITCH_MODE:
                     mediaSessionService.getSoundsController().switchMode();
                     break;
                 case TO_START:
-                    mediaSessionService.getSoundsController().playOrPause(0,soundtracks);
+                    mediaSessionService.getSoundsController().playOrPause(0, soundtracks);
                     soundtrackPlayerModel.getCurrentPositionLiveData().setValue(0);
                     break;
                 case SLIDER_MANIPULATE:

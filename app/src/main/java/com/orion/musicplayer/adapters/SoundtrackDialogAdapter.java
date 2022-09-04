@@ -24,7 +24,6 @@ public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDial
         void onSoundtrackClick(Soundtrack soundtrack, int position);
     }
 
-
     public static class ViewHolder extends RecyclerView.ViewHolder{
         final TextView textView;
         final Button musicButton;
@@ -35,7 +34,6 @@ public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDial
             textView = view.findViewById(R.id.soundtrack_title_list);
             musicButton = view.findViewById(R.id.play_music_dialog);
             checkBox = view.findViewById(R.id.checkbox_soundtrack);
-
         }
     }
 
