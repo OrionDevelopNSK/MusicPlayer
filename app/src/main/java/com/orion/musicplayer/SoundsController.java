@@ -282,7 +282,6 @@ public class SoundsController {
 
     private void setCountOfLaunches(int position, List<Soundtrack> countSoundtracks) {
         AppDatabase database = AppDatabase.getDatabase(application);
-
         AsyncTask.execute(() -> {
             Log.d(TAG, "Запись в базу данных количества раз прослушивания");
             Soundtrack soundtrack = countSoundtracks.get(position);

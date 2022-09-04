@@ -23,6 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -86,13 +87,45 @@ public class MainActivity extends AppCompatActivity {
         textInputLayout = findViewById(R.id.textInputLayout);
         subscribeButtonDialogClickListener(buttonDialog);
         subscribeButtonSortingClickListener();
-        load();
+        loadDefaultsSharedPreferences();
+        subscribeCurrentDataPositionChanged();
         createServiceConnection();
         intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
         startService(intent);
         //ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+
     }
+
+    private void subscribeCurrentDataPositionChanged() {
+        soundtrackPlayerModel.getCurrentPositionLiveData().observe(this, integer ->
+                soundTitle = soundtrackPlayerModel.getSoundtracksLiveData().getValue()
+                .get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue())
+                .getData());
+    }
+
+
+    public void showPopup(View view){
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()){
+                case R.id.sort_by_date:
+                    soundtrackPlayerModel.getSortingTypeLiveData().setValue(SortingType.DATE);
+                    return true;
+                case R.id.sort_by_rating:
+                    soundtrackPlayerModel.getSortingTypeLiveData().setValue(SortingType.RATING);
+                    return true;
+                case R.id.sort_by_repeatability:
+                    soundtrackPlayerModel.getSortingTypeLiveData().setValue(SortingType.REPEATABILITY);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+        popupMenu.inflate(R.menu.sorting_menu);
+        popupMenu.show();
+    }
+
 
 
 
@@ -111,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 createDataValidateObserver();
                 createStateModeObserver();
                 createSortingTypeObserver();
-
             }
 
             @Override
@@ -169,10 +201,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void subscribeDatabaseLoadListeners() {
         DataLoader dataLoader = mediaSessionService.getDataLoader();
-        dataLoader.setOnDatabaseLoadCompleteListener(() -> {
+        dataLoader.setOnDatabaseLoadListener(soundtracks -> {
+            soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks);
             soundtrackPlayerModel.getIsLoadedLiveData().postValue(true);
         });
-        dataLoader.setOnDatabaseLoadListener(soundtracks -> soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks));
     }
 
     private void subscribeButtonDialogClickListener(Button buttonDialog) {
@@ -184,9 +216,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void subscribeButtonSortingClickListener() {
-        buttonSortingMode.setOnClickListener(view -> {
-            buttonSortingMode.startAnimation(buttonAnimationClick);
-            //TODO
+        buttonSortingMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                buttonSortingMode.startAnimation(buttonAnimationClick);
+                showPopup(view);
+            }
         });
     }
 
@@ -382,7 +417,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("ApplySharedPref")
-    private void save() {
+    private void saveDefaultsSharedPreferences() {
         Log.d(TAG, "Сохранить состояние " + soundTitle);
         defaultsSharedPreferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = defaultsSharedPreferences.edit();
@@ -397,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
         editor.commit();
     }
 
-    private void load() {
+    private void loadDefaultsSharedPreferences() {
         defaultsSharedPreferences = getPreferences(Context.MODE_PRIVATE);
         currentDuration = defaultsSharedPreferences.getLong(KEY_DURATION, 0);
         soundTitle = defaultsSharedPreferences.getString(KEY_DATA, "");
@@ -411,6 +446,11 @@ public class MainActivity extends AppCompatActivity {
     public void defaultDescription() {
         soundtrackPlayerModel.getIsLoadedLiveData().observe(this, aBoolean -> {
             List<Soundtrack> soundtracks = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
+//            if (soundtrackPlayerModel.getCurrentPositionLiveData().getValue() != null){
+//                int value = soundtrackPlayerModel.getCurrentPositionLiveData().getValue();
+//                soundTitle = soundtracks.get(value).getData();
+//            }
+
             if (soundtracks.size() == 0) return;
             int position = 0;
             for (int i = 0; i < soundtracks.size(); i++) {
@@ -432,7 +472,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Отсоединение сервиса");
         unbindService(serviceConnection);
         Log.d(TAG, "Сохранение настроек");
-        save();
+        saveDefaultsSharedPreferences();
 //        stopService(intent);
         Log.d(TAG, "Уничтожение активити");
         super.onDestroy();

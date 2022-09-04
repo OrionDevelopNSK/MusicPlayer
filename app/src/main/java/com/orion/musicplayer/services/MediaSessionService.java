@@ -46,14 +46,15 @@ public class MediaSessionService extends Service {
     public void onCreate() {
         Log.e(TAG, "Создание сервиса");
         super.onCreate();
-
         dataLoader = new DataLoader(getApplication());
         soundsController = new SoundsController(getApplication());
         dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
         mediaNotificationManager = new MediaNotificationManager(this);
-
         mediaSession = new MediaSessionCompat(this, "PlayerService", null,
-                PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_IMMUTABLE));
+                PendingIntent.getActivity(getApplicationContext(),
+                        0,
+                        new Intent(getApplicationContext(), MainActivity.class),
+                        PendingIntent.FLAG_IMMUTABLE));
     }
 
     public MediaMetadataCompat getMetadata(int position) {

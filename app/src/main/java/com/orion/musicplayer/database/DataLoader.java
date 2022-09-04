@@ -12,16 +12,13 @@ import com.orion.musicplayer.utils.Sorting;
 import com.orion.musicplayer.utils.SortingType;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataLoader {
 
     public interface OnDatabaseLoadListener {
         void onDatabaseLoad(List<Soundtrack> soundtracks);
-    }
-
-    public interface OnDatabaseLoadCompleteListener {
-        void onDatabaseLoadComplete();
     }
 
 
@@ -35,24 +32,20 @@ public class DataLoader {
     private AppDatabase database;
     private final Application application;
     private OnDatabaseLoadListener onDatabaseLoadListener;
-    private OnDatabaseLoadCompleteListener onDatabaseLoadCompleteListener;
     private OnDatabaseChangeListener onDatabaseChangeListener;
-    private List<Soundtrack> soundtrackListCashed;
+    private List<Soundtrack> soundtrackListSorted;
+    private List<Soundtrack> soundtracksCashed;
 
     public DataLoader(Application application) {
         this.application = application;
     }
 
     public List<Soundtrack> getSoundtracksCashed() {
-        return soundtrackListCashed;
+        return soundtrackListSorted;
     }
 
     public void setOnDatabaseLoadListener(OnDatabaseLoadListener onDatabaseLoadListener) {
         this.onDatabaseLoadListener = onDatabaseLoadListener;
-    }
-
-    public void setOnDatabaseLoadCompleteListener(OnDatabaseLoadCompleteListener onDatabaseLoadCompleteListener) {
-        this.onDatabaseLoadCompleteListener = onDatabaseLoadCompleteListener;
     }
 
     public void setOnDatabaseChangeListener(OnDatabaseChangeListener onDatabaseChangeListener) {
@@ -72,29 +65,30 @@ public class DataLoader {
             Log.d(TAG, "Получение всех сущностей из базы данных");
             List<SoundtrackDbEntity> all = soundtrackDao.getAll();
             deleteNotValidDataFromDatabase(roomSoundtrackRepository, all);
-            soundtrackListCashed = sort(roomSoundtrackRepository.getAll(), sortingType);
-            onDatabaseLoadListener.onDatabaseLoad(soundtrackListCashed);
-            onDatabaseLoadCompleteListener.onDatabaseLoadComplete();
-            onDatabaseChangeListener.onDatabaseChange(soundtrackListCashed);
+            //чтобы изначально была сортировка: последние добавленные песни сначала
+            soundtracksCashed = Sorting.byDate(roomSoundtrackRepository.getAll());
+            soundtrackListSorted = (sortingType == SortingType.DATE) ? Sorting.byDefault(soundtracksCashed) : sort(soundtracksCashed, sortingType);
+            onDatabaseLoadListener.onDatabaseLoad(soundtrackListSorted);
+            onDatabaseChangeListener.onDatabaseChange(soundtrackListSorted);
         });
     }
 
     public void refresh(SortingType sortingType){
-        if (soundtrackListCashed == null) return;
-        List<Soundtrack> sorted = sort(soundtrackListCashed, sortingType);
-        onDatabaseLoadListener.onDatabaseLoad(sorted);
-        onDatabaseLoadCompleteListener.onDatabaseLoadComplete();
-        onDatabaseChangeListener.onDatabaseChange(sorted);
+        if (soundtracksCashed == null) return;
+        soundtrackListSorted = sort(soundtracksCashed, sortingType);
+        onDatabaseLoadListener.onDatabaseLoad(soundtrackListSorted);
+        onDatabaseChangeListener.onDatabaseChange(soundtrackListSorted);
     }
 
     private List<Soundtrack> sort(final List<Soundtrack> soundtracks, SortingType sortingType){
+        List<Soundtrack> soundtracksBySort = new ArrayList<>(soundtracks);
         switch (sortingType) {
             case REPEATABILITY:
-                return Sorting.byRepeatability(soundtracks);
+                return Sorting.byRepeatability(soundtracksBySort);
             case RATING:
-                return Sorting.byRating(soundtracks);
+                return Sorting.byRating(soundtracksBySort);
             default:
-                return Sorting.byDate(soundtracks);
+                return Sorting.byDefault(soundtracksBySort);
         }
     }
 

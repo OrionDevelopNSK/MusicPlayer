@@ -21,4 +21,8 @@ public class Sorting {
         return soundtrackList;
     }
 
+    public static List<Soundtrack> byDefault(final List<Soundtrack> soundtrackList){
+        return soundtrackList;
+    }
+
 }
