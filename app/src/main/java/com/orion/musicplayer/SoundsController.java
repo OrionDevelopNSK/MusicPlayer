@@ -66,6 +66,11 @@ public class SoundsController {
         reverseOrder = new ArrayDeque<>();
     }
 
+    public void clearDequeSoundtrack(){
+        directOrder.clear();
+        reverseOrder.clear();
+    }
+
     public SoundtrackPlayer getSoundtrackPlayer() {
         return soundtrackPlayer;
     }
@@ -266,17 +271,18 @@ public class SoundsController {
         soundtrackPlayer.setCurrentTime(position);
     }
 
-    public void setRating(int position, List<Soundtrack> countSoundtracks, int rating) {
+    public void changeRating() {
         AppDatabase database = AppDatabase.getDatabase(application);
-
+        final int likeStatus = 1;
+        final int unlikeStatus = 0;
         AsyncTask.execute(() -> {
             Log.d(TAG, "Запись в базу данных оценки песни");
-            Soundtrack soundtrack = countSoundtracks.get(position);
-            soundtrack.setRating(rating);
+            Soundtrack soundtrack = soundtracks.get(currentPosition);
+            soundtrack.setRating(soundtrack.getRating() == 0 ? likeStatus : unlikeStatus);
             SoundtrackDao soundtrackDao = database.soundtrackDao();
             RoomSoundtrackRepository roomSoundtrackRepository = new RoomSoundtrackRepository(soundtrackDao);
             roomSoundtrackRepository.updateSoundtrack(soundtrack.toSoundtrackDbEntity());
-            Log.d(TAG, String.format("Рейтинг песни под номером :%d равен %d", position, rating));
+            Log.d(TAG, String.format("Рейтинг песни под номером :%d равен %d", currentPosition, soundtrack.getRating()));
         });
     }
 

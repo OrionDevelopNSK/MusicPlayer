@@ -39,7 +39,8 @@ public class MediaNotificationManager {
     private final NotificationCompat.Action pauseAction;
     private final NotificationCompat.Action nextAction;
     private final NotificationCompat.Action previousAction;
-    private final NotificationCompat.Action switchModeRatingAction;
+    private final NotificationCompat.Action switchModeRatingOffAction;
+    private final NotificationCompat.Action switchModeRatingOnAction;
     private final NotificationCompat.Action switchModeLoopAction;
     private final NotificationCompat.Action switchModeRepeatAction;
     private final NotificationCompat.Action switchModeRandomAction;
@@ -78,10 +79,14 @@ public class MediaNotificationManager {
                 R.drawable.ic_random_24,
                 musicContext.getString(R.string.randomMode),
                 getPendingIntentRandom()).build();
-        switchModeRatingAction = new NotificationCompat.Action.Builder(
+        switchModeRatingOffAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_unlike_24,
-                musicContext.getString(R.string.rating),
-                getPendingIntentRating()).build();
+                musicContext.getString(R.string.rating_of),
+                getPendingIntentRatingByUnlike()).build();
+        switchModeRatingOnAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_like_24,
+                musicContext.getString(R.string.rating_on),
+                getPendingIntentRatingByLike()).build();
         notificationManager.cancelAll();
     }
 
@@ -109,29 +114,34 @@ public class MediaNotificationManager {
     private PendingIntent getPendingIntentRandom() {
         Intent intent = new Intent(service, MediaSessionService.class);
         intent.setAction(StateMode.RANDOM.toString());
-        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        return PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     private PendingIntent getPendingIntentLoop() {
         Intent intent = new Intent(service, MediaSessionService.class);
         intent.setAction(StateMode.LOOP.toString());
-        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        return PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     private PendingIntent getPendingIntentRepeatOne() {
         Intent intent = new Intent(service, MediaSessionService.class);
         intent.setAction(StateMode.REPEAT.toString());
-        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        return PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
-    private PendingIntent getPendingIntentRating() {
+    private PendingIntent getPendingIntentRatingByUnlike() {
         Intent intent = new Intent(service, MediaSessionService.class);
-        intent.setAction("RATING");
-        return  PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        intent.setAction("RATING_LIKE");
+        return PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
+    private PendingIntent getPendingIntentRatingByLike() {
+        Intent intent = new Intent(service, MediaSessionService.class);
+        intent.setAction("RATING_UNLIKE");
+        return PendingIntent.getService(service, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
 
-    private NotificationCompat.Action changeStateMode(StateMode stateMode){
+    private NotificationCompat.Action changeStateMode(StateMode stateMode) {
         switch (stateMode) {
             case REPEAT:
                 return switchModeRepeatAction;
@@ -153,10 +163,11 @@ public class MediaNotificationManager {
     public Notification getNotification(MediaMetadataCompat metadata,
                                         @NonNull PlaybackStateCompat state,
                                         MediaSessionCompat.Token token,
-                                        StateMode stateMode) {
+                                        StateMode stateMode,
+                                        int rating) {
         boolean isPlaying = state.getState() == PlaybackStateCompat.STATE_PLAYING;
         MediaDescriptionCompat description = metadata.getDescription();
-        NotificationCompat.Builder builder = buildNotification(token, isPlaying, description, stateMode);
+        NotificationCompat.Builder builder = buildNotification(token, isPlaying, description, stateMode, rating);
         return builder.build();
     }
 
@@ -164,7 +175,8 @@ public class MediaNotificationManager {
     private NotificationCompat.Builder buildNotification(MediaSessionCompat.Token token,
                                                          boolean isPlaying,
                                                          MediaDescriptionCompat description,
-                                                         StateMode stateMode) {
+                                                         StateMode stateMode,
+                                                         int rating) {
 
         // Create the (mandatory) notification channel when running on Android Oreo.
         if (isAndroidOOrHigher()) {
@@ -188,7 +200,7 @@ public class MediaNotificationManager {
                 .addAction(previousAction)
                 .addAction(isPlaying ? pauseAction : playAction)
                 .addAction(nextAction)
-                .addAction(switchModeRatingAction);
+                .addAction(rating == 0 ? switchModeRatingOffAction : switchModeRatingOnAction);
         return builder;
     }
 

@@ -10,7 +10,8 @@
     <string name="loopMode">Зациклить</string>
     <string name="repeatMode">Повторять</string>
     <string name="randomMode">Случайный</string>
-    <string name="rating">Рейтинг</string>
     <string name="sorting">Сортировка</string>
     <string name="add_playlist">Добавить плейлист</string>
+    <string name="rating_of">Не нравится</string>
+    <string name="rating_on">Нравится</string>
 </resources>

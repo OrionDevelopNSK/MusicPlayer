@@ -25,6 +25,9 @@ import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {
+
+
+
     private static final String TAG = MediaSessionService.class.getSimpleName();
     public static final int NOTIFICATION_ID = 888;
 
@@ -68,7 +71,7 @@ public class MediaSessionService extends Service {
         return metadata;
     }
 
-    public PlaybackStateCompat.Builder getBuilderState(){
+    public PlaybackStateCompat.Builder getBuilderState() {
         SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
         return new PlaybackStateCompat.Builder()
                 .setBufferedPosition(soundtrackPlayer.getCurrentTime())
@@ -82,13 +85,13 @@ public class MediaSessionService extends Service {
                 );
     }
 
-    public PlaybackStateCompat getState(PlaybackStateCompat.Builder builder){
+    public PlaybackStateCompat getState(PlaybackStateCompat.Builder builder) {
         SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
         PlaybackStateCompat state = builder.setState(
-                getPlaybackState(soundtrackPlayer),
-                soundtrackPlayer.getCurrentTime(),
-                1,
-                SystemClock.elapsedRealtime())
+                        getPlaybackState(soundtrackPlayer),
+                        soundtrackPlayer.getCurrentTime(),
+                        1,
+                        SystemClock.elapsedRealtime())
                 .build();
         mediaSession.setPlaybackState(state);
         return state;
@@ -103,17 +106,32 @@ public class MediaSessionService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         changeStateMode(intent);
+        changeRating(intent);
         MediaButtonReceiver.handleIntent(mediaSession, intent);
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void changeRating(Intent intent) {
+        if ("RATING_LIKE".equals(intent.getAction())) {
+            soundsController.changeRating();
+            Log.e(TAG, "Текущий рейтинг: Like");
+            createNotification(pos, stateMode, 1);
+        }else if ("RATING_UNLIKE".equals(intent.getAction())) {
+            soundsController.changeRating();
+            Log.e(TAG, "Текущий рейтинг: Unlike");
+            createNotification(pos, stateMode, 0);
+        }
+
     }
 
     private void changeStateMode(Intent intent) {
         if (StateMode.REPEAT.toString().equals(intent.getAction()) ||
                 StateMode.LOOP.toString().equals(intent.getAction()) ||
-                StateMode.RANDOM.toString().equals(intent.getAction())){
+                StateMode.RANDOM.toString().equals(intent.getAction())) {
             Log.d(TAG, "Смена режима воспроизведения");
             soundsController.switchMode();
-            createNotification(pos, soundsController.switchMode());
+            soundsController.clearDequeSoundtrack();
+            createNotification(pos, soundsController.switchMode(), ratingCurrentSoundtrack);
         }
     }
 
@@ -139,17 +157,17 @@ public class MediaSessionService extends Service {
     Handler handler = new Handler();
     Runnable runnable;
     private int pos;
+    private int ratingCurrentSoundtrack;
+    private StateMode stateMode;
 
-    public void createNotification(int position, StateMode mode) {
+    public void createNotification(int position, StateMode mode, int rating) {
         Log.e(TAG, "Создание/обновление Notification");
-        pos = position;
         handler.removeCallbacks(runnable);
+        pos = position;
+        ratingCurrentSoundtrack = rating;
+        stateMode = mode;
         MediaMetadataCompat mediaMetadataCompat = getMetadata(position);
         PlaybackStateCompat.Builder builderState = getBuilderState();
-
-//        int identifier = getResources().getIdentifier("mediacontroller_progress", "id", "android");
-//        MediaControllerCompat controller = mediaSession.getController();
-
         runnable = new Runnable() {
             @Override
             public void run() {
@@ -157,7 +175,8 @@ public class MediaSessionService extends Service {
                         mediaMetadataCompat,
                         getState(builderState),
                         mediaSession.getSessionToken(),
-                        mode);
+                        mode,
+                        ratingCurrentSoundtrack);
                 startForeground(NOTIFICATION_ID, notification);
                 handler.postDelayed(this, 500);
             }
@@ -178,7 +197,7 @@ public class MediaSessionService extends Service {
             public void onPlay() {
                 Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PLAY");
                 soundsController.playOrPause();
-                createNotification(position, mode);
+                createNotification(position, mode, ratingCurrentSoundtrack);
                 super.onPlay();
             }
 
@@ -186,21 +205,21 @@ public class MediaSessionService extends Service {
             public void onPause() {
                 Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PAUSE");
                 soundsController.playOrPause();
-                createNotification(position, mode);
+                createNotification(position, mode, ratingCurrentSoundtrack);
                 super.onPause();
             }
 
             @Override
             public void onSkipToNext() {
                 Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_NEXT");
-                createNotification(soundsController.next(), mode);
+                createNotification(soundsController.next(), mode, ratingCurrentSoundtrack);
                 super.onSkipToNext();
             }
 
             @Override
             public void onSkipToPrevious() {
                 Log.d(TAG, "KeyEvent.KEYCODE_MEDIA_PREVIOUS");
-                createNotification(soundsController.previous(), mode);
+                createNotification(soundsController.previous(), mode, ratingCurrentSoundtrack);
                 super.onSkipToPrevious();
             }
         });
@@ -215,7 +234,7 @@ public class MediaSessionService extends Service {
 
     @Override
     public void onDestroy() {
-        if (soundsController.getSoundtrackPlayer().isPlaying()){
+        if (soundsController.getSoundtrackPlayer().isPlaying()) {
             soundsController.loseAudioFocusAndStopPlayer();
             Log.d(TAG, "Уничтожение службы");
         }

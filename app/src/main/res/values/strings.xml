@@ -10,7 +10,8 @@
     <string name="loopMode">Loop</string>
     <string name="repeatMode">Repeat</string>
     <string name="randomMode">Random</string>
-    <string name="rating">Rating</string>
     <string name="sorting">Sorting</string>
     <string name="add_playlist">Add playlist</string>
+    <string name="rating_of">Unlike</string>
+    <string name="rating_on">Like</string>
 </resources>

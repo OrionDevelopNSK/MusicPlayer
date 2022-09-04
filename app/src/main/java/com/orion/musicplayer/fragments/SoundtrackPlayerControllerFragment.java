@@ -58,7 +58,6 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View currentView = inflater.inflate(R.layout.fragment_control_panel, container, false);
-
         Log.d(TAG, "Биндинг Views");
         textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
         textArtistTitle = currentView.findViewById(R.id.text_soundtrack_artist);
@@ -72,13 +71,11 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
         buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
         buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
-
         buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
         buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
         buttonToStart.setBackgroundResource(R.drawable.ic_to_start);
         buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
         buttonNext.setBackgroundResource(R.drawable.ic_next);
-
         changeLabelFormat();
         setListenerSliderTouch();
         subscribeListenerButtonToStart();
@@ -119,8 +116,8 @@ public class SoundtrackPlayerControllerFragment extends Fragment {
             textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getDurationLiveData().getValue()));
             if (isTouch) return;
             long value = soundtrackPlayerModel.getDurationLiveData().getValue();
-            if (value > slider.getValueTo()) return;
-            slider.setValue(soundtrackPlayerModel.getDurationLiveData().getValue());
+            if (value > slider.getValueTo()) value = (long) slider.getValueTo();
+            slider.setValue(value);
         });
     }
 
