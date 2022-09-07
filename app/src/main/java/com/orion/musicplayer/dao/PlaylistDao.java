@@ -8,8 +8,8 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-import com.orion.musicplayer.entities.PlaylistDbEntity;
 import com.orion.musicplayer.database.PlaylistWithSoundtracks;
+import com.orion.musicplayer.entities.PlaylistDbEntity;
 
 import java.util.List;
 
@@ -30,4 +30,5 @@ public interface PlaylistDao {
     @Transaction
     @Query("SELECT * FROM playlist")
     List<PlaylistWithSoundtracks> getPlaylistsWithSongs();
+
 }

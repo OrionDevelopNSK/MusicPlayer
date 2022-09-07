@@ -4,7 +4,6 @@ import android.media.MediaPlayer;
 import android.util.Log;
 
 import com.orion.musicplayer.models.Soundtrack;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.io.IOException;
 
@@ -76,7 +75,6 @@ public class SoundtrackPlayer {
         currentPlayingSong = soundtrack;
     }
 
-    //TODO
     public void pause() {
         if (mediaPlayer.isPlaying()) {
             Log.d(TAG, "Пауза");
@@ -116,6 +114,4 @@ public class SoundtrackPlayer {
         }
         start();
     }
-
-
 }

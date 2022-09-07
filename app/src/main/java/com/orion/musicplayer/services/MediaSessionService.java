@@ -1,19 +1,34 @@
 package com.orion.musicplayer.services;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.os.Bundle;
+import android.support.v4.media.session.IMediaControllerCallback;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+import android.widget.MediaController;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.SeekBar;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.media.session.MediaButtonReceiver;
 
 import com.orion.musicplayer.MainActivity;
@@ -26,7 +41,25 @@ import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {
 
+    private boolean isTouch;
+    public void setSeekbar(SeekBar seekBarPlayer) {
+        seekBarPlayer.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
 
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                isTouch = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                isTouch = false;
+            }
+        });
+    }
 
     private static final String TAG = MediaSessionService.class.getSimpleName();
     public static final int NOTIFICATION_ID = 888;
@@ -58,6 +91,16 @@ public class MediaSessionService extends Service {
                         0,
                         new Intent(getApplicationContext(), MainActivity.class),
                         PendingIntent.FLAG_IMMUTABLE));
+
+        MediaControllerCompat controller = mediaSession.getController();
+        controller.registerCallback(new MediaControllerCompat.Callback() {
+            @Override
+            public void onPlaybackStateChanged(PlaybackStateCompat state) {
+                super.onPlaybackStateChanged(state);
+            }
+
+
+        });
     }
 
     public MediaMetadataCompat getMetadata(int position) {
@@ -68,6 +111,8 @@ public class MediaSessionService extends Service {
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, soundtrack.getDuration())
                 .build();
         mediaSession.setMetadata(metadata);
+
+
         return metadata;
     }
 
@@ -85,14 +130,18 @@ public class MediaSessionService extends Service {
                 );
     }
 
+    @SuppressLint("WrongConstant")
     public PlaybackStateCompat getState(PlaybackStateCompat.Builder builder) {
         SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
+        currentDuration = soundtrackPlayer.getCurrentTime();
         PlaybackStateCompat state = builder.setState(
                         getPlaybackState(soundtrackPlayer),
-                        soundtrackPlayer.getCurrentTime(),
+                        currentDuration,
                         1,
                         SystemClock.elapsedRealtime())
                 .build();
+
+
         mediaSession.setPlaybackState(state);
         return state;
     }
@@ -116,12 +165,11 @@ public class MediaSessionService extends Service {
             soundsController.changeRating();
             Log.e(TAG, "Текущий рейтинг: Like");
             createNotification(pos, stateMode, 1);
-        }else if ("RATING_UNLIKE".equals(intent.getAction())) {
+        } else if ("RATING_UNLIKE".equals(intent.getAction())) {
             soundsController.changeRating();
             Log.e(TAG, "Текущий рейтинг: Unlike");
             createNotification(pos, stateMode, 0);
         }
-
     }
 
     private void changeStateMode(Intent intent) {
@@ -185,12 +233,15 @@ public class MediaSessionService extends Service {
         createCallbacksMediaSession(position, mode);
     }
 
+    long currentDuration;
     private void createCallbacksMediaSession(int position, StateMode mode) {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onSeekTo(long pos) {
-                super.onSeekTo(pos);
+                currentDuration = pos;
+                System.out.println("onSeekTo" + " ***************************");
                 soundsController.getSoundtrackPlayer().setCurrentTime((int) pos);
+                //createNotification(position, mode, ratingCurrentSoundtrack);
             }
 
             @Override

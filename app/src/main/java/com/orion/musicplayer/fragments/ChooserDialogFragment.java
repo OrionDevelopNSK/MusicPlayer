@@ -9,14 +9,21 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.orion.musicplayer.PlaylistController;
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.adapters.SoundtrackDialogAdapter;
+import com.orion.musicplayer.models.Playlist;
+import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment {
     private static final String TAG = ChooserDialogFragment.class.getSimpleName();
@@ -25,7 +32,10 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     private SoundtrackPlayerModel soundtrackPlayerModel;
     private Button saveButton;
     private Button closeButton;
+    private TextView textPlaylistName;
     private Animation buttonAnimationClick;
+    private String playlistName;
+    private SoundtrackDialogAdapter soundtrackAdapter;
 
     public static ChooserDialogFragment newInstance() {
         return new ChooserDialogFragment();
@@ -48,6 +58,8 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         recyclerView = view.findViewById(R.id.list_songs_dialog);
         saveButton = view.findViewById(R.id.save_playlist);
         closeButton = view.findViewById(R.id.close_dialog);
+        textPlaylistName = view.findViewById(R.id.text_view_playlist_name);
+        textPlaylistName.setText(playlistName);
         buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
         subscribeDialogCloseButtonClickListener();
@@ -55,17 +67,33 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         setListenerPlaylistSave();
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
+            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
-            }
-            else {
+            } else {
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
-
         });
         return view;
+    }
+
+    public void setPlaylistName(String playlistName) {
+        this.playlistName = playlistName;
+    }
+
+
+    private final List<Integer> currentChosePositionList = new ArrayList<>();
+
+    private void subscribeCheckBoxChooseListener() {
+        Log.d(TAG, "Установка слушателя DialogClose");
+        soundtrackAdapter.setOnSoundTrackChoseListener((position, isSelected) -> {
+            if (isSelected) {
+                currentChosePositionList.add(position);
+            } else {
+                currentChosePositionList.remove((Object) position);
+            }
+        });
     }
 
     private void subscribeDialogCloseButtonClickListener() {
@@ -80,11 +108,25 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         Log.d(TAG, "Установка слушателя DialogClose");
         saveButton.setOnClickListener(view -> {
             saveButton.startAnimation(buttonAnimationClick);
-            //TODO
+            Playlist playlist = new Playlist();
+            playlist.setPlaylistName(playlistName);
+            playlist.setSoundtracks(getItemsPlaylist());
+            //getItemsPlaylist().forEach(s-> System.out.println(s.getData()));
+            new PlaylistController(getActivity().getApplication()).insertPlaylist(playlist);
+            ChooserDialogFragment.this.dismiss();
         });
     }
 
-    private void setListenerPlaylistSave(){
+    private List<Soundtrack> getItemsPlaylist() {
+        List<Soundtrack> soundtrackPlaylist = new ArrayList<>();
+        for (int position : currentChosePositionList) {
+            soundtrackPlaylist.add(
+                    soundtrackPlayerModel.getSoundtracksLiveData().getValue().get(position));
+        }
+        return soundtrackPlaylist;
+    }
+
+    private void setListenerPlaylistSave() {
         Log.d(TAG, "Установка слушателя PlaylistSave");
         //TODO
     }
@@ -92,11 +134,14 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     private void createSoundtracksObserver(SoundtrackDialogAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
-            SoundtrackDialogAdapter soundtrackAdapter = new SoundtrackDialogAdapter(
+            soundtrackAdapter = new SoundtrackDialogAdapter(
                     this.getContext(),
                     soundtracks,
                     onSoundtrackClickListener);
             recyclerView.setAdapter(soundtrackAdapter);
+            subscribeCheckBoxChooseListener();
         });
     }
+
+
 }

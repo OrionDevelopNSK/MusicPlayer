@@ -1,6 +1,5 @@
 package com.orion.musicplayer.entities;
 
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -13,16 +12,13 @@ import com.orion.musicplayer.models.Soundtrack;
                 unique = true)}
 )
 public class SoundtrackDbEntity {
-
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "soundtrack_id")
     public long soundtrackId;
     public String data;
     public String title;
     public String artist;
     public int duration;
     public int rating;
-    @ColumnInfo(name = "count_of_launches")
     public int countOfLaunches;
 
     public Soundtrack toSoundtrack(){

@@ -14,7 +14,7 @@
     <string name="add_playlist">Add playlist</string>
     <string name="rating_of">Unlike</string>
     <string name="rating_on">Like</string>
-    <string name="select_soundtracks">Select soundtracks</string>
+    <string name="select_soundtracks">Select soundtracks for playlist:</string>
     <string name="create_playlist">Create playlist</string>
     <string name="playlist_name">Playlist name</string>
     <string name="back">BACK</string>

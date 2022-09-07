@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,10 +17,10 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,19 +31,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.transition.TransitionManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.transition.MaterialFade;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.database.DataLoader;
+import com.orion.musicplayer.fragments.ControllerFragment;
 import com.orion.musicplayer.fragments.CreatorPlaylistDialogFragment;
 import com.orion.musicplayer.fragments.ListFragment;
-import com.orion.musicplayer.fragments.ChooserDialogFragment;
-import com.orion.musicplayer.fragments.ControllerFragment;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.Action;
@@ -80,11 +78,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        soundtrackPlayerModel = new ViewModelProvider(this).get(SoundtrackPlayerModel.class);
         getSupportActionBar().hide();
-        setContentView(R.layout.activity_main);
         checkPermissions();
+        super.onCreate(savedInstanceState);
+    }
+
+    private void initialize() {
+        soundtrackPlayerModel = new ViewModelProvider(this).get(SoundtrackPlayerModel.class);
+        setContentView(R.layout.activity_main);
         addFragmentControlPanel();
         buttonAnimationClick = AnimationUtils.loadAnimation(this, R.anim.button_click);
         buttonDialog = findViewById(R.id.open_dialog);
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
         //ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
-
+        createTabs();
     }
 
     private void subscribeCurrentDataPositionChanged() {
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 createDataValidateObserver();
                 createStateModeObserver();
                 createSortingTypeObserver();
-            }
+                getSeekBarPlayer();            }
 
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
@@ -219,13 +220,7 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeButtonDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
             buttonDialog.startAnimation(buttonAnimationClick);
-
-            //TODO
-//            ChooserDialogFragment fragment = ChooserDialogFragment.newInstance();
-//            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
-
             CreatorPlaylistDialogFragment fragment = CreatorPlaylistDialogFragment.newInstance();
-
 //            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
             fragment.show(getSupportFragmentManager(), "Выберите песни");
         });
@@ -264,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
             Log.d(TAG, "Доступ на чтение внутреннего хранилища разрешен");
-            createTabs();
+            initialize();
         }
     }
 
@@ -275,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Проверка разрешений на чтение внутреннего хранилища");
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Доступ на чтение внутреннего хранилища разрешен");
-                createTabs();
+                initialize();
             } else {
                 Log.d(TAG, "Доступ на чтение внутреннего хранилища запрещен");
                 Toast.makeText(MainActivity.this, "В доступе отказано", Toast.LENGTH_SHORT).show();
@@ -402,7 +397,17 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Выбрано действие: " + action);
             //чтобы каоманды не проходили повторно при смене ориентации экрана
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.UNKNOWN);
+
         });
+    }
+
+    //TODO Требуется сделать чтобы при манипуляции seekbar-ом на notification панели он не обновлялся программно
+    public SeekBar getSeekBarPlayer() {
+        int topContainerId = getResources().getIdentifier("mediacontroller_progress", "id", "android");
+        int identifier = Resources.getSystem().getIdentifier("media_controller", "layout", "android");
+        View viewById = findViewById(topContainerId);
+        System.out.println(viewById);
+        return null;
     }
 
     public void createOrRefreshNotification() {

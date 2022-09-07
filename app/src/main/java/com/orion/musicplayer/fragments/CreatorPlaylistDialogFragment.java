@@ -10,6 +10,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.orion.musicplayer.R;
 
 public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogFragment {
@@ -17,6 +18,7 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
 
     private Button saveButton;
     private Button closeButton;
+    private TextInputEditText playlistName;
     private Animation buttonAnimationClick;
 
     public static CreatorPlaylistDialogFragment newInstance() {
@@ -39,6 +41,7 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
         View view = inflater.inflate(R.layout.fragment_dialog_creater, container, false);
         saveButton = view.findViewById(R.id.save_playlist);
         closeButton = view.findViewById(R.id.close_dialog);
+        playlistName = view.findViewById(R.id.text_playlist_name);
         buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         subscribeDialogCloseButtonClickListener();
         subscribeCreatePlaylistButtonClickListener();
@@ -57,7 +60,11 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
         Log.d(TAG, "Установка слушателя CreatePlaylist");
         saveButton.setOnClickListener(view -> {
             saveButton.startAnimation(buttonAnimationClick);
-            //TODO
+            CreatorPlaylistDialogFragment.this.dismiss();
+            ChooserDialogFragment fragment = ChooserDialogFragment.newInstance();
+            fragment.setPlaylistName(playlistName.getText().toString());
+            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
+            fragment.show(requireActivity().getSupportFragmentManager(), "Выберите песни");
         });
     }
 
