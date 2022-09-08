@@ -52,6 +52,7 @@ public class AudioReader {
         Log.d(TAG, "Чтение данных из курсора, добавление в коллекцию");
         while (cursorAudio.moveToNext()) {
             Soundtrack soundtrack = new Soundtrack();
+            soundtrack.setId(cursorAudio.getString(columnIndexData));
             soundtrack.setTitle(cursorAudio.getString(columnIndexTitle));
             soundtrack.setArtist(cursorAudio.getString(columnIndexArtist));
             soundtrack.setDuration(cursorAudio.getInt(columnIndexDuration));

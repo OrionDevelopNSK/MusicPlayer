@@ -113,7 +113,8 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
             playlist.setSoundtracks(getItemsPlaylist());
 
             //TODO не работает внесение в базу данных
-//            new PlaylistController(getActivity().getApplication()).insertPlaylist(playlist);
+            new PlaylistController(getActivity().getApplication()).insertPlaylist(playlist);
+            //new PlaylistController(getActivity().getApplication()).getAllPlaylist();
             ChooserDialogFragment.this.dismiss();
         });
     }

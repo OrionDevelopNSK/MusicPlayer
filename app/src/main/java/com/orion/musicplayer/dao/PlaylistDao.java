@@ -10,13 +10,16 @@ import androidx.room.Update;
 
 import com.orion.musicplayer.database.PlaylistWithSoundtracks;
 import com.orion.musicplayer.entities.PlaylistDbEntity;
+import com.orion.musicplayer.entities.PlaylistSoundtrackDbEntity;
+import com.orion.musicplayer.entities.SoundtrackDbEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
 public interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertAllPlaylist(PlaylistDbEntity... playlists);
+    void insertAllPlaylist(PlaylistDbEntity playlists);
 
     @Delete
     void deletePlaylists(PlaylistDbEntity... playlists);
@@ -30,5 +33,9 @@ public interface PlaylistDao {
     @Transaction
     @Query("SELECT * FROM playlist")
     List<PlaylistWithSoundtracks> getPlaylistsWithSongs();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertAllPlaylist(List<PlaylistSoundtrackDbEntity> playlistSoundtrackDbEntityList);
+
 
 }

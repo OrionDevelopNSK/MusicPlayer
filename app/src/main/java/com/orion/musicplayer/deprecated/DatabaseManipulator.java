@@ -105,7 +105,7 @@ public class DatabaseManipulator {
         while (cursor.moveToNext()) {
             Soundtrack soundtrack = new Soundtrack();
             soundtrack.setData(cursor.getString(columnIndexData));
-            soundtrack.setId(cursor.getLong(columnIndexId));
+            soundtrack.setId(cursor.getString(columnIndexId));
             soundtrack.setTitle(cursor.getString(columnIndexTitle));
             soundtrack.setArtist(cursor.getString(columnIndexArtist));
             soundtrack.setDuration(cursor.getInt(columnIndexDuration));

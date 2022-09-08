@@ -7,6 +7,8 @@ import android.util.Log;
 import com.orion.musicplayer.dao.PlaylistDao;
 import com.orion.musicplayer.database.AppDatabase;
 import com.orion.musicplayer.entities.PlaylistDbEntity;
+import com.orion.musicplayer.entities.PlaylistSoundtrackDbEntity;
+import com.orion.musicplayer.entities.SoundtrackDbEntity;
 import com.orion.musicplayer.models.Playlist;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.repositories.RoomPlaylistRepository;
@@ -26,11 +28,27 @@ public class PlaylistController {
         AppDatabase database = AppDatabase.getDatabase(application);
         AsyncTask.execute(() -> {
             Log.d(TAG, "Вставка в базу данных плейлиста");
-            new RoomPlaylistRepository(database.playlistDao())
-                    .insertPlaylist(playlist.toPlaylistDbEntity());
+            RoomPlaylistRepository roomPlaylistRepository = new RoomPlaylistRepository(database.playlistDao());
+            PlaylistDbEntity playlistDbEntity = playlist.toPlaylistDbEntity();
+            roomPlaylistRepository.insertPlaylist(playlistDbEntity);
+            List<PlaylistSoundtrackDbEntity> playlistSoundtrackDbEntityList = createPlaylistSoundtrackDbEntityList(playlistDbEntity);
+            roomPlaylistRepository.insertPlaylistSoundtrack(playlistSoundtrackDbEntityList);
             Log.d(TAG, String.format("Плейлист :%s вставлен в базу данных", playlist.getPlaylistName()));
         });
     }
+
+    public List<PlaylistSoundtrackDbEntity> createPlaylistSoundtrackDbEntityList(PlaylistDbEntity playlistDbEntity){
+        List<SoundtrackDbEntity> soundtrackDbEntities = playlistDbEntity.getSoundtrackDbEntityList();
+        List<PlaylistSoundtrackDbEntity> playlistSoundtrackDbEntities = new ArrayList<>();
+        for (SoundtrackDbEntity s: soundtrackDbEntities){
+            PlaylistSoundtrackDbEntity pl = new PlaylistSoundtrackDbEntity();
+            pl.data = s.data;
+            pl.playlistName = playlistDbEntity.playlistName;
+            playlistSoundtrackDbEntities.add(pl);
+        }
+        return playlistSoundtrackDbEntities;
+    }
+
 
     public void updatePlaylist(Playlist playlist) {
         AppDatabase database = AppDatabase.getDatabase(application);

@@ -1,5 +1,6 @@
 package com.orion.musicplayer.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -8,12 +9,12 @@ import com.orion.musicplayer.models.Soundtrack;
 
 @Entity(tableName = "soundtrack",
         indices = {
-        @Index(value = {"data" , "title"},
+        @Index(value = {"data"},
                 unique = true)}
 )
 public class SoundtrackDbEntity {
-    @PrimaryKey(autoGenerate = true)
-    public long soundtrackId;
+    @PrimaryKey
+    @NonNull
     public String data;
     public String title;
     public String artist;
@@ -23,7 +24,6 @@ public class SoundtrackDbEntity {
 
     public Soundtrack toSoundtrack(){
         Soundtrack soundtrack = new Soundtrack();
-        soundtrack.setId(soundtrackId);
         soundtrack.setData(data);
         soundtrack.setTitle(title);
         soundtrack.setArtist(artist);

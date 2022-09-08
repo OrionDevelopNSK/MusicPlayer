@@ -8,20 +8,11 @@ import java.util.List;
 import java.util.Objects;
 
 public class Playlist {
-    public long playlistId;
-    public String playlistName;
+    private String playlistName;
     private List<Soundtrack> soundtracks;
-
-    public void setPlaylistId(long playlistId) {
-        this.playlistId = playlistId;
-    }
 
     public void setPlaylistName(String playlistName) {
         this.playlistName = playlistName;
-    }
-
-    public long getPlaylistId() {
-        return playlistId;
     }
 
     public String getPlaylistName() {
@@ -57,7 +48,6 @@ public class Playlist {
             SoundtrackDbEntity soundtrackDbEntity = s.toSoundtrackDbEntity();
             soundtrackDbEntityList.add(soundtrackDbEntity);
         }
-        playlistDbEntity.playlistId = playlistId;
         playlistDbEntity.playlistName = playlistName;
         playlistDbEntity.setSoundtrackDbEntityList(soundtrackDbEntityList);
         return playlistDbEntity;

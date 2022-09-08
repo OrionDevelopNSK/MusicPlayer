@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.orion.musicplayer.dao.PlaylistDao;
 import com.orion.musicplayer.entities.PlaylistDbEntity;
+import com.orion.musicplayer.entities.PlaylistSoundtrackDbEntity;
 import com.orion.musicplayer.models.Playlist;
 
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ public class RoomPlaylistRepository {
 
     public void insertPlaylist(PlaylistDbEntity playlistDbEntity) {
         playlistDao.insertAllPlaylist(playlistDbEntity);
+    }
+
+    public void insertPlaylistSoundtrack(List< PlaylistSoundtrackDbEntity > playlistSoundtrackDbEntityList) {
+        playlistDao.insertAllPlaylist(playlistSoundtrackDbEntityList);
     }
 
     public void deletePlaylists(PlaylistDbEntity... playlists) {

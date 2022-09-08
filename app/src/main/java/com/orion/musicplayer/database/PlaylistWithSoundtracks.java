@@ -14,12 +14,9 @@ public class PlaylistWithSoundtracks {
     @Embedded
     public PlaylistDbEntity playlist;
     @Relation(
-            parentColumn = "playlistId",
-            entityColumn = "soundtrackId",
-            associateBy = @Junction(value = PlaylistSoundtrackDbEntity.class,
-                    parentColumn = "playlistId",
-                    entityColumn = "soundtrackId"
-            )
+            parentColumn = "playlistName",
+            entityColumn = "data",
+            associateBy = @Junction(value = PlaylistSoundtrackDbEntity.class)
     )
     public List<SoundtrackDbEntity> songs;
 }
