@@ -15,6 +15,7 @@ import com.orion.musicplayer.repositories.RoomPlaylistRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PlaylistController {
     private static final String TAG = PlaylistController.class.getSimpleName();
@@ -30,9 +31,10 @@ public class PlaylistController {
             Log.d(TAG, "Вставка в базу данных плейлиста");
             RoomPlaylistRepository roomPlaylistRepository = new RoomPlaylistRepository(database.playlistDao());
             PlaylistDbEntity playlistDbEntity = playlist.toPlaylistDbEntity();
-            roomPlaylistRepository.insertPlaylist(playlistDbEntity);
             List<PlaylistSoundtrackDbEntity> playlistSoundtrackDbEntityList = createPlaylistSoundtrackDbEntityList(playlistDbEntity);
-            roomPlaylistRepository.insertPlaylistSoundtrack(playlistSoundtrackDbEntityList);
+            roomPlaylistRepository.insertPlaylistAndSoundTrack(playlistDbEntity, playlistSoundtrackDbEntityList);
+            //TODO извлечение готово
+            Map<PlaylistDbEntity, List<SoundtrackDbEntity>> playlistWithSoundTrack = roomPlaylistRepository.getPlaylistWithSoundTrack();
             Log.d(TAG, String.format("Плейлист :%s вставлен в базу данных", playlist.getPlaylistName()));
         });
     }
@@ -73,8 +75,8 @@ public class PlaylistController {
     public void getAllPlaylist(){
         AppDatabase database = AppDatabase.getDatabase(application);
         AsyncTask.execute(() -> {
-            PlaylistDao playlistSoundtrackDao = database.playlistDao();
-            List<PlaylistDbEntity> all = playlistSoundtrackDao.getAll();
+            PlaylistDao playlistDao = database.playlistDao();
+            List<PlaylistDbEntity> all = playlistDao.getAll();
             List<Playlist> playlists = new ArrayList<>();
             for (PlaylistDbEntity pl: all){
                 playlists.add(pl.toPlaylist());

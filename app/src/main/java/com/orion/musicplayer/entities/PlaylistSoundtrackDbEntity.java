@@ -24,8 +24,6 @@ import androidx.room.PrimaryKey;
 },
         indices = {@Index(value = {"playlistName", "data"}, unique = true)}
 )
-
-
 public class PlaylistSoundtrackDbEntity {
     @NonNull
     public String playlistName;   //playlistId
