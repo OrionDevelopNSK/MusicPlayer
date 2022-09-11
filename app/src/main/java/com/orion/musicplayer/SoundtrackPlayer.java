@@ -6,6 +6,7 @@ import android.util.Log;
 import com.orion.musicplayer.models.Soundtrack;
 
 import java.io.IOException;
+import java.util.List;
 
 public class SoundtrackPlayer {
     public interface OnSoundtrackFinishedListener {
@@ -28,12 +29,13 @@ public class SoundtrackPlayer {
         mediaPlayer = new MediaPlayer();
         Log.d(TAG, "Установка слушателя на событие окончания песни");
         mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+            if (!isFirstPlay) return;
             if (mediaPlayer.isPlaying()) mediaPlayer.stop();
             onSoundtrackFinishedListener.onSoundtrackFinish();
         });
     }
 
-    public boolean isPlaying(){
+    public boolean isPlaying() {
         return mediaPlayer.isPlaying();
     }
 
@@ -45,8 +47,13 @@ public class SoundtrackPlayer {
         this.statusSoundtrackListener = statusSoundtrackListener;
     }
 
+    private int currentTime = -1;
+    private boolean isFirstPlay = false;
+
     public void setCurrentTime(long position) {
-        mediaPlayer.seekTo((int)position);
+        mediaPlayer.seekTo((int) position);
+        if (isFirstPlay) return;
+        currentTime = (int) position;
     }
 
     public void setVolume(float leftVolume, float rightVolume) {
@@ -54,7 +61,12 @@ public class SoundtrackPlayer {
     }
 
     public long getCurrentTime() {
-        return mediaPlayer.getCurrentPosition();
+        return !isFirstPlay ? currentTime : mediaPlayer.getCurrentPosition();
+    }
+
+    public void initSoundtrackPlayer(int position, List<Soundtrack> soundtracks) {
+        setData(soundtracks.get(position));
+        mediaPlayer.prepareAsync();
     }
 
     public void playOrPause(Soundtrack soundtrack) {
@@ -69,9 +81,12 @@ public class SoundtrackPlayer {
         } else if (currentPlayingSong != null && !currentPlayingSong.equals(soundtrack)) {
             stop();
             setData(soundtrack);
+            start();
         } else if (currentPlayingSong == null) {
             setData(soundtrack);
+            start();
         }
+        //currentTime = -1;
         currentPlayingSong = soundtrack;
     }
 
@@ -94,8 +109,12 @@ public class SoundtrackPlayer {
     private void start() {
         Log.d(TAG, "Регистрация обратного вызова готовности к воспроизведению");
         mediaPlayer.setOnPreparedListener(mp -> {
-            Log.d(TAG, "Старт");
+            Log.e(TAG, "Старт");
             mp.start();
+            if (currentTime > 0 && !isFirstPlay) {
+                mediaPlayer.seekTo(currentTime);
+                isFirstPlay = true;
+            }
             statusSoundtrackListener.onPlayingStatusSoundtrack(true);
         });
         Log.d(TAG, "Асинхронная подготовка проигрывателя к воспроизведению");
@@ -112,6 +131,6 @@ public class SoundtrackPlayer {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         }
-        start();
+
     }
 }

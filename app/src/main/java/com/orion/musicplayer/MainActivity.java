@@ -481,6 +481,7 @@ public class MainActivity extends AppCompatActivity {
             }
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
             mediaSessionService.getSoundsController().setCurrentPosition(position);
+            mediaSessionService.initMediaPlayer();
             //mediaSessionService.createNotification(position, currentState);
         });
     }

@@ -4,14 +4,11 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.os.Bundle;
-import android.support.v4.media.session.IMediaControllerCallback;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
-import android.widget.MediaController;
+import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
@@ -21,14 +18,9 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.SeekBar;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.media.session.MediaButtonReceiver;
 
 import com.orion.musicplayer.MainActivity;
@@ -42,11 +34,11 @@ import com.orion.musicplayer.utils.StateMode;
 public class MediaSessionService extends Service {
 
     private boolean isTouch;
+
     public void setSeekbar(SeekBar seekBarPlayer) {
         seekBarPlayer.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-
             }
 
             @Override
@@ -61,14 +53,47 @@ public class MediaSessionService extends Service {
         });
     }
 
+
+
+    class NoisyBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+                soundsController.playOrPause();
+            }
+        }
+    }
+
+
+    class ScreenBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                Log.e(TAG, "Погасание экрана");
+                isScreenOn = false;
+            }else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())){
+                Log.e(TAG, "Включение экрана");
+                isScreenOn = true;
+                createNotification(pos, stateMode, ratingCurrentSoundtrack);
+            }
+        }
+    }
+
+
     private static final String TAG = MediaSessionService.class.getSimpleName();
-    public static final int NOTIFICATION_ID = 888;
+    private static final int NOTIFICATION_ID = 888;
 
     private MediaNotificationManager mediaNotificationManager;
     private MediaSessionCompat mediaSession;
     private SoundsController soundsController;
     private DataLoader dataLoader;
     private final BinderService binderService = new BinderService();
+    private final NoisyBroadcastReceiver noisyBroadcastReceiver = new NoisyBroadcastReceiver();
+    private final IntentFilter noisyIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+    private final ScreenBroadcastReceiver screenBroadcastReceiver = new ScreenBroadcastReceiver();
+    private final IntentFilter screenIntentFilter = new IntentFilter();
+    private boolean isScreenOn = true;
+
 
     public SoundsController getSoundsController() {
         return soundsController;
@@ -101,6 +126,16 @@ public class MediaSessionService extends Service {
 
 
         });
+
+        subscribePlayingStatusListener();
+        registerReceiver(noisyBroadcastReceiver, noisyIntentFilter);
+        screenIntentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        screenIntentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(screenBroadcastReceiver, screenIntentFilter);
+    }
+
+    public void initMediaPlayer() {
+        soundsController.initSoundtrackPlayer();
     }
 
     public MediaMetadataCompat getMetadata(int position) {
@@ -140,12 +175,18 @@ public class MediaSessionService extends Service {
                         1,
                         SystemClock.elapsedRealtime())
                 .build();
-
-
         mediaSession.setPlaybackState(state);
         return state;
     }
 
+    private void subscribePlayingStatusListener() {
+        soundsController.setOnPlayingStatusForServiceListener(isPlay -> {
+            if (!isPlay) {
+                Log.e(TAG, "Остановка воспроизведения");
+                stopUpdateNotification();
+            }
+        });
+    }
 
     private int getPlaybackState(SoundtrackPlayer soundtrackPlayer) {
         if (soundtrackPlayer.isPlaying()) return PlaybackStateCompat.STATE_PLAYING;
@@ -172,14 +213,15 @@ public class MediaSessionService extends Service {
         }
     }
 
+
     private void changeStateMode(Intent intent) {
         if (StateMode.REPEAT.toString().equals(intent.getAction()) ||
                 StateMode.LOOP.toString().equals(intent.getAction()) ||
                 StateMode.RANDOM.toString().equals(intent.getAction())) {
             Log.d(TAG, "Смена режима воспроизведения");
-            soundsController.switchMode();
+            stateMode = soundsController.switchMode();
             soundsController.clearDequeSoundtrack();
-            createNotification(pos, soundsController.switchMode(), ratingCurrentSoundtrack);
+            createNotification(pos, stateMode, ratingCurrentSoundtrack);
         }
     }
 
@@ -209,7 +251,7 @@ public class MediaSessionService extends Service {
     private StateMode stateMode;
 
     public void createNotification(int position, StateMode mode, int rating) {
-        Log.e(TAG, "Создание/обновление Notification");
+        Log.d(TAG, "Создание/обновление Notification");
         handler.removeCallbacks(runnable);
         pos = position;
         ratingCurrentSoundtrack = rating;
@@ -227,19 +269,25 @@ public class MediaSessionService extends Service {
                         ratingCurrentSoundtrack);
                 startForeground(NOTIFICATION_ID, notification);
                 handler.postDelayed(this, 500);
+                if (!isScreenOn) stopUpdateNotification();
             }
         };
         handler.postDelayed(runnable, 0);
         createCallbacksMediaSession(position, mode);
     }
 
+    public void stopUpdateNotification() {
+        Log.d(TAG, "Остановка обновлений Notification");
+        handler.removeCallbacks(runnable);
+    }
+
+
     long currentDuration;
+
     private void createCallbacksMediaSession(int position, StateMode mode) {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onSeekTo(long pos) {
-                currentDuration = pos;
-                System.out.println("onSeekTo" + " ***************************");
                 soundsController.getSoundtrackPlayer().setCurrentTime((int) pos);
                 //createNotification(position, mode, ratingCurrentSoundtrack);
             }
@@ -289,6 +337,8 @@ public class MediaSessionService extends Service {
             soundsController.loseAudioFocusAndStopPlayer();
             Log.d(TAG, "Уничтожение службы");
         }
+        unregisterReceiver(noisyBroadcastReceiver);
+        unregisterReceiver(screenBroadcastReceiver);
         super.onDestroy();
     }
 }

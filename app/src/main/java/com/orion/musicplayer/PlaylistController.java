@@ -27,7 +27,6 @@ public class PlaylistController {
     public PlaylistController(FragmentActivity activity) {
         this.application = activity.getApplication();
         soundtrackPlayerModel = new ViewModelProvider(activity).get(SoundtrackPlayerModel.class);
-        loadPlaylistWithSoundtrack();
     }
 
     public void insertPlaylist(Playlist playlist) {

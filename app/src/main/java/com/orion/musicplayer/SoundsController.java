@@ -27,7 +27,7 @@ public class SoundsController {
         void onChangeStateMode(StateMode stateMode);
     }
 
-    interface OnPlayingStatusListener {
+    public interface OnPlayingStatusListener {
         void onPlayingStatus(boolean isPlay);
     }
 
@@ -52,8 +52,10 @@ public class SoundsController {
     private StateMode stateMode = StateMode.LOOP;
     private OnChangeStateModeListener onChangeStateModeListener;
     private OnPlayingStatusListener onPlayingStatusListener;
+    private OnPlayingStatusListener onPlayingStatusForServiceListener;
     private OnCurrentDurationListener onCurrentDurationListener;
     private OnCurrentPositionListener onCurrentPositionListener;
+
 
     public SoundsController(Application app) {
         application = app;
@@ -107,6 +109,10 @@ public class SoundsController {
         this.onCurrentPositionListener = onCurrentPositionListener;
     }
 
+    public void setOnPlayingStatusForServiceListener(OnPlayingStatusListener onPlayingStatusForServiceListener) {
+        this.onPlayingStatusForServiceListener = onPlayingStatusForServiceListener;
+    }
+
     public void loseAudioFocusAndStopPlayer() {
         Log.d(TAG, "отдача аудиофокуса, остановка плайера");
         audioPlayerFocus.loseAudioFocus();
@@ -142,9 +148,14 @@ public class SoundsController {
         Log.d(TAG, "Установка слушателя начала воспроизведения");
         soundtrackPlayer.setOnPlayingStatusSoundtrackListener(isPlay -> {
             onPlayingStatusListener.onPlayingStatus(isPlay);
-            if (isPlay) audioPlayerFocus.gainAudioFocus();
+            if (isPlay) {
+                audioPlayerFocus.gainAudioFocus();
+            }
+            onPlayingStatusForServiceListener.onPlayingStatus(isPlay);
         });
     }
+
+
 
     private void setSoundtrackFinishListener() {
         Log.d(TAG, "Установка слушателя конца воспроизведения песни");
@@ -157,6 +168,10 @@ public class SoundsController {
                 next(currentPosition, soundtracks);
             }
         });
+    }
+
+    public void initSoundtrackPlayer(){
+        soundtrackPlayer.initSoundtrackPlayer(currentPosition, soundtracks);
     }
 
     public void playOrPause() {
