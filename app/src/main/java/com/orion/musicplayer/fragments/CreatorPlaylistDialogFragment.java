@@ -11,6 +11,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.orion.musicplayer.PlaylistController;
 import com.orion.musicplayer.R;
 
 public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogFragment {
@@ -20,10 +21,14 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
     private Button closeButton;
     private TextInputEditText playlistName;
     private Animation buttonAnimationClick;
+    private final PlaylistController playlistController;
 
-    public static CreatorPlaylistDialogFragment newInstance() {
-        return new CreatorPlaylistDialogFragment();
+
+    public CreatorPlaylistDialogFragment(PlaylistController playlistController){
+        this.playlistController = playlistController;
     }
+
+
 
     @Override
     public void onStart() {
@@ -61,7 +66,7 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
         saveButton.setOnClickListener(view -> {
             saveButton.startAnimation(buttonAnimationClick);
             CreatorPlaylistDialogFragment.this.dismiss();
-            ChooserDialogFragment fragment = ChooserDialogFragment.newInstance();
+            ChooserDialogFragment fragment = new ChooserDialogFragment(playlistController);
             fragment.setPlaylistName(playlistName.getText().toString());
             fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
             fragment.show(requireActivity().getSupportFragmentManager(), "Выберите песни");

@@ -11,6 +11,8 @@ import androidx.room.Update;
 import com.orion.musicplayer.entities.PlaylistDbEntity;
 import com.orion.musicplayer.entities.PlaylistSoundtrackDbEntity;
 import com.orion.musicplayer.entities.SoundtrackDbEntity;
+import com.orion.musicplayer.models.Playlist;
+import com.orion.musicplayer.models.Soundtrack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,20 +52,26 @@ public abstract class PlaylistDao {
     @Query("SELECT * FROM soundtrack WHERE data =:data")
     public abstract List<SoundtrackDbEntity> getListSoundtrackDbEntity(String data);
 
+    @Query("SELECT * FROM soundtrack WHERE data =:data")
+    public abstract SoundtrackDbEntity getSoundtrackDbEntity(String data);
+
 
     @Transaction
-    public Map<PlaylistDbEntity, List<SoundtrackDbEntity>> getPlaylistWithSoundTrack(){
-        Map<PlaylistDbEntity, List<SoundtrackDbEntity>> tmpPlaylistWithSoundTrack = new HashMap<>();
-
+    public Map<Playlist, List<Soundtrack>> getPlaylistWithSoundTrack(){
+        Map<Playlist, List<Soundtrack>> tmpPlaylistWithSoundTrack = new HashMap<>();
+//        Map<PlaylistDbEntity, List<Soundtrack>> tmpPlaylistWithSoundTrackTT = new HashMap<>();
         List<PlaylistDbEntity> all = getAll();
         for (PlaylistDbEntity playlistDbEntity : all){
             List<PlaylistSoundtrackDbEntity> playlistsWithSongs = getListPlaylistSoundtrackDbEntity(playlistDbEntity.playlistName);
-            List<SoundtrackDbEntity> tmp = new ArrayList<>();
+            List<SoundtrackDbEntity> listSoundtrackDbEntity = new ArrayList<>();
+            List<Soundtrack> tmpSoundtrack = new ArrayList<>();
             for (PlaylistSoundtrackDbEntity p : playlistsWithSongs){
-                List<SoundtrackDbEntity> listSoundtrackDbEntity = getListSoundtrackDbEntity(p.data);
-                tmp.add(listSoundtrackDbEntity.get(0));
+                SoundtrackDbEntity soundtrackDbEntity = this.getSoundtrackDbEntity(p.data);
+                listSoundtrackDbEntity.add(soundtrackDbEntity);
+                tmpSoundtrack.add(soundtrackDbEntity.toSoundtrack());
             }
-            tmpPlaylistWithSoundTrack.put(playlistDbEntity, tmp);
+            playlistDbEntity.setSoundtrackDbEntityList(listSoundtrackDbEntity);
+            tmpPlaylistWithSoundTrack.put(playlistDbEntity.toPlaylist(), tmpSoundtrack);
         }
         return tmpPlaylistWithSoundTrack;
     }

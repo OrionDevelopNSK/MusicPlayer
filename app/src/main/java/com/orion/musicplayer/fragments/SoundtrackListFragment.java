@@ -15,21 +15,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.adapters.SoundRecycleViewAdapter;
-import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.Objects;
 
 
-public class ListFragment extends Fragment {
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+public class SoundtrackListFragment extends Fragment {
+    private static final String TAG = SoundtrackListFragment.class.getSimpleName();
     private RecyclerView recyclerView;
     private SoundtrackPlayerModel soundtrackPlayerModel;
 
 
-    public static ListFragment newInstance() {
-        return new ListFragment();
+    public static SoundtrackListFragment newInstance() {
+        return new SoundtrackListFragment();
     }
 
     @Override
@@ -71,7 +70,7 @@ public class ListFragment extends Fragment {
         Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
             SoundRecycleViewAdapter soundRecycleViewAdapter = new SoundRecycleViewAdapter(
-                    ListFragment.this.getContext(),
+                    SoundtrackListFragment.this.getContext(),
                     soundtracks,
                     onSoundtrackClickListener);
             recyclerView.setAdapter(soundRecycleViewAdapter);

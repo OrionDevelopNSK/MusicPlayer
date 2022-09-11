@@ -40,7 +40,8 @@ import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.database.DataLoader;
 import com.orion.musicplayer.fragments.ControllerFragment;
 import com.orion.musicplayer.fragments.CreatorPlaylistDialogFragment;
-import com.orion.musicplayer.fragments.ListFragment;
+import com.orion.musicplayer.fragments.PlaylistListFragment;
+import com.orion.musicplayer.fragments.SoundtrackListFragment;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.Action;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection serviceConnection;
     private SoundtrackPlayerModel soundtrackPlayerModel;
     private SharedPreferences defaultsSharedPreferences;
+    private PlaylistController playlistController;
     private MediaScannerObserver mediaScannerObserver;
     private Intent intent;
 
@@ -101,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         //ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
         createTabs();
+        playlistController = new PlaylistController(this);
     }
 
     private void subscribeCurrentDataPositionChanged() {
@@ -141,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
                 mediaSessionService = ((MediaSessionService.BinderService) binder).getService();
                 subscribeDatabaseLoadListeners();
                 mediaSessionService.getDataLoader().execute(soundtrackPlayerModel.getSortingTypeLiveData().getValue());
+                playlistController.loadPlaylistWithSoundtrack();
                 subscribeSoundsControllerListeners();
                 createMediaScannerObserver();
                 bindActions();
@@ -148,7 +152,8 @@ public class MainActivity extends AppCompatActivity {
                 createDataValidateObserver();
                 createStateModeObserver();
                 createSortingTypeObserver();
-                getSeekBarPlayer();            }
+//                getSeekBarPlayer();
+            }
 
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
@@ -220,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeButtonDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
             buttonDialog.startAnimation(buttonAnimationClick);
-            CreatorPlaylistDialogFragment fragment = CreatorPlaylistDialogFragment.newInstance();
+            CreatorPlaylistDialogFragment fragment = new CreatorPlaylistDialogFragment(playlistController);
 //            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
             fragment.show(getSupportFragmentManager(), "Выберите песни");
         });
@@ -229,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeButtonSortingClickListener() {
         buttonSortingMode.setOnClickListener(view -> {
             buttonSortingMode.startAnimation(buttonAnimationClick);
-
             showPopup(view);
         });
     }
@@ -321,19 +325,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void addFragmentsToAdapter(MusicStateAdapter musicStateAdapter) {
         Log.d(TAG, "Добавление фрагментов к адаптеру");
-        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container_view);
-
-
-        ///TODO
-        Fragment fragment2 = getSupportFragmentManager().findFragmentById(R.id.fragment_container_control_panel);
-        fragment2 = ListFragment.newInstance();
-
-        if (fragment == null) {
-            fragment = ListFragment.newInstance();
-            musicStateAdapter.addFragment(fragment);
-            ///TODO
-            musicStateAdapter.addFragment(fragment2);
+        if(getSupportFragmentManager().findFragmentById(R.id.list_songs) == null){
+            Fragment soundtrackListFragment = SoundtrackListFragment.newInstance();
+            musicStateAdapter.addFragment(soundtrackListFragment);
         }
+        if(getSupportFragmentManager().findFragmentById(R.id.list_playlist) == null){
+            Fragment playlistListFragment = PlaylistListFragment.newInstance();
+            musicStateAdapter.addFragment(playlistListFragment);
+        }
+
+
+
+
+
     }
 
     private void createTabLayoutMediator(TabLayout tabLayout, ViewPager2 viewPager) {
@@ -395,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
             Log.d(TAG, "Выбрано действие: " + action);
-            //чтобы каоманды не проходили повторно при смене ориентации экрана
+            //чтобы команды не проходили повторно при смене ориентации экрана
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.UNKNOWN);
 
         });
@@ -439,6 +443,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Сохранить состояние " + soundTitle);
         defaultsSharedPreferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = defaultsSharedPreferences.edit();
+        //Защита от NPE при уничтожении активити
+        if (soundtrackPlayerModel.getDurationLiveData().getValue() == null) return;
         currentDuration = soundtrackPlayerModel.getDurationLiveData().getValue();
         soundTitle = soundtrackPlayerModel.getSoundtracksLiveData().getValue()
                 .get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue()).getData();

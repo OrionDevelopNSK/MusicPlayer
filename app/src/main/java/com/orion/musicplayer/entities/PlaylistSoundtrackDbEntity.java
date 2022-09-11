@@ -4,11 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Index;
-import androidx.room.PrimaryKey;
 
-//    @Entity(tableName = "playlist_soundtrack",
-//            primaryKeys = {"playlistId", "soundtrackId"}
-//    )
+
 @Entity(tableName = "playlist_soundtrack",
         primaryKeys = {"playlistName", "data"},
         foreignKeys= {
@@ -26,7 +23,7 @@ import androidx.room.PrimaryKey;
 )
 public class PlaylistSoundtrackDbEntity {
     @NonNull
-    public String playlistName;   //playlistId
+    public String playlistName;
     @NonNull
     public String data;
 

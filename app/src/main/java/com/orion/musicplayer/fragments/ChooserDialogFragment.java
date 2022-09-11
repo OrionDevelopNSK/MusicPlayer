@@ -36,9 +36,11 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     private Animation buttonAnimationClick;
     private String playlistName;
     private SoundtrackDialogAdapter soundtrackAdapter;
+    private final PlaylistController playlistController;
 
-    public static ChooserDialogFragment newInstance() {
-        return new ChooserDialogFragment();
+
+    public ChooserDialogFragment(PlaylistController playlistController){
+        this.playlistController = playlistController;
     }
 
     @Override
@@ -64,7 +66,6 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
         subscribeDialogCloseButtonClickListener();
         subscribeSaveButtonClickListener();
-        setListenerPlaylistSave();
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
             if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
@@ -105,16 +106,13 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     }
 
     private void subscribeSaveButtonClickListener() {
-        Log.d(TAG, "Установка слушателя DialogClose");
+        Log.d(TAG, "Установка слушателя сохранения DialogClose");
         saveButton.setOnClickListener(view -> {
             saveButton.startAnimation(buttonAnimationClick);
             Playlist playlist = new Playlist();
             playlist.setPlaylistName(playlistName);
             playlist.setSoundtracks(getItemsPlaylist());
-
-            //TODO не работает внесение в базу данных
-            new PlaylistController(getActivity().getApplication()).insertPlaylist(playlist);
-            //new PlaylistController(getActivity().getApplication()).getAllPlaylist();
+            playlistController.insertPlaylist(playlist);
             ChooserDialogFragment.this.dismiss();
         });
     }
@@ -126,11 +124,6 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
                     soundtrackPlayerModel.getSoundtracksLiveData().getValue().get(position));
         }
         return soundtrackPlaylist;
-    }
-
-    private void setListenerPlaylistSave() {
-        Log.d(TAG, "Установка слушателя PlaylistSave");
-        //TODO
     }
 
     private void createSoundtracksObserver(SoundtrackDialogAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {

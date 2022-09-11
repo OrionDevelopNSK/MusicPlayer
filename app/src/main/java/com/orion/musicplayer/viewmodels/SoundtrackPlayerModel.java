@@ -3,12 +3,16 @@ package com.orion.musicplayer.viewmodels;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.orion.musicplayer.entities.PlaylistDbEntity;
+import com.orion.musicplayer.entities.SoundtrackDbEntity;
+import com.orion.musicplayer.models.Playlist;
 import com.orion.musicplayer.models.Soundtrack;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.StateMode;
 
 import java.util.List;
+import java.util.Map;
 
 public class SoundtrackPlayerModel extends ViewModel {
     private final MutableLiveData<StateMode> stateModeLiveData = new MutableLiveData<>(StateMode.LOOP);
@@ -19,6 +23,7 @@ public class SoundtrackPlayerModel extends ViewModel {
     private final MutableLiveData<Boolean> isLoadedLiveData = new MutableLiveData<>();
     private final MutableLiveData<Action> playerActionLiveData = new MutableLiveData<>(Action.UNKNOWN);
     private final MutableLiveData<SortingType> sortingTypeLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Map<Playlist, List<Soundtrack>>> playlistLiveData = new MutableLiveData<>();
 
 
     public MutableLiveData<StateMode> getStateModeLiveData() {
@@ -51,5 +56,9 @@ public class SoundtrackPlayerModel extends ViewModel {
 
     public MutableLiveData<SortingType> getSortingTypeLiveData() {
         return sortingTypeLiveData;
+    }
+
+    public MutableLiveData<Map<Playlist, List<Soundtrack>>> getPlaylistLiveData() {
+        return playlistLiveData;
     }
 }

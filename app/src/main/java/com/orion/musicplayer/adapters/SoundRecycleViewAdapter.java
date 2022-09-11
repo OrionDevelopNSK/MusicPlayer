@@ -57,7 +57,7 @@ public class SoundRecycleViewAdapter extends RecyclerView.Adapter<SoundRecycleVi
     @NonNull
     @Override
     public SoundRecycleViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = layoutInflater.inflate(R.layout.list_item, parent, false);
+        View view = layoutInflater.inflate(R.layout.soundtrack_list_item, parent, false);
         return new ViewHolder(view);
     }
 

@@ -25,4 +25,5 @@
     <string name="sort_by_date_of_addition">Sort by date of addition</string>
     <string name="sort_by_rating">Sort by rating</string>
     <string name="sort_by_listening_frequency">Sort by listening frequency</string>
+    <string name="count_of_soundtracks">"COUNT OF SOUNDTRACKS :   "</string>
 </resources>

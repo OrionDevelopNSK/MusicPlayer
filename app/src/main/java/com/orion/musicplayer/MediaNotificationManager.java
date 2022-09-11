@@ -25,10 +25,7 @@ import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.StateMode;
 
 
-/**
- * Keeps track of a notification and updates it automatically for a given MediaSession. This is
- * required so that the music service don't get killed during playback.
- */
+
 public class MediaNotificationManager {
     private static final String TAG = MediaNotificationManager.class.getSimpleName();
     private static final String CHANNEL_ID = "com.example.android.musicplayer.channel";
