@@ -228,7 +228,7 @@ public class SoundsController {
             onCurrentPositionListener.onCurrentPosition(i);
         } else if (stateMode == StateMode.RANDOM) {
             if (currentPosition != -1) directOrder.push(currentPosition);
-            int randomPosition = new Random().nextInt(countSoundtracks.size() + 1);
+            int randomPosition = new Random().nextInt(countSoundtracks.size() - 1);
             Log.d(TAG, "Порядковый номер случайной песни: " + randomPosition);
             playOrPause(randomPosition, countSoundtracks);
             onCurrentPositionListener.onCurrentPosition(randomPosition);

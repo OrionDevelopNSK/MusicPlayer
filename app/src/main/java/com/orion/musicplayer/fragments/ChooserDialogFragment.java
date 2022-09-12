@@ -130,13 +130,11 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
             soundtrackAdapter = new SoundtrackDialogAdapter(
-                    this.getContext(),
+                    getContext(),
                     soundtracks,
                     onSoundtrackClickListener);
             recyclerView.setAdapter(soundtrackAdapter);
             subscribeCheckBoxChooseListener();
         });
     }
-
-
 }

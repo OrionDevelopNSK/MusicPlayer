@@ -18,13 +18,13 @@ import com.orion.musicplayer.adapters.SoundRecycleViewAdapter;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
-import java.util.Objects;
-
 
 public class SoundtrackListFragment extends Fragment {
     private static final String TAG = SoundtrackListFragment.class.getSimpleName();
+
     private RecyclerView recyclerView;
     private SoundtrackPlayerModel soundtrackPlayerModel;
+    private SoundRecycleViewAdapter soundRecycleViewAdapter;
 
 
     public static SoundtrackListFragment newInstance() {
@@ -42,9 +42,7 @@ public class SoundtrackListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sound_list_view, container, false);
         recyclerView = view.findViewById(R.id.list_songs);
-
         soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
-
         createSoundtracksObserver((soundtrack, position) -> {
             soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
             if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
@@ -55,25 +53,26 @@ public class SoundtrackListFragment extends Fragment {
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
         });
-        createPositionObserver();
         return view;
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    private void createPositionObserver() {
-        Log.d(TAG, "Создание обсервера изменения номера текущей песни");
-        soundtrackPlayerModel.getCurrentPositionLiveData().observe(
-                requireActivity(), integer -> Objects.requireNonNull(recyclerView.getAdapter()).notifyDataSetChanged());
+
+    private void subscribe(){
+        soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
+            if (soundtrackPlayerModel.getCurrentPositionLiveData().getValue() != null)
+            soundRecycleViewAdapter.changePlayingStatus(soundtrackPlayerModel.getCurrentPositionLiveData().getValue(), aBoolean);
+        });
     }
 
     private void createSoundtracksObserver(SoundRecycleViewAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка песен");
         soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
-            SoundRecycleViewAdapter soundRecycleViewAdapter = new SoundRecycleViewAdapter(
-                    SoundtrackListFragment.this.getContext(),
+            soundRecycleViewAdapter = new SoundRecycleViewAdapter(
+                    getContext(),
                     soundtracks,
                     onSoundtrackClickListener);
             recyclerView.setAdapter(soundRecycleViewAdapter);
+            subscribe();
         });
     }
 

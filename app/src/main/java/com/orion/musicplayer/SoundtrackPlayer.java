@@ -61,12 +61,14 @@ public class SoundtrackPlayer {
     }
 
     public long getCurrentTime() {
-        return !isFirstPlay ? currentTime : mediaPlayer.getCurrentPosition();
+        return !isFirstPlay && currentTime > 0 ? currentTime : mediaPlayer.getCurrentPosition();
     }
 
     public void initSoundtrackPlayer(int position, List<Soundtrack> soundtracks) {
-        setData(soundtracks.get(position));
-        mediaPlayer.prepareAsync();
+        if (!isFirstPlay){
+            setData(soundtracks.get(position));
+            mediaPlayer.prepareAsync();
+        }
     }
 
     public void playOrPause(Soundtrack soundtrack) {
@@ -86,7 +88,6 @@ public class SoundtrackPlayer {
             setData(soundtrack);
             start();
         }
-        //currentTime = -1;
         currentPlayingSong = soundtrack;
     }
 
@@ -113,6 +114,8 @@ public class SoundtrackPlayer {
             mp.start();
             if (currentTime > 0 && !isFirstPlay) {
                 mediaPlayer.seekTo(currentTime);
+                isFirstPlay = true;
+            } else if (!isFirstPlay){
                 isFirstPlay = true;
             }
             statusSoundtrackListener.onPlayingStatusSoundtrack(true);

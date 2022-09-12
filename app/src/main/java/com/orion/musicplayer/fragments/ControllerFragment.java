@@ -26,6 +26,8 @@ import com.orion.musicplayer.utils.TimeConverter;
 import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ControllerFragment extends Fragment {
     private final static String TAG = ControllerFragment.class.getSimpleName();
@@ -44,6 +46,7 @@ public class ControllerFragment extends Fragment {
     private Button buttonChangeStateMode;
     private Animation buttonAnimationClick;
     private SoundtrackPlayerModel soundtrackPlayerModel;
+    private ExecutorService executorService;
 
     public static ControllerFragment newInstance() {
         return new ControllerFragment();
@@ -76,6 +79,7 @@ public class ControllerFragment extends Fragment {
         buttonToStart.setBackgroundResource(R.drawable.ic_to_start);
         buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
         buttonNext.setBackgroundResource(R.drawable.ic_next);
+        executorService = Executors.newSingleThreadExecutor();
         changeLabelFormat();
         setListenerSliderTouch();
         subscribeListenerButtonToStart();
@@ -83,8 +87,8 @@ public class ControllerFragment extends Fragment {
         subscribeListenerButtonPrevious();
         subscribeListenerButtonNext();
         subscribeListenerButtonChangeStateMode();
-        createDurationObserver();
         createPositionObserver();
+        createDurationObserver();
         createStateModeObserver();
         createPlayingStateObserver();
         createDataValidateObserver();
@@ -110,14 +114,32 @@ public class ControllerFragment extends Fragment {
         });
     }
 
+    private void createPositionObserver() {
+        Log.d(TAG, "Создание обсервера изменения номера воспроизведения песни");
+        soundtrackPlayerModel.getCurrentPositionLiveData().observe(requireActivity(), position -> {
+            List<Soundtrack> soundtrackList = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
+            if (soundtrackList.size() == 0) return;
+            Soundtrack soundtrack = soundtrackList.get(position);
+            Log.d(TAG, "Изменение значений элементов UI");
+            stylizedData(soundtrack);
+            textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
+            //Защита от IllegalStateException размера слайдера
+            slider.setValue(0);
+            slider.setValueTo(soundtrack.getDuration());
+        });
+    }
+
     private void createDurationObserver() {
         Log.d(TAG, "Создание обсервера изменения текущего времени воспроизведения песни");
         soundtrackPlayerModel.getDurationLiveData().observe(requireActivity(), integer -> {
             textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getDurationLiveData().getValue()));
             if (isTouch) return;
-            long value = soundtrackPlayerModel.getDurationLiveData().getValue();
-            if (value > slider.getValueTo()) value = (long) slider.getValueTo();
-            slider.setValue(value);
+            int value = soundtrackPlayerModel.getDurationLiveData().getValue().intValue();
+            if (value > slider.getValueTo()) {
+                slider.setValue(slider.getValueTo());
+            } else if (value < slider.getValueTo()) {
+                slider.setValue(value);
+            }
         });
     }
 
@@ -137,25 +159,12 @@ public class ControllerFragment extends Fragment {
         });
     }
 
-    private void createPositionObserver() {
-        Log.d(TAG, "Создание обсервера изменения номера воспроизведения песни");
-        soundtrackPlayerModel.getCurrentPositionLiveData().observe(requireActivity(), position -> {
-            List<Soundtrack> soundtrackList = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
-            if (soundtrackList.size() == 0) return;
-            Soundtrack soundtrack = soundtrackList.get(position);
-            Log.d(TAG, "Изменение значений элементов UI");
-            stylizedData(soundtrack);
-            textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
-            slider.setValueTo(soundtrack.getDuration());
-        });
-    }
 
     private void stylizedData(Soundtrack soundtrack) {
-        if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")){
+        if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")) {
             textArtistTitle.setText(soundtrack.getTitle());
             textSoundtrackTitle.setText("********");
-        }
-        else{
+        } else {
             textArtistTitle.setText(soundtrack.getArtist());
             textSoundtrackTitle.setText(soundtrack.getTitle());
         }
@@ -163,7 +172,6 @@ public class ControllerFragment extends Fragment {
 
     private void createPlayingStateObserver() {
         soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), isPlay -> {
-
             if (isPlay == null) return;
             if (isPlay) {
                 Log.d(TAG, "Начало воспроизведения");
@@ -204,44 +212,43 @@ public class ControllerFragment extends Fragment {
     private void subscribeListenerButtonToStart() {
         Log.d(TAG, "Установка слушателя ButtonToStart");
         buttonToStart.setOnClickListener(view -> {
+            executorService.execute((Runnable) () -> buttonToStart.startAnimation(buttonAnimationClick));
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.TO_START);
-            buttonToStart.startAnimation(buttonAnimationClick);
         });
     }
 
     private void subscribeListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
         buttonChangeStateMode.setOnClickListener(view -> {
+            executorService.execute((Runnable) () -> buttonChangeStateMode.startAnimation(buttonAnimationClick));
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE);
-            buttonChangeStateMode.startAnimation(buttonAnimationClick);
         });
     }
 
     private void subscribeListenerButtonNext() {
         Log.d(TAG, "Установка слушателя ButtonNext");
         buttonNext.setOnClickListener(view -> {
+            executorService.execute((Runnable) () -> buttonNext.startAnimation(buttonAnimationClick));
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.NEXT);
-            buttonNext.startAnimation(buttonAnimationClick);
         });
     }
 
     private void subscribeListenerButtonPrevious() {
         Log.d(TAG, "Установка слушателя ButtonPrevious");
         buttonPrevious.setOnClickListener(view -> {
+            executorService.execute((Runnable) () -> buttonPrevious.startAnimation(buttonAnimationClick));
             soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PREVIOUS);
-            buttonPrevious.startAnimation(buttonAnimationClick);
         });
     }
 
     private void subscribeListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
         buttonPlayOrPause.setOnClickListener(view -> {
-            buttonPlayOrPause.startAnimation(buttonAnimationClick);
-            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()){
+            executorService.execute((Runnable) () -> buttonPlayOrPause.startAnimation(buttonAnimationClick));
+            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
-            }
-            else {
+            } else {
                 soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
                 soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
             }
