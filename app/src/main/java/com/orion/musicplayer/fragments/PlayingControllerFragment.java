@@ -19,21 +19,19 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.slider.Slider;
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.utils.TimeConverter;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ControllerFragment extends Fragment {
-    private final static String TAG = ControllerFragment.class.getSimpleName();
+public class PlayingControllerFragment extends Fragment {
+    private final static String TAG = PlayingControllerFragment.class.getSimpleName();
 
-
-    private boolean isTouch;
     private TextView textSoundtrackTitle;
     private TextView textArtistTitle;
     private TextView textTimeDuration;
@@ -44,12 +42,13 @@ public class ControllerFragment extends Fragment {
     private Button buttonPrevious;
     private Button buttonNext;
     private Button buttonChangeStateMode;
-    private Animation buttonAnimationClick;
-    private SoundtrackPlayerModel soundtrackPlayerModel;
+    private Animation animationButtonClick;
+    private DataModel dataModel;
     private ExecutorService executorService;
+    private boolean isTouch;
 
-    public static ControllerFragment newInstance() {
-        return new ControllerFragment();
+    public static PlayingControllerFragment newInstance() {
+        return new PlayingControllerFragment();
     }
 
     @Override
@@ -61,27 +60,13 @@ public class ControllerFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View currentView = inflater.inflate(R.layout.fragment_control_panel, container, false);
-        Log.d(TAG, "Биндинг Views");
-        textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
-        textArtistTitle = currentView.findViewById(R.id.text_soundtrack_artist);
-        textTimeDuration = currentView.findViewById(R.id.text_time_duration);
-        textCurrentDuration = currentView.findViewById(R.id.text_current_duration);
-        slider = currentView.findViewById(R.id.slider_soundtrack);
-        buttonToStart = currentView.findViewById(R.id.button_to_start);
-        buttonPlayOrPause = currentView.findViewById(R.id.button_play_pause);
-        buttonPrevious = currentView.findViewById(R.id.button_previous);
-        buttonNext = currentView.findViewById(R.id.button_next);
-        buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
-        buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
-        soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
-        buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
-        buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
-        buttonToStart.setBackgroundResource(R.drawable.ic_to_start);
-        buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
-        buttonNext.setBackgroundResource(R.drawable.ic_next);
+        bindViews(currentView);
+        createDefaultButtonsDrawables();
+        animationButtonClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
+        dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         executorService = Executors.newSingleThreadExecutor();
         changeLabelFormat();
-        setListenerSliderTouch();
+        subscribeListenerSliderTouch();
         subscribeListenerButtonToStart();
         subscribeListenerButtonPlayOrPause();
         subscribeListenerButtonPrevious();
@@ -95,7 +80,30 @@ public class ControllerFragment extends Fragment {
         return currentView;
     }
 
-    private void setListenerSliderTouch() {
+    private void createDefaultButtonsDrawables() {
+        Log.d(TAG, "Создание дефолтных картинок");
+        buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
+        buttonPlayOrPause.setBackgroundResource(R.drawable.ic_play);
+        buttonToStart.setBackgroundResource(R.drawable.ic_to_start);
+        buttonPrevious.setBackgroundResource(R.drawable.ic_previous);
+        buttonNext.setBackgroundResource(R.drawable.ic_next);
+    }
+
+    private void bindViews(View currentView) {
+        Log.d(TAG, "Биндинг Views");
+        textSoundtrackTitle = currentView.findViewById(R.id.text_soundtrack_title);
+        textArtistTitle = currentView.findViewById(R.id.text_soundtrack_artist);
+        textTimeDuration = currentView.findViewById(R.id.text_time_duration);
+        textCurrentDuration = currentView.findViewById(R.id.text_current_duration);
+        slider = currentView.findViewById(R.id.slider_soundtrack);
+        buttonToStart = currentView.findViewById(R.id.button_to_start);
+        buttonPlayOrPause = currentView.findViewById(R.id.button_play_pause);
+        buttonPrevious = currentView.findViewById(R.id.button_previous);
+        buttonNext = currentView.findViewById(R.id.button_next);
+        buttonChangeStateMode = currentView.findViewById(R.id.button_change_state_mode);
+    }
+
+    private void subscribeListenerSliderTouch() {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
@@ -106,9 +114,9 @@ public class ControllerFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
                 Log.d(TAG, String.format("Установка позиции слайдера: %d", (int) slider.getValue()));
-                soundtrackPlayerModel.getDurationLiveData().setValue((long) slider.getValue());
+                dataModel.getDurationLiveData().setValue((long) slider.getValue());
                 Log.d(TAG, "Отпускание слайдера прокрутки");
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SLIDER_MANIPULATE);
+                dataModel.getPlayerActionLiveData().setValue(Action.SLIDER_MANIPULATE);
                 isTouch = false;
             }
         });
@@ -116,25 +124,25 @@ public class ControllerFragment extends Fragment {
 
     private void createPositionObserver() {
         Log.d(TAG, "Создание обсервера изменения номера воспроизведения песни");
-        soundtrackPlayerModel.getCurrentPositionLiveData().observe(requireActivity(), position -> {
-            List<Soundtrack> soundtrackList = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
-            if (soundtrackList.size() == 0) return;
-            Soundtrack soundtrack = soundtrackList.get(position);
+        dataModel.getCurrentPositionLiveData().observe(requireActivity(), position -> {
+            List<Song> songList = dataModel.getSongsLiveData().getValue();
+            if (songList.size() == 0) return;
+            Song song = songList.get(position);
             Log.d(TAG, "Изменение значений элементов UI");
-            stylizedData(soundtrack);
-            textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrack.getDuration()));
+            stylizedData(song);
+            textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(song.getDuration()));
             //Защита от IllegalStateException размера слайдера
             slider.setValue(0);
-            slider.setValueTo(soundtrack.getDuration());
+            slider.setValueTo(song.getDuration());
         });
     }
 
     private void createDurationObserver() {
         Log.d(TAG, "Создание обсервера изменения текущего времени воспроизведения песни");
-        soundtrackPlayerModel.getDurationLiveData().observe(requireActivity(), integer -> {
-            textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(soundtrackPlayerModel.getDurationLiveData().getValue()));
+        dataModel.getDurationLiveData().observe(requireActivity(), integer -> {
+            textCurrentDuration.setText(TimeConverter.toMinutesAndSeconds(dataModel.getDurationLiveData().getValue()));
             if (isTouch) return;
-            int value = soundtrackPlayerModel.getDurationLiveData().getValue().intValue();
+            int value = dataModel.getDurationLiveData().getValue().intValue();
             if (value > slider.getValueTo()) {
                 slider.setValue(slider.getValueTo());
             } else if (value < slider.getValueTo()) {
@@ -145,7 +153,7 @@ public class ControllerFragment extends Fragment {
 
     private void createStateModeObserver() {
         Log.d(TAG, "Создание обсервера изменения состояния режима воспроизведения");
-        soundtrackPlayerModel.getStateModeLiveData().observe(requireActivity(), stateMode -> {
+        dataModel.getStateModeLiveData().observe(requireActivity(), stateMode -> {
             if (stateMode == StateMode.LOOP) {
                 Log.d(TAG, "Установить на кнопку картинку \"drawable_loop\"");
                 buttonChangeStateMode.setBackgroundResource(R.drawable.ic_loop);
@@ -159,19 +167,18 @@ public class ControllerFragment extends Fragment {
         });
     }
 
-
-    private void stylizedData(Soundtrack soundtrack) {
-        if (soundtrack.getArtist().equalsIgnoreCase("<unknown>")) {
-            textArtistTitle.setText(soundtrack.getTitle());
+    private void stylizedData(Song song) {
+        if (song.getArtist().equalsIgnoreCase("<unknown>")) {
+            textArtistTitle.setText(song.getTitle());
             textSoundtrackTitle.setText("********");
         } else {
-            textArtistTitle.setText(soundtrack.getArtist());
-            textSoundtrackTitle.setText(soundtrack.getTitle());
+            textArtistTitle.setText(song.getArtist());
+            textSoundtrackTitle.setText(song.getTitle());
         }
     }
 
     private void createPlayingStateObserver() {
-        soundtrackPlayerModel.getIsPlayingLiveData().observe(requireActivity(), isPlay -> {
+        dataModel.getIsPlayingLiveData().observe(requireActivity(), isPlay -> {
             if (isPlay == null) return;
             if (isPlay) {
                 Log.d(TAG, "Начало воспроизведения");
@@ -185,7 +192,7 @@ public class ControllerFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void createDataValidateObserver() {
-        soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
+        dataModel.getSongsLiveData().observe(requireActivity(), soundtracks -> {
             if (soundtracks.isEmpty()) {
                 Log.d(TAG, "Список пуст");
                 slider.setEnabled(false);
@@ -212,45 +219,45 @@ public class ControllerFragment extends Fragment {
     private void subscribeListenerButtonToStart() {
         Log.d(TAG, "Установка слушателя ButtonToStart");
         buttonToStart.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonToStart.startAnimation(buttonAnimationClick));
-            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.TO_START);
+            executorService.execute((Runnable) () -> buttonToStart.startAnimation(animationButtonClick));
+            dataModel.getPlayerActionLiveData().setValue(Action.TO_START);
         });
     }
 
     private void subscribeListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
         buttonChangeStateMode.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonChangeStateMode.startAnimation(buttonAnimationClick));
-            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE);
+            executorService.execute((Runnable) () -> buttonChangeStateMode.startAnimation(animationButtonClick));
+            dataModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE);
         });
     }
 
     private void subscribeListenerButtonNext() {
         Log.d(TAG, "Установка слушателя ButtonNext");
         buttonNext.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonNext.startAnimation(buttonAnimationClick));
-            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.NEXT);
+            executorService.execute((Runnable) () -> buttonNext.startAnimation(animationButtonClick));
+            dataModel.getPlayerActionLiveData().setValue(Action.NEXT);
         });
     }
 
     private void subscribeListenerButtonPrevious() {
         Log.d(TAG, "Установка слушателя ButtonPrevious");
         buttonPrevious.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonPrevious.startAnimation(buttonAnimationClick));
-            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PREVIOUS);
+            executorService.execute((Runnable) () -> buttonPrevious.startAnimation(animationButtonClick));
+            dataModel.getPlayerActionLiveData().setValue(Action.PREVIOUS);
         });
     }
 
     private void subscribeListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
         buttonPlayOrPause.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonPlayOrPause.startAnimation(buttonAnimationClick));
-            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+            executorService.execute((Runnable) () -> buttonPlayOrPause.startAnimation(animationButtonClick));
+            if (!dataModel.getIsPlayingLiveData().getValue()) {
+                dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
+                dataModel.getIsPlayingLiveData().setValue(true);
             } else {
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+                dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+                dataModel.getIsPlayingLiveData().setValue(false);
             }
         });
     }

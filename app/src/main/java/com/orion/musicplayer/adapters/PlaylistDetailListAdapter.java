@@ -18,25 +18,25 @@ import com.orion.musicplayer.models.Playlist;
 
 import java.util.List;
 
-public class PlaylistRecycleViewAdapter extends RecyclerView.Adapter<PlaylistRecycleViewAdapter.ViewHolder> {
+public class PlaylistDetailListAdapter extends RecyclerView.Adapter<PlaylistDetailListAdapter.ViewHolder> {
 
     public interface OnPlaylistClickListener {
         void onPlaylistClick(Playlist playlist, int position);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
-        final TextView textViewPlaylistName;
-        final TextView textViewPlayCapacity;
-        final Button playlistButton;
-        final Button playlistSettings;
+        final TextView textPlaylistName;
+        final TextView textPlayCapacity;
+        final Button buttonOpenPlaylist;
+        final Button buttonPlaylistSettings;
         final String countOfSoundtracks;
 
         ViewHolder(View view){
             super(view);
-            textViewPlaylistName = view.findViewById(R.id.playlist_name);
-            textViewPlayCapacity = view.findViewById(R.id.playlist_capacity);
-            playlistButton = view.findViewById(R.id.open_playlist);
-            playlistSettings = view.findViewById(R.id.playlist_settings);
+            textPlaylistName = view.findViewById(R.id.playlist_name);
+            textPlayCapacity = view.findViewById(R.id.playlist_capacity);
+            buttonOpenPlaylist = view.findViewById(R.id.open_playlist);
+            buttonPlaylistSettings = view.findViewById(R.id.playlist_settings);
             countOfSoundtracks = view.getResources().getString(R.string.count_of_soundtracks);
         }
     }
@@ -47,7 +47,7 @@ public class PlaylistRecycleViewAdapter extends RecyclerView.Adapter<PlaylistRec
     private final Animation buttonAnimationClick;
     private final List<String> capacityList;
 
-    public PlaylistRecycleViewAdapter(
+    public PlaylistDetailListAdapter(
             Context context,
             List<Playlist> playlistList,
             OnPlaylistClickListener onClickListener,
@@ -61,32 +61,28 @@ public class PlaylistRecycleViewAdapter extends RecyclerView.Adapter<PlaylistRec
 
     @NonNull
     @Override
-    public PlaylistRecycleViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public PlaylistDetailListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = layoutInflater.inflate(R.layout.playlist_list_item, parent, false);
         return new ViewHolder(view);
     }
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull PlaylistRecycleViewAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+    public void onBindViewHolder(@NonNull PlaylistDetailListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Playlist playlist = playlistList.get(position);
-        holder.textViewPlaylistName.setText(playlist.getPlaylistName());
-        holder.textViewPlayCapacity.setText(holder.countOfSoundtracks + "" + capacityList.get(position));
-        holder.playlistButton.setOnClickListener(view -> {
-            holder.playlistButton.startAnimation(buttonAnimationClick);
-            //TODO
-
+        holder.textPlaylistName.setText(playlist.getPlaylistName());
+        holder.textPlayCapacity.setText(holder.countOfSoundtracks + "" + capacityList.get(position));
+        holder.buttonOpenPlaylist.setOnClickListener(view -> {
+            holder.buttonOpenPlaylist.startAnimation(buttonAnimationClick);
+            onClickListener.onPlaylistClick(playlist, position);
         });
 
-
-        holder.playlistSettings.setOnClickListener(view -> {
-            holder.playlistSettings.startAnimation(buttonAnimationClick);
+        holder.buttonPlaylistSettings.setOnClickListener(view -> {
+            holder.buttonPlaylistSettings.startAnimation(buttonAnimationClick);
             //TODO
         });
 
     }
-
-
 
     @Override
     public int getItemCount() {

@@ -2,13 +2,11 @@ package com.orion.musicplayer.entities;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
-import androidx.room.ForeignKey;
 import androidx.room.Ignore;
-import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import com.orion.musicplayer.models.Playlist;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,29 +24,28 @@ import java.util.List;
 
 
 @Entity(tableName = "playlist")
-public class PlaylistDbEntity {
+public class PlaylistEntity {
     @PrimaryKey
-    @NonNull
     public String playlistName;
     @Ignore
-    public List<SoundtrackDbEntity> soundtrackDbEntityList;
+    public List<SongEntity> songEntityList;
 
     public Playlist toPlaylist(){
         Playlist playlist = new Playlist();
         playlist.setPlaylistName(playlistName);
-        List<Soundtrack> soundtracks = new ArrayList<>();
-        for (SoundtrackDbEntity s: soundtrackDbEntityList){
-            soundtracks.add(s.toSoundtrack());
+        List<Song> songs = new ArrayList<>();
+        for (SongEntity s: songEntityList){
+            songs.add(s.toSoundtrack());
         }
-        playlist.setSoundtracks(soundtracks);
+        playlist.setSongs(songs);
         return playlist;
     }
 
-    public List<SoundtrackDbEntity> getSoundtrackDbEntityList() {
-        return soundtrackDbEntityList;
+    public List<SongEntity> getSongEntityList() {
+        return songEntityList;
     }
 
-    public void setSoundtrackDbEntityList(List<SoundtrackDbEntity> soundtrackDbEntityList) {
-        this.soundtrackDbEntityList = soundtrackDbEntityList;
+    public void setSoundtrackDbEntityList(List<SongEntity> songEntityList) {
+        this.songEntityList = songEntityList;
     }
 }

@@ -6,30 +6,22 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 
 
-@Entity(tableName = "playlist_soundtrack",
+@Entity(tableName = "playlist_song",
         primaryKeys = {"playlistName", "data"},
         foreignKeys= {
-        @ForeignKey(entity = SoundtrackDbEntity.class,
+        @ForeignKey(entity = SongEntity.class,
                 parentColumns = "data",
                 childColumns = "data"
         ),
         @ForeignKey(
-                entity = PlaylistDbEntity.class,
+                entity = PlaylistEntity.class,
                 parentColumns = "playlistName",
                 childColumns = "playlistName"
         )
 },
         indices = {@Index(value = {"playlistName", "data"}, unique = true)}
 )
-public class PlaylistSoundtrackDbEntity {
-    @NonNull
+public class PlaylistSongEntity {
     public String playlistName;
-    @NonNull
     public String data;
-
-
-
-
-
-
 }

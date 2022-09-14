@@ -7,7 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.orion.musicplayer.database.AudioReader;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,58 +23,58 @@ public class DatabaseManipulator {
 
     private final SQLiteDatabase database;
     private final AudioReader audioReader;
-    private List<Soundtrack> soundtracksCustomStorage;
-    private List<Soundtrack> soundtracksMediaStore;
+    private List<Song> soundtracksCustomStorage;
+    private List<Song> soundtracksMediaStore;
 
     public DatabaseManipulator(Context context) {
         SqlOpenDatabaseHelper helper = new SqlOpenDatabaseHelper(context);
         database = helper.getWritableDatabase();
         audioReader = new AudioReader(context);
-        List<Soundtrack> soundtracks = audioReader.readMediaData();
-        insert(soundtracks);
+        List<Song> songs = audioReader.readMediaData();
+        insert(songs);
         readDatabaseOrderBy(null);
         checkingRelevanceDatabase();
     }
 
-    public List<Soundtrack> getSoundtracksCustomStorage() {
+    public List<Song> getSoundtracksCustomStorage() {
         return soundtracksCustomStorage;
     }
 
-    private void insert(List<Soundtrack> soundtrackList){
-        soundtracksMediaStore = soundtrackList;
-        for (Soundtrack soundtrack : soundtrackList) {
+    private void insert(List<Song> songList){
+        soundtracksMediaStore = songList;
+        for (Song song : songList) {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(DATA, soundtrack.getData());
+            contentValues.put(DATA, song.getData());
             //contentValues.put(ID, soundtrack.getId());
-            contentValues.put(TITLE, soundtrack.getTitle());
-            contentValues.put(ARTIST, soundtrack.getArtist());
-            contentValues.put(DURATION, soundtrack.getDuration());
-            contentValues.put(RATING, soundtrack.getRating());
-            contentValues.put(COUNT_OF_LAUNCHES, soundtrack.getCountOfLaunches());
+            contentValues.put(TITLE, song.getTitle());
+            contentValues.put(ARTIST, song.getArtist());
+            contentValues.put(DURATION, song.getDuration());
+            contentValues.put(RATING, song.getRating());
+            contentValues.put(COUNT_OF_LAUNCHES, song.getCountOfLaunches());
             database.insertWithOnConflict(SqlOpenDatabaseHelper.TABLE_SOUNDTRACKS, null, contentValues, SQLiteDatabase.CONFLICT_IGNORE);
         }
     }
 
-    public void delete(Soundtrack soundtrack){
+    public void delete(Song song){
         database.delete(SqlOpenDatabaseHelper.TABLE_SOUNDTRACKS,
                 DATA + "=? AND " + TITLE + "=?" ,
-                new String[]{soundtrack.getData(), soundtrack.getTitle()});
+                new String[]{song.getData(), song.getTitle()});
     }
 
-    public void update(Soundtrack soundtrack){
+    public void update(Song song){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(DATA, soundtrack.getData());
-        contentValues.put(ID, soundtrack.getId());
-        contentValues.put(TITLE, soundtrack.getTitle());
-        contentValues.put(RATING, soundtrack.getRating());
-        contentValues.put(COUNT_OF_LAUNCHES, soundtrack.getCountOfLaunches());
+        contentValues.put(DATA, song.getData());
+        contentValues.put(ID, song.getId());
+        contentValues.put(TITLE, song.getTitle());
+        contentValues.put(RATING, song.getRating());
+        contentValues.put(COUNT_OF_LAUNCHES, song.getCountOfLaunches());
         database.update(SqlOpenDatabaseHelper.TABLE_SOUNDTRACKS,
-                contentValues, DATA + "=? AND" + soundtrack.getData(),
+                contentValues, DATA + "=? AND" + song.getData(),
                 null);
     }
 
     void checkingRelevanceDatabase(){
-        for (Soundtrack s: soundtracksCustomStorage) {
+        for (Song s: soundtracksCustomStorage) {
             if (!soundtracksMediaStore.contains(s)) {
                 delete(s);
                 soundtracksCustomStorage.remove(s);
@@ -103,15 +103,15 @@ public class DatabaseManipulator {
         final int columnIndexCountOfLaunches = cursor.getColumnIndex(COUNT_OF_LAUNCHES);
 
         while (cursor.moveToNext()) {
-            Soundtrack soundtrack = new Soundtrack();
-            soundtrack.setData(cursor.getString(columnIndexData));
-            soundtrack.setId(cursor.getString(columnIndexId));
-            soundtrack.setTitle(cursor.getString(columnIndexTitle));
-            soundtrack.setArtist(cursor.getString(columnIndexArtist));
-            soundtrack.setDuration(cursor.getInt(columnIndexDuration));
-            soundtrack.setRating(cursor.getInt(columnIndexRating));
-            soundtrack.setCountOfLaunches(cursor.getInt(columnIndexCountOfLaunches));
-            soundtracksCustomStorage.add(soundtrack);
+            Song song = new Song();
+            song.setData(cursor.getString(columnIndexData));
+            song.setId(cursor.getString(columnIndexId));
+            song.setTitle(cursor.getString(columnIndexTitle));
+            song.setArtist(cursor.getString(columnIndexArtist));
+            song.setDuration(cursor.getInt(columnIndexDuration));
+            song.setRating(cursor.getInt(columnIndexRating));
+            song.setCountOfLaunches(cursor.getInt(columnIndexCountOfLaunches));
+            soundtracksCustomStorage.add(song);
         }
         cursor.close();
     }

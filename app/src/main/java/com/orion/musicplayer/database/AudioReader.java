@@ -7,14 +7,14 @@ import android.database.Cursor;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.orion.musicplayer.models.Soundtrack;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.models.Song;
+import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AudioReader {
-    private static final String TAG = SoundtrackPlayerModel.class.getSimpleName();
+    private static final String TAG = DataModel.class.getSimpleName();
 
     private final Context context;
 
@@ -23,7 +23,7 @@ public class AudioReader {
     }
 
     @SuppressLint("Range")
-    public List<Soundtrack> readMediaData() {
+    public List<Song> readMediaData() {
         Log.d(TAG, "Чтение аудиофайла с внутреннего хранилища");
         String[] projection = new String[]{
                 MediaStore.Audio.Media.TITLE,
@@ -48,20 +48,20 @@ public class AudioReader {
         int columnIndexDuration = cursorAudio.getColumnIndex(MediaStore.Audio.Media.DURATION);
         int columnIndexData = cursorAudio.getColumnIndex(MediaStore.Audio.Media.DATA);
 
-        List<Soundtrack> soundtracks = new ArrayList<>();
+        List<Song> songs = new ArrayList<>();
         Log.d(TAG, "Чтение данных из курсора, добавление в коллекцию");
         while (cursorAudio.moveToNext()) {
-            Soundtrack soundtrack = new Soundtrack();
-            soundtrack.setId(cursorAudio.getString(columnIndexData));
-            soundtrack.setTitle(cursorAudio.getString(columnIndexTitle));
-            soundtrack.setArtist(cursorAudio.getString(columnIndexArtist));
-            soundtrack.setDuration(cursorAudio.getInt(columnIndexDuration));
-            soundtrack.setData(cursorAudio.getString(columnIndexData));
-            soundtracks.add(soundtrack);
+            Song song = new Song();
+            song.setId(cursorAudio.getString(columnIndexData));
+            song.setTitle(cursorAudio.getString(columnIndexTitle));
+            song.setArtist(cursorAudio.getString(columnIndexArtist));
+            song.setDuration(cursorAudio.getInt(columnIndexDuration));
+            song.setData(cursorAudio.getString(columnIndexData));
+            songs.add(song);
         }
 
         cursorAudio.close();
-        Log.d(TAG, String.format("Размер коллекции песен: %d", soundtracks.size()));
-        return soundtracks;
+        Log.d(TAG, String.format("Размер коллекции песен: %d", songs.size()));
+        return songs;
     }
 }

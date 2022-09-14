@@ -18,42 +18,19 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.widget.SeekBar;
 
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
 
 import com.orion.musicplayer.MainActivity;
 import com.orion.musicplayer.MediaNotificationManager;
-import com.orion.musicplayer.SoundsController;
-import com.orion.musicplayer.SoundtrackPlayer;
+import com.orion.musicplayer.Player;
+import com.orion.musicplayer.PlayerController;
 import com.orion.musicplayer.database.DataLoader;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {
-
-    private boolean isTouch;
-
-    public void setSeekbar(SeekBar seekBarPlayer) {
-        seekBarPlayer.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                isTouch = true;
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                isTouch = false;
-            }
-        });
-    }
-
-
 
     class NoisyBroadcastReceiver extends BroadcastReceiver {
         @Override
@@ -85,7 +62,7 @@ public class MediaSessionService extends Service {
 
     private MediaNotificationManager mediaNotificationManager;
     private MediaSessionCompat mediaSession;
-    private SoundsController soundsController;
+    private PlayerController soundsController;
     private DataLoader dataLoader;
     private final BinderService binderService = new BinderService();
     private final NoisyBroadcastReceiver noisyBroadcastReceiver = new NoisyBroadcastReceiver();
@@ -95,7 +72,7 @@ public class MediaSessionService extends Service {
     private boolean isScreenOn = true;
 
 
-    public SoundsController getSoundsController() {
+    public PlayerController getSoundsController() {
         return soundsController;
     }
 
@@ -108,7 +85,7 @@ public class MediaSessionService extends Service {
         Log.e(TAG, "Создание сервиса");
         super.onCreate();
         dataLoader = new DataLoader(getApplication());
-        soundsController = new SoundsController(getApplication());
+        soundsController = new PlayerController(getApplication());
         dataLoader.setOnDatabaseChangeListener(soundtracks -> soundsController.setSoundtracks(soundtracks));
         mediaNotificationManager = new MediaNotificationManager(this);
         mediaSession = new MediaSessionCompat(this, "PlayerService", null,
@@ -139,22 +116,20 @@ public class MediaSessionService extends Service {
     }
 
     public MediaMetadataCompat getMetadata(int position) {
-        Soundtrack soundtrack = dataLoader.getSoundtracksCashed().get(position);
+        Song song = dataLoader.getSongsCashed().get(position);
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundtrack.getTitle())
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, soundtrack.getArtist())
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, soundtrack.getDuration())
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getTitle())
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getArtist())
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.getDuration())
                 .build();
         mediaSession.setMetadata(metadata);
-
-
         return metadata;
     }
 
     public PlaybackStateCompat.Builder getBuilderState() {
-        SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
+        Player player = soundsController.getSoundtrackPlayer();
         return new PlaybackStateCompat.Builder()
-                .setBufferedPosition(soundtrackPlayer.getCurrentTime())
+                .setBufferedPosition(player.getCurrentTime())
                 .setActions(
                         PlaybackStateCompat.ACTION_PLAY |
                                 PlaybackStateCompat.ACTION_PAUSE |
@@ -167,10 +142,10 @@ public class MediaSessionService extends Service {
 
     @SuppressLint("WrongConstant")
     public PlaybackStateCompat getState(PlaybackStateCompat.Builder builder) {
-        SoundtrackPlayer soundtrackPlayer = soundsController.getSoundtrackPlayer();
-        currentDuration = soundtrackPlayer.getCurrentTime();
+        Player player = soundsController.getSoundtrackPlayer();
+        currentDuration = player.getCurrentTime();
         PlaybackStateCompat state = builder.setState(
-                        getPlaybackState(soundtrackPlayer),
+                        getPlaybackState(player),
                         currentDuration,
                         1,
                         SystemClock.elapsedRealtime())
@@ -188,8 +163,8 @@ public class MediaSessionService extends Service {
         });
     }
 
-    private int getPlaybackState(SoundtrackPlayer soundtrackPlayer) {
-        if (soundtrackPlayer.isPlaying()) return PlaybackStateCompat.STATE_PLAYING;
+    private int getPlaybackState(Player player) {
+        if (player.isPlaying()) return PlaybackStateCompat.STATE_PLAYING;
         return PlaybackStateCompat.STATE_PAUSED;
     }
 
@@ -244,8 +219,8 @@ public class MediaSessionService extends Service {
         super.onRebind(intent);
     }
 
-    Handler handler = new Handler();
-    Runnable runnable;
+    private Handler handler = new Handler();
+    private Runnable runnable;
     private int pos;
     private int ratingCurrentSoundtrack;
     private StateMode stateMode;
@@ -281,15 +256,14 @@ public class MediaSessionService extends Service {
         handler.removeCallbacks(runnable);
     }
 
-
     long currentDuration;
 
     private void createCallbacksMediaSession(int position, StateMode mode) {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onSeekTo(long pos) {
+                Log.d(TAG, "onSeekTo");
                 soundsController.getSoundtrackPlayer().setCurrentTime((int) pos);
-                //createNotification(position, mode, ratingCurrentSoundtrack);
             }
 
             @Override

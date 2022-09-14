@@ -1,10 +1,10 @@
 package com.orion.musicplayer.models;
 
-import com.orion.musicplayer.entities.SoundtrackDbEntity;
+import com.orion.musicplayer.entities.SongEntity;
 
 import java.util.Objects;
 
-public class Soundtrack {
+public class Song {
     private String data;
     private String id;
     private String title;
@@ -73,7 +73,7 @@ public class Soundtrack {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Soundtrack that = (Soundtrack) o;
+        Song that = (Song) o;
         return data.equals(that.data) && title.equals(that.title);
     }
 
@@ -82,14 +82,14 @@ public class Soundtrack {
         return Objects.hash(data, title);
     }
 
-    public SoundtrackDbEntity toSoundtrackDbEntity() {
-        SoundtrackDbEntity soundtrackDbEntity = new SoundtrackDbEntity();
-        soundtrackDbEntity.data = getData();
-        soundtrackDbEntity.title = getTitle();
-        soundtrackDbEntity.artist = getArtist();
-        soundtrackDbEntity.duration = getDuration();
-        soundtrackDbEntity.rating = getRating();
-        soundtrackDbEntity.countOfLaunches = getCountOfLaunches();
-        return soundtrackDbEntity;
+    public SongEntity toSoundtrackDbEntity() {
+        SongEntity songEntity = new SongEntity();
+        songEntity.data = getData();
+        songEntity.title = getTitle();
+        songEntity.artist = getArtist();
+        songEntity.duration = getDuration();
+        songEntity.rating = getRating();
+        songEntity.countOfLaunches = getCountOfLaunches();
+        return songEntity;
     }
 }

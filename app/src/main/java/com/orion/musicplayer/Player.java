@@ -3,12 +3,12 @@ package com.orion.musicplayer;
 import android.media.MediaPlayer;
 import android.util.Log;
 
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 
 import java.io.IOException;
 import java.util.List;
 
-public class SoundtrackPlayer {
+public class Player {
     public interface OnSoundtrackFinishedListener {
         void onSoundtrackFinish();
     }
@@ -18,14 +18,14 @@ public class SoundtrackPlayer {
     }
 
 
-    private static final String TAG = SoundtrackPlayer.class.getSimpleName();
+    private static final String TAG = Player.class.getSimpleName();
 
-    private Soundtrack currentPlayingSong;
+    private Song currentPlayingSong;
     private OnSoundtrackFinishedListener onSoundtrackFinishedListener;
     private OnPlayingStatusSoundtrackListener statusSoundtrackListener;
     private final MediaPlayer mediaPlayer;
 
-    public SoundtrackPlayer() {
+    public Player() {
         mediaPlayer = new MediaPlayer();
         Log.d(TAG, "Установка слушателя на событие окончания песни");
         mediaPlayer.setOnCompletionListener(mediaPlayer -> {
@@ -64,15 +64,15 @@ public class SoundtrackPlayer {
         return !isFirstPlay && currentTime > 0 ? currentTime : mediaPlayer.getCurrentPosition();
     }
 
-    public void initSoundtrackPlayer(int position, List<Soundtrack> soundtracks) {
+    public void initSoundtrackPlayer(int position, List<Song> songs) {
         if (!isFirstPlay){
-            setData(soundtracks.get(position));
+            setData(songs.get(position));
             mediaPlayer.prepareAsync();
         }
     }
 
-    public void playOrPause(Soundtrack soundtrack) {
-        if (currentPlayingSong != null && currentPlayingSong.equals(soundtrack)) {
+    public void playOrPause(Song song) {
+        if (currentPlayingSong != null && currentPlayingSong.equals(song)) {
             if (mediaPlayer.isPlaying()) {
                 pause();
             } else {
@@ -80,15 +80,15 @@ public class SoundtrackPlayer {
                 mediaPlayer.start();
                 statusSoundtrackListener.onPlayingStatusSoundtrack(true);
             }
-        } else if (currentPlayingSong != null && !currentPlayingSong.equals(soundtrack)) {
+        } else if (currentPlayingSong != null && !currentPlayingSong.equals(song)) {
             stop();
-            setData(soundtrack);
+            setData(song);
             start();
         } else if (currentPlayingSong == null) {
-            setData(soundtrack);
+            setData(song);
             start();
         }
-        currentPlayingSong = soundtrack;
+        currentPlayingSong = song;
     }
 
     public void pause() {
@@ -124,8 +124,8 @@ public class SoundtrackPlayer {
         mediaPlayer.prepareAsync();
     }
 
-    private void setData(Soundtrack soundtrack) {
-        String s = soundtrack.getData();
+    private void setData(Song song) {
+        String s = song.getData();
         Log.d(TAG, "Сброс плайера в его неинициализированное состояние");
         mediaPlayer.reset();
         try {

@@ -14,13 +14,13 @@ import android.widget.TextView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.orion.musicplayer.PlaylistController;
+import com.orion.musicplayer.database.PlaylistDatabaseHelper;
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.adapters.SoundtrackDialogAdapter;
+import com.orion.musicplayer.adapters.ChooserDialogAdapter;
 import com.orion.musicplayer.models.Playlist;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 import com.orion.musicplayer.utils.Action;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,18 +29,18 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     private static final String TAG = ChooserDialogFragment.class.getSimpleName();
 
     private RecyclerView recyclerView;
-    private SoundtrackPlayerModel soundtrackPlayerModel;
+    private DataModel dataModel;
     private Button saveButton;
     private Button closeButton;
     private TextView textPlaylistName;
     private Animation buttonAnimationClick;
     private String playlistName;
-    private SoundtrackDialogAdapter soundtrackAdapter;
-    private final PlaylistController playlistController;
+    private ChooserDialogAdapter soundtrackAdapter;
+    private final PlaylistDatabaseHelper playlistDatabaseHelper;
 
 
-    public ChooserDialogFragment(PlaylistController playlistController){
-        this.playlistController = playlistController;
+    public ChooserDialogFragment(PlaylistDatabaseHelper playlistDatabaseHelper){
+        this.playlistDatabaseHelper = playlistDatabaseHelper;
     }
 
     @Override
@@ -63,17 +63,17 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         textPlaylistName = view.findViewById(R.id.text_view_playlist_name);
         textPlaylistName.setText(playlistName);
         buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
-        soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
+        dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         subscribeDialogCloseButtonClickListener();
         subscribeSaveButtonClickListener();
         createSoundtracksObserver((soundtrack, position) -> {
-            soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
-            if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PLAY);
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(true);
+            dataModel.getCurrentPositionLiveData().setValue(position);
+            if (!dataModel.getIsPlayingLiveData().getValue()) {
+                dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
+                dataModel.getIsPlayingLiveData().setValue(true);
             } else {
-                soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.PAUSE);
-                soundtrackPlayerModel.getIsPlayingLiveData().setValue(false);
+                dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+                dataModel.getIsPlayingLiveData().setValue(false);
             }
         });
         return view;
@@ -111,25 +111,25 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
             saveButton.startAnimation(buttonAnimationClick);
             Playlist playlist = new Playlist();
             playlist.setPlaylistName(playlistName);
-            playlist.setSoundtracks(getItemsPlaylist());
-            playlistController.insertPlaylist(playlist);
+            playlist.setSongs(getItemsPlaylist());
+            playlistDatabaseHelper.insertPlaylist(playlist);
             ChooserDialogFragment.this.dismiss();
         });
     }
 
-    private List<Soundtrack> getItemsPlaylist() {
-        List<Soundtrack> soundtrackPlaylist = new ArrayList<>();
+    private List<Song> getItemsPlaylist() {
+        List<Song> songPlaylist = new ArrayList<>();
         for (int position : currentChosePositionList) {
-            soundtrackPlaylist.add(
-                    soundtrackPlayerModel.getSoundtracksLiveData().getValue().get(position));
+            songPlaylist.add(
+                    dataModel.getSongsLiveData().getValue().get(position));
         }
-        return soundtrackPlaylist;
+        return songPlaylist;
     }
 
-    private void createSoundtracksObserver(SoundtrackDialogAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
+    private void createSoundtracksObserver(ChooserDialogAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка песен");
-        soundtrackPlayerModel.getSoundtracksLiveData().observe(requireActivity(), soundtracks -> {
-            soundtrackAdapter = new SoundtrackDialogAdapter(
+        dataModel.getSongsLiveData().observe(requireActivity(), soundtracks -> {
+            soundtrackAdapter = new ChooserDialogAdapter(
                     getContext(),
                     soundtracks,
                     onSoundtrackClickListener);

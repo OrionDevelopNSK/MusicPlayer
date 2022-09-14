@@ -26,9 +26,12 @@ public class MusicStateAdapter extends FragmentStateAdapter {
         return fragments.size();
     }
 
-    public void addFragment(Fragment fragment){
+    public void addFragment(Fragment fragment) {
         fragments.add(fragment);
     }
 
+    public void removeFragment(Fragment fragment) {
+        fragments.remove(fragment);
+    }
 
 }

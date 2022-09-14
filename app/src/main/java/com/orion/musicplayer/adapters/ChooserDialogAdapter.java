@@ -16,15 +16,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.models.Song;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDialogAdapter.ViewHolder> {
+public class ChooserDialogAdapter extends RecyclerView.Adapter<ChooserDialogAdapter.ViewHolder> {
     public interface OnSoundtrackClickListener {
-        void onSoundtrackClick(Soundtrack soundtrack, int position);
+        void onSoundtrackClick(Song song, int position);
     }
 
     public interface OnSoundTrackChoseListener {
@@ -33,39 +33,39 @@ public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDial
 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        final TextView textView;
-        final Button musicButton;
-        final CheckBox checkBox;
+        final TextView textSongTitle;
+        final Button buttonSongPlay;
+        final CheckBox checkBoxSongChoice;
 
         ViewHolder(View view) {
             super(view);
-            textView = view.findViewById(R.id.soundtrack_title_list);
-            musicButton = view.findViewById(R.id.play_music_dialog);
-            checkBox = view.findViewById(R.id.checkbox_soundtrack);
+            textSongTitle = view.findViewById(R.id.soundtrack_title_list);
+            buttonSongPlay = view.findViewById(R.id.play_music_dialog);
+            checkBoxSongChoice = view.findViewById(R.id.checkbox_soundtrack);
         }
     }
 
-    private static final String TAG = SoundtrackDialogAdapter.class.getSimpleName();
+    private static final String TAG = ChooserDialogAdapter.class.getSimpleName();
 
     private final LayoutInflater layoutInflater;
-    private final List<Soundtrack> soundtrackList;
+    private final List<Song> songList;
     private final OnSoundtrackClickListener onClickListener;
     private final Animation buttonAnimationClick;
     private final ExecutorService executorService;
-    private OnSoundTrackChoseListener onSoundTrackChoseListener;
     private final boolean[] checked;
     private boolean[] isPlaying;
+    private OnSoundTrackChoseListener onSoundTrackChoseListener;
 
-    public SoundtrackDialogAdapter(
+    public ChooserDialogAdapter(
             Context context,
-            List<Soundtrack> soundtrackList,
+            List<Song> songList,
             OnSoundtrackClickListener onClickListener) {
         this.layoutInflater = LayoutInflater.from(context);
-        this.soundtrackList = soundtrackList;
+        this.songList = songList;
         this.onClickListener = onClickListener;
         buttonAnimationClick = AnimationUtils.loadAnimation(context, R.anim.button_click);
-        checked = new boolean[soundtrackList.size()];
-        isPlaying = new boolean[soundtrackList.size()];
+        checked = new boolean[songList.size()];
+        isPlaying = new boolean[songList.size()];
         executorService = Executors.newSingleThreadExecutor();
     }
 
@@ -76,35 +76,35 @@ public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDial
 
     @NonNull
     @Override
-    public SoundtrackDialogAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ChooserDialogAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = layoutInflater.inflate(R.layout.list_item_dialog, parent, false);
         return new ViewHolder(view);
     }
 
     @SuppressLint({"SetTextI18n", "NotifyDataSetChanged"})
     @Override
-    public void onBindViewHolder(@NonNull SoundtrackDialogAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
-        Soundtrack soundtrack = soundtrackList.get(position);
-        holder.textView.setText(soundtrack.getTitle() + "\n"
-                + soundtrack.getArtist());
+    public void onBindViewHolder(@NonNull ChooserDialogAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+        Song song = songList.get(position);
+        holder.textSongTitle.setText(song.getTitle() + "\n"
+                + song.getArtist());
         updateRecycleView(holder, position);
-        holder.musicButton.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> holder.musicButton.startAnimation(buttonAnimationClick));
-            onClickListener.onSoundtrackClick(soundtrack, position);
+        holder.buttonSongPlay.setOnClickListener(view -> {
+            executorService.execute(() -> holder.buttonSongPlay.startAnimation(buttonAnimationClick));
+            onClickListener.onSoundtrackClick(song, position);
             isPlaying[position] = !isPlaying[position];
             if (isPlaying[position]) {
-                isPlaying = new boolean[soundtrackList.size()];
+                isPlaying = new boolean[songList.size()];
                 isPlaying[position] = true;
                 notifyDataSetChanged();
-                holder.musicButton.setBackgroundResource(R.drawable.ic_pause);
+                holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_pause);
             } else {
-                holder.musicButton.setBackgroundResource(R.drawable.ic_play);
+                holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_play);
             }
         });
 
-        holder.checkBox.setChecked(checked[position]);
-        holder.checkBox.setOnClickListener(view -> {
-            if (holder.checkBox.isChecked()) {
+        holder.checkBoxSongChoice.setChecked(checked[position]);
+        holder.checkBoxSongChoice.setOnClickListener(view -> {
+            if (holder.checkBoxSongChoice.isChecked()) {
                 onSoundTrackChoseListener.OnSoundTrackChose(position, true);
                 Log.d(TAG, String.format("Позиция %d добавлена в исписок", position));
             } else {
@@ -112,7 +112,7 @@ public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDial
                 Log.d(TAG, String.format("Позиция %d удалена из исписка", position));
             }
             checked[position] = !checked[position];
-            holder.checkBox.startAnimation(buttonAnimationClick);
+            holder.checkBoxSongChoice.startAnimation(buttonAnimationClick);
         });
 
     }
@@ -120,15 +120,15 @@ public class SoundtrackDialogAdapter extends RecyclerView.Adapter<SoundtrackDial
     private void updateRecycleView(@NonNull ViewHolder holder, int position) {
         Log.d(TAG, "Обновить RecycleView");
         if (isPlaying[position]) {
-            holder.musicButton.setBackgroundResource(R.drawable.ic_pause);
-            holder.musicButton.startAnimation(buttonAnimationClick);
+            holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_pause);
+            holder.buttonSongPlay.startAnimation(buttonAnimationClick);
         } else {
-            holder.musicButton.setBackgroundResource(R.drawable.ic_play);
+            holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_play);
         }
     }
 
     @Override
     public int getItemCount() {
-        return soundtrackList.size();
+        return songList.size();
     }
 }

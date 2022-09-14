@@ -1,7 +1,7 @@
 package com.orion.musicplayer.models;
 
-import com.orion.musicplayer.entities.PlaylistDbEntity;
-import com.orion.musicplayer.entities.SoundtrackDbEntity;
+import com.orion.musicplayer.entities.PlaylistEntity;
+import com.orion.musicplayer.entities.SongEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class Playlist {
     private String playlistName;
-    private List<Soundtrack> soundtracks;
+    private List<Song> songs;
 
     public void setPlaylistName(String playlistName) {
         this.playlistName = playlistName;
@@ -19,12 +19,12 @@ public class Playlist {
         return playlistName;
     }
 
-    public List<Soundtrack> getSoundtracks() {
-        return soundtracks;
+    public List<Song> getSoundtracks() {
+        return songs;
     }
 
-    public void setSoundtracks(List<Soundtrack> soundtracks) {
-        this.soundtracks = soundtracks;
+    public void setSongs(List<Song> songs) {
+        this.songs = songs;
     }
 
     @Override
@@ -41,15 +41,15 @@ public class Playlist {
         return Objects.hash(playlistName);
     }
 
-    public PlaylistDbEntity toPlaylistDbEntity() {
-        PlaylistDbEntity playlistDbEntity = new PlaylistDbEntity();
-        List<SoundtrackDbEntity> soundtrackDbEntityList = new ArrayList<>();
-        for (Soundtrack s: soundtracks){
-            SoundtrackDbEntity soundtrackDbEntity = s.toSoundtrackDbEntity();
-            soundtrackDbEntityList.add(soundtrackDbEntity);
+    public PlaylistEntity toPlaylistDbEntity() {
+        PlaylistEntity playlistEntity = new PlaylistEntity();
+        List<SongEntity> songEntityList = new ArrayList<>();
+        for (Song s: songs){
+            SongEntity songEntity = s.toSoundtrackDbEntity();
+            songEntityList.add(songEntity);
         }
-        playlistDbEntity.playlistName = playlistName;
-        playlistDbEntity.setSoundtrackDbEntityList(soundtrackDbEntityList);
-        return playlistDbEntity;
+        playlistEntity.playlistName = playlistName;
+        playlistEntity.setSoundtrackDbEntityList(songEntityList);
+        return playlistEntity;
     }
 }

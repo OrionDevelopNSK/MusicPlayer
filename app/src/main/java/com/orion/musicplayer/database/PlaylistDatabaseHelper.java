@@ -1,4 +1,4 @@
-package com.orion.musicplayer;
+package com.orion.musicplayer.database;
 
 import android.app.Application;
 import android.os.AsyncTask;
@@ -7,26 +7,25 @@ import android.util.Log;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.orion.musicplayer.database.AppDatabase;
-import com.orion.musicplayer.entities.PlaylistDbEntity;
-import com.orion.musicplayer.entities.PlaylistSoundtrackDbEntity;
-import com.orion.musicplayer.entities.SoundtrackDbEntity;
+import com.orion.musicplayer.entities.PlaylistEntity;
+import com.orion.musicplayer.entities.PlaylistSongEntity;
+import com.orion.musicplayer.entities.SongEntity;
 import com.orion.musicplayer.models.Playlist;
 import com.orion.musicplayer.repositories.RoomPlaylistRepository;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaylistController {
-    private static final String TAG = PlaylistController.class.getSimpleName();
+public class PlaylistDatabaseHelper {
+    private static final String TAG = PlaylistDatabaseHelper.class.getSimpleName();
 
     private final Application application;
-    private final SoundtrackPlayerModel soundtrackPlayerModel;
+    private final DataModel dataModel;
 
-    public PlaylistController(FragmentActivity activity) {
+    public PlaylistDatabaseHelper(FragmentActivity activity) {
         this.application = activity.getApplication();
-        soundtrackPlayerModel = new ViewModelProvider(activity).get(SoundtrackPlayerModel.class);
+        dataModel = new ViewModelProvider(activity).get(DataModel.class);
     }
 
     public void insertPlaylist(Playlist playlist) {
@@ -34,11 +33,11 @@ public class PlaylistController {
         AsyncTask.execute(() -> {
             Log.d(TAG, "Вставка в базу данных плейлиста");
             RoomPlaylistRepository roomPlaylistRepository = new RoomPlaylistRepository(database.playlistDao());
-            PlaylistDbEntity playlistDbEntity = playlist.toPlaylistDbEntity();
-            List<PlaylistSoundtrackDbEntity> playlistSoundtrackDbEntityList = createPlaylistSoundtrackDbEntityList(playlistDbEntity);
-            roomPlaylistRepository.insertPlaylistAndSoundTrack(playlistDbEntity, playlistSoundtrackDbEntityList);
+            PlaylistEntity playlistDbEntity = playlist.toPlaylistDbEntity();
+            List<PlaylistSongEntity> playlistSongEntityList = createPlaylistSoundtrackDbEntityList(playlistDbEntity);
+            roomPlaylistRepository.insertPlaylistAndSoundTrack(playlistDbEntity, playlistSongEntityList);
             Log.d(TAG, String.format("Плейлист :%s вставлен в базу данных", playlist.getPlaylistName()));
-            soundtrackPlayerModel.getPlaylistLiveData().postValue(roomPlaylistRepository.getPlaylistWithSoundTrack());
+            dataModel.getPlaylistLiveData().postValue(roomPlaylistRepository.getPlaylistWithSoundTrack());
         });
     }
 
@@ -46,17 +45,17 @@ public class PlaylistController {
         AsyncTask.execute(() -> {
             AppDatabase database = AppDatabase.getDatabase(application);
             RoomPlaylistRepository roomPlaylistRepository = new RoomPlaylistRepository(database.playlistDao());
-            soundtrackPlayerModel.getPlaylistLiveData().postValue(roomPlaylistRepository.getPlaylistWithSoundTrack());
+            dataModel.getPlaylistLiveData().postValue(roomPlaylistRepository.getPlaylistWithSoundTrack());
         });
     }
 
-    public List<PlaylistSoundtrackDbEntity> createPlaylistSoundtrackDbEntityList(PlaylistDbEntity playlistDbEntity){
-        List<SoundtrackDbEntity> soundtrackDbEntities = playlistDbEntity.getSoundtrackDbEntityList();
-        List<PlaylistSoundtrackDbEntity> playlistSoundtrackDbEntities = new ArrayList<>();
-        for (SoundtrackDbEntity s: soundtrackDbEntities){
-            PlaylistSoundtrackDbEntity pl = new PlaylistSoundtrackDbEntity();
+    public List<PlaylistSongEntity> createPlaylistSoundtrackDbEntityList(PlaylistEntity playlistEntity){
+        List<SongEntity> soundtrackDbEntities = playlistEntity.getSongEntityList();
+        List<PlaylistSongEntity> playlistSoundtrackDbEntities = new ArrayList<>();
+        for (SongEntity s: soundtrackDbEntities){
+            PlaylistSongEntity pl = new PlaylistSongEntity();
             pl.data = s.data;
-            pl.playlistName = playlistDbEntity.playlistName;
+            pl.playlistName = playlistEntity.playlistName;
             playlistSoundtrackDbEntities.add(pl);
         }
         return playlistSoundtrackDbEntities;

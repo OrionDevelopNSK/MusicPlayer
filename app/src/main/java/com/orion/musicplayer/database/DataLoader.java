@@ -4,10 +4,10 @@ import android.app.Application;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.orion.musicplayer.dao.SoundtrackDao;
-import com.orion.musicplayer.entities.SoundtrackDbEntity;
-import com.orion.musicplayer.models.Soundtrack;
-import com.orion.musicplayer.repositories.RoomSoundtrackRepository;
+import com.orion.musicplayer.dao.SongDao;
+import com.orion.musicplayer.entities.SongEntity;
+import com.orion.musicplayer.models.Song;
+import com.orion.musicplayer.repositories.RoomSongRepository;
 import com.orion.musicplayer.utils.Sorting;
 import com.orion.musicplayer.utils.SortingType;
 
@@ -18,12 +18,12 @@ import java.util.List;
 public class DataLoader {
 
     public interface OnDatabaseLoadListener {
-        void onDatabaseLoad(List<Soundtrack> soundtracks);
+        void onDatabaseLoad(List<Song> songs);
     }
 
 
     public interface OnDatabaseChangeListener {
-        void onDatabaseChange(List<Soundtrack> soundtracks);
+        void onDatabaseChange(List<Song> songs);
     }
 
 
@@ -33,15 +33,15 @@ public class DataLoader {
     private final Application application;
     private OnDatabaseLoadListener onDatabaseLoadListener;
     private OnDatabaseChangeListener onDatabaseChangeListener;
-    private List<Soundtrack> soundtrackListSorted;
-    private List<Soundtrack> soundtracksCashed;
+    private List<Song> songListSorted;
+    private List<Song> songsCashed;
 
     public DataLoader(Application application) {
         this.application = application;
     }
 
-    public List<Soundtrack> getSoundtracksCashed() {
-        return soundtrackListSorted;
+    public List<Song> getSongsCashed() {
+        return songListSorted;
     }
 
     public void setOnDatabaseLoadListener(OnDatabaseLoadListener onDatabaseLoadListener) {
@@ -58,30 +58,30 @@ public class DataLoader {
         database = AppDatabase.getDatabase(application);
 
         AsyncTask.execute(() -> {
-            SoundtrackDao soundtrackDao = database.soundtrackDao();
-            List<Soundtrack> soundtracks = audioReader.readMediaData();
-            RoomSoundtrackRepository roomSoundtrackRepository = new RoomSoundtrackRepository(soundtrackDao);
-            roomSoundtrackRepository.insertAllSoundtracks(soundtracks);
+            SongDao songDao = database.soundtrackDao();
+            List<Song> songs = audioReader.readMediaData();
+            RoomSongRepository roomSongRepository = new RoomSongRepository(songDao);
+            roomSongRepository.insertAllSongs(songs);
             Log.d(TAG, "Получение всех сущностей из базы данных");
-            List<SoundtrackDbEntity> all = soundtrackDao.getAll();
-            deleteNotValidDataFromDatabase(roomSoundtrackRepository, all);
+            List<SongEntity> all = songDao.getAll();
+            deleteNotValidDataFromDatabase(roomSongRepository, all);
             //чтобы изначально была сортировка: последние добавленные песни сначала
-            soundtracksCashed = Sorting.byDate(roomSoundtrackRepository.getAll());
-            soundtrackListSorted = (sortingType == SortingType.DATE) ? Sorting.byDefault(soundtracksCashed) : sort(soundtracksCashed, sortingType);
-            onDatabaseLoadListener.onDatabaseLoad(soundtrackListSorted);
-            onDatabaseChangeListener.onDatabaseChange(soundtrackListSorted);
+            songsCashed = Sorting.byDate(roomSongRepository.getAll());
+            songListSorted = (sortingType == SortingType.DATE) ? Sorting.byDefault(songsCashed) : sort(songsCashed, sortingType);
+            onDatabaseLoadListener.onDatabaseLoad(songListSorted);
+            onDatabaseChangeListener.onDatabaseChange(songListSorted);
         });
     }
 
     public void refresh(SortingType sortingType){
-        if (soundtracksCashed == null) return;
-        soundtrackListSorted = sort(soundtracksCashed, sortingType);
-        onDatabaseLoadListener.onDatabaseLoad(soundtrackListSorted);
-        onDatabaseChangeListener.onDatabaseChange(soundtrackListSorted);
+        if (songsCashed == null) return;
+        songListSorted = sort(songsCashed, sortingType);
+        onDatabaseLoadListener.onDatabaseLoad(songListSorted);
+        onDatabaseChangeListener.onDatabaseChange(songListSorted);
     }
 
-    private List<Soundtrack> sort(final List<Soundtrack> soundtracks, SortingType sortingType){
-        List<Soundtrack> soundtracksBySort = new ArrayList<>(soundtracks);
+    private List<Song> sort(final List<Song> songs, SortingType sortingType){
+        List<Song> soundtracksBySort = new ArrayList<>(songs);
         switch (sortingType) {
             case REPEATABILITY:
                 return Sorting.byRepeatability(soundtracksBySort);
@@ -92,13 +92,13 @@ public class DataLoader {
         }
     }
 
-    private void deleteNotValidDataFromDatabase(RoomSoundtrackRepository roomSoundtrackRepository, List<SoundtrackDbEntity> all) {
+    private void deleteNotValidDataFromDatabase(RoomSongRepository roomSongRepository, List<SongEntity> all) {
         Log.d(TAG, "Удаление отсутствующих песен из базы данных");
-        for (SoundtrackDbEntity soundtrackDbEntity : all) {
-            File f = new File(soundtrackDbEntity.data);
+        for (SongEntity songEntity : all) {
+            File f = new File(songEntity.data);
             if (!f.exists()) {
-                Log.d(TAG, String.format("%s отсутствует в базе данных", soundtrackDbEntity.data));
-                roomSoundtrackRepository.deleteSoundtracks(soundtrackDbEntity);
+                Log.d(TAG, String.format("%s отсутствует в базе данных", songEntity.data));
+                roomSongRepository.deleteSoundtracks(songEntity);
             }
         }
     }

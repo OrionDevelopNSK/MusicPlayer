@@ -14,23 +14,32 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.adapters.PlaylistRecycleViewAdapter;
+import com.orion.musicplayer.adapters.PlaylistDetailListAdapter;
 import com.orion.musicplayer.models.Playlist;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 
-public class PlaylistListFragment extends Fragment {
-    private static final String TAG = PlaylistListFragment.class.getSimpleName();
+public class PlaylistDetailListFragment extends Fragment {
+    public interface OnClickPlaylistListener {
+        void onClickPlaylist(Playlist playlist);
+    }
+
+
+    private static final String TAG = PlaylistDetailListFragment.class.getSimpleName();
     private RecyclerView recyclerView;
-    private SoundtrackPlayerModel soundtrackPlayerModel;
+    private DataModel dataModel;
+    private OnClickPlaylistListener onClickPlaylistListener;
 
+    public void setOnClickPlaylistListener(OnClickPlaylistListener onClickPlaylistListener) {
+        this.onClickPlaylistListener = onClickPlaylistListener;
+    }
 
-    public static PlaylistListFragment newInstance() {
-        return new PlaylistListFragment();
+    public static PlaylistDetailListFragment newInstance() {
+        return new PlaylistDetailListFragment();
     }
 
     @Override
@@ -44,31 +53,30 @@ public class PlaylistListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_playlist_list_view, container, false);
         recyclerView = view.findViewById(R.id.list_playlist);
-        soundtrackPlayerModel = new ViewModelProvider(requireActivity()).get(SoundtrackPlayerModel.class);
-        createPlaylistsObserver((soundtrack, position) -> {
+        dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
+        createPlaylistsObserver((playlist, position) -> {
+            onClickPlaylistListener.onClickPlaylist(playlist);
             //TODO
         });
         return view;
     }
 
-
-
     @SuppressWarnings("rawtypes")
-    private void createPlaylistsObserver(PlaylistRecycleViewAdapter.OnPlaylistClickListener onPlaylistClickListener) {
+    private void createPlaylistsObserver(PlaylistDetailListAdapter.OnPlaylistClickListener onPlaylistClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка плейлистов");
-        soundtrackPlayerModel.getPlaylistLiveData().observe(requireActivity(), playlistListMap -> {
+        dataModel.getPlaylistLiveData().observe(requireActivity(), playlistListMap -> {
             List<Playlist> targetList = new ArrayList<>(playlistListMap.keySet());
             List<String> capacityList = new ArrayList<>();
-            for (Collection c :playlistListMap.values()){
+            for (Collection c : playlistListMap.values()) {
                 capacityList.add(String.valueOf(c.size()));
             }
-            PlaylistRecycleViewAdapter playlistRecycleViewAdapter = new PlaylistRecycleViewAdapter(
+            PlaylistDetailListAdapter playlistDetailListAdapter = new PlaylistDetailListAdapter(
                     getContext(),
                     targetList,
                     onPlaylistClickListener,
                     capacityList
             );
-            recyclerView.setAdapter(playlistRecycleViewAdapter);
+            recyclerView.setAdapter(playlistDetailListAdapter);
         });
 
     }

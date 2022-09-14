@@ -11,24 +11,22 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
 import com.google.android.material.textfield.TextInputEditText;
-import com.orion.musicplayer.PlaylistController;
+import com.orion.musicplayer.database.PlaylistDatabaseHelper;
 import com.orion.musicplayer.R;
 
 public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogFragment {
     private static final String TAG = CreatorPlaylistDialogFragment.class.getSimpleName();
 
-    private Button saveButton;
-    private Button closeButton;
+    private Button buttonSave;
+    private Button buttonClose;
     private TextInputEditText playlistName;
     private Animation buttonAnimationClick;
-    private final PlaylistController playlistController;
+    private final PlaylistDatabaseHelper playlistDatabaseHelper;
 
 
-    public CreatorPlaylistDialogFragment(PlaylistController playlistController){
-        this.playlistController = playlistController;
+    public CreatorPlaylistDialogFragment(PlaylistDatabaseHelper playlistDatabaseHelper){
+        this.playlistDatabaseHelper = playlistDatabaseHelper;
     }
-
-
 
     @Override
     public void onStart() {
@@ -44,8 +42,8 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dialog_creater, container, false);
-        saveButton = view.findViewById(R.id.save_playlist);
-        closeButton = view.findViewById(R.id.close_dialog);
+        buttonSave = view.findViewById(R.id.save_playlist);
+        buttonClose = view.findViewById(R.id.close_dialog);
         playlistName = view.findViewById(R.id.text_playlist_name);
         buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         subscribeDialogCloseButtonClickListener();
@@ -55,18 +53,18 @@ public class CreatorPlaylistDialogFragment extends androidx.fragment.app.DialogF
 
     private void subscribeDialogCloseButtonClickListener() {
         Log.d(TAG, "Установка слушателя DialogClose");
-        closeButton.setOnClickListener(view -> {
-            closeButton.startAnimation(buttonAnimationClick);
+        buttonClose.setOnClickListener(view -> {
+            buttonClose.startAnimation(buttonAnimationClick);
             CreatorPlaylistDialogFragment.this.dismiss();
         });
     }
 
     private void subscribeCreatePlaylistButtonClickListener() {
         Log.d(TAG, "Установка слушателя CreatePlaylist");
-        saveButton.setOnClickListener(view -> {
-            saveButton.startAnimation(buttonAnimationClick);
+        buttonSave.setOnClickListener(view -> {
+            buttonSave.startAnimation(buttonAnimationClick);
             CreatorPlaylistDialogFragment.this.dismiss();
-            ChooserDialogFragment fragment = new ChooserDialogFragment(playlistController);
+            ChooserDialogFragment fragment = new ChooserDialogFragment(playlistDatabaseHelper);
             fragment.setPlaylistName(playlistName.getText().toString());
             fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
             fragment.show(requireActivity().getSupportFragmentManager(), "Выберите песни");

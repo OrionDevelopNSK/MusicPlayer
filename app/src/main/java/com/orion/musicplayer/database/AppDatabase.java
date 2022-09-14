@@ -7,18 +7,18 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.orion.musicplayer.dao.PlaylistDao;
-import com.orion.musicplayer.dao.SoundtrackDao;
-import com.orion.musicplayer.entities.PlaylistDbEntity;
-import com.orion.musicplayer.entities.PlaylistSoundtrackDbEntity;
-import com.orion.musicplayer.entities.SoundtrackDbEntity;
+import com.orion.musicplayer.dao.SongDao;
+import com.orion.musicplayer.entities.PlaylistEntity;
+import com.orion.musicplayer.entities.PlaylistSongEntity;
+import com.orion.musicplayer.entities.SongEntity;
 
 @Database(entities = {
-        SoundtrackDbEntity.class,
-        PlaylistDbEntity.class,
-        PlaylistSoundtrackDbEntity.class},
+        SongEntity.class,
+        PlaylistEntity.class,
+        PlaylistSongEntity.class},
         version = 1)
 public abstract class AppDatabase extends RoomDatabase {
-    public abstract SoundtrackDao soundtrackDao();
+    public abstract SongDao soundtrackDao();
     public abstract PlaylistDao playlistDao();
     private static volatile AppDatabase INSTANCE;
 

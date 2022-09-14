@@ -38,17 +38,20 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.textfield.TextInputLayout;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.database.DataLoader;
-import com.orion.musicplayer.fragments.ControllerFragment;
+import com.orion.musicplayer.database.PlaylistDatabaseHelper;
+import com.orion.musicplayer.fragments.PlayingControllerFragment;
 import com.orion.musicplayer.fragments.CreatorPlaylistDialogFragment;
-import com.orion.musicplayer.fragments.PlaylistListFragment;
-import com.orion.musicplayer.fragments.SoundtrackListFragment;
-import com.orion.musicplayer.models.Soundtrack;
+import com.orion.musicplayer.fragments.PlaylistDetailListFragment;
+import com.orion.musicplayer.fragments.SongDetailListFragment;
+import com.orion.musicplayer.fragments.SongListFragment;
+import com.orion.musicplayer.models.Playlist;
+import com.orion.musicplayer.models.Song;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.MediaScannerObserver;
 import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.StateMode;
-import com.orion.musicplayer.viewmodels.SoundtrackPlayerModel;
+import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.List;
 
@@ -61,9 +64,9 @@ public class MainActivity extends AppCompatActivity {
 
     private MediaSessionService mediaSessionService;
     private ServiceConnection serviceConnection;
-    private SoundtrackPlayerModel soundtrackPlayerModel;
+    private DataModel dataModel;
     private SharedPreferences defaultsSharedPreferences;
-    private PlaylistController playlistController;
+    private PlaylistDatabaseHelper playlistDatabaseHelper;
     private MediaScannerObserver mediaScannerObserver;
     private Intent intent;
 
@@ -86,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initialize() {
-        soundtrackPlayerModel = new ViewModelProvider(this).get(SoundtrackPlayerModel.class);
+        dataModel = new ViewModelProvider(this).get(DataModel.class);
         setContentView(R.layout.activity_main);
         addFragmentControlPanel();
         buttonAnimationClick = AnimationUtils.loadAnimation(this, R.anim.button_click);
@@ -103,13 +106,13 @@ public class MainActivity extends AppCompatActivity {
         //ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
         createTabs();
-        playlistController = new PlaylistController(this);
+        playlistDatabaseHelper = new PlaylistDatabaseHelper(this);
     }
 
     private void subscribeCurrentDataPositionChanged() {
-        soundtrackPlayerModel.getCurrentPositionLiveData().observe(this, integer ->
-                soundTitle = soundtrackPlayerModel.getSoundtracksLiveData().getValue()
-                        .get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue())
+        dataModel.getCurrentPositionLiveData().observe(this, integer ->
+                soundTitle = dataModel.getSongsLiveData().getValue()
+                        .get(dataModel.getCurrentPositionLiveData().getValue())
                         .getData());
     }
 
@@ -119,13 +122,13 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case R.id.sort_by_date:
-                    soundtrackPlayerModel.getSortingTypeLiveData().setValue(SortingType.DATE);
+                    dataModel.getSortingTypeLiveData().setValue(SortingType.DATE);
                     return true;
                 case R.id.sort_by_rating:
-                    soundtrackPlayerModel.getSortingTypeLiveData().setValue(SortingType.RATING);
+                    dataModel.getSortingTypeLiveData().setValue(SortingType.RATING);
                     return true;
                 case R.id.sort_by_repeatability:
-                    soundtrackPlayerModel.getSortingTypeLiveData().setValue(SortingType.REPEATABILITY);
+                    dataModel.getSortingTypeLiveData().setValue(SortingType.REPEATABILITY);
                     return true;
                 default:
                     return false;
@@ -143,8 +146,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Подключение сервиса");
                 mediaSessionService = ((MediaSessionService.BinderService) binder).getService();
                 subscribeDatabaseLoadListeners();
-                mediaSessionService.getDataLoader().execute(soundtrackPlayerModel.getSortingTypeLiveData().getValue());
-                playlistController.loadPlaylistWithSoundtrack();
+                mediaSessionService.getDataLoader().execute(dataModel.getSortingTypeLiveData().getValue());
+                playlistDatabaseHelper.loadPlaylistWithSoundtrack();
                 subscribeSoundsControllerListeners();
                 createMediaScannerObserver();
                 bindActions();
@@ -163,14 +166,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createStateModeObserver() {
-        soundtrackPlayerModel.getStateModeLiveData().observe(this, stateMode -> {
+        dataModel.getStateModeLiveData().observe(this, stateMode -> {
             mediaSessionService.getSoundsController().setStateMode(stateMode);
             mediaSessionService.getSoundsController().clearDequeSoundtrack();
         });
     }
 
     private void createSortingTypeObserver() {
-        soundtrackPlayerModel.getSortingTypeLiveData().observe(this, sortingType -> {
+        dataModel.getSortingTypeLiveData().observe(this, sortingType -> {
             mediaScannerObserver.setSortingType(sortingType);
             mediaSessionService.getDataLoader().refresh(sortingType);
             mediaSessionService.getSoundsController().clearDequeSoundtrack();
@@ -184,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createDataValidateObserver() {
-        soundtrackPlayerModel.getSoundtracksLiveData().observe(this, soundtracks -> {
+        dataModel.getSongsLiveData().observe(this, soundtracks -> {
             if (soundtracks.isEmpty()) {
                 Log.d(TAG, "Список пуст");
                 buttonDialog.setEnabled(false);
@@ -204,28 +207,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void subscribeSoundsControllerListeners() {
-        SoundsController soundsController = mediaSessionService.getSoundsController();
-        soundsController.setOnChangeStateModeListener(stateMode -> soundtrackPlayerModel.getStateModeLiveData().setValue(stateMode));
-        soundsController.setOnCurrentDurationListener(duration -> soundtrackPlayerModel.getDurationLiveData().setValue(duration));
+        PlayerController soundsController = mediaSessionService.getSoundsController();
+        soundsController.setOnChangeStateModeListener(stateMode -> dataModel.getStateModeLiveData().setValue(stateMode));
+        soundsController.setOnCurrentDurationListener(duration -> dataModel.getDurationLiveData().setValue(duration));
         soundsController.setOnCurrentPositionListener(position -> {
-            soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
+            dataModel.getCurrentPositionLiveData().setValue(position);
             createOrRefreshNotification();
         });
-        soundsController.setOnPlayingStatusListener(isPlay -> soundtrackPlayerModel.getIsPlayingLiveData().setValue(isPlay));
+        soundsController.setOnPlayingStatusListener(isPlay -> dataModel.getIsPlayingLiveData().setValue(isPlay));
     }
 
     private void subscribeDatabaseLoadListeners() {
         DataLoader dataLoader = mediaSessionService.getDataLoader();
         dataLoader.setOnDatabaseLoadListener(soundtracks -> {
-            soundtrackPlayerModel.getSoundtracksLiveData().postValue(soundtracks);
-            soundtrackPlayerModel.getIsLoadedLiveData().postValue(true);
+            dataModel.getSongsLiveData().postValue(soundtracks);
+            dataModel.getIsLoadedLiveData().postValue(true);
         });
     }
 
     private void subscribeButtonDialogClickListener(Button buttonDialog) {
         buttonDialog.setOnClickListener(view -> {
             buttonDialog.startAnimation(buttonAnimationClick);
-            CreatorPlaylistDialogFragment fragment = new CreatorPlaylistDialogFragment(playlistController);
+            CreatorPlaylistDialogFragment fragment = new CreatorPlaylistDialogFragment(playlistDatabaseHelper);
 //            fragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
             fragment.show(getSupportFragmentManager(), "Выберите песни");
         });
@@ -243,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportFragmentManager().findFragmentById(R.id.fragment_container_control_panel) == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragment_container_control_panel, ControllerFragment.newInstance())
+                    .add(R.id.fragment_container_control_panel, PlayingControllerFragment.newInstance())
                     .commit();
         }
     }
@@ -282,12 +285,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private MusicStateAdapter musicStateAdapter;
     private void createTabs() {
-        MusicStateAdapter musicStateAdapter = new MusicStateAdapter(this);
+        musicStateAdapter = new MusicStateAdapter(this);
         tabLayout = findViewById(R.id.tab_layout_media);
         ViewPager2 viewPager = findViewById(R.id.pager);
         viewPager.setAdapter(musicStateAdapter);
-        addFragmentsToAdapter(musicStateAdapter);
+        addFragmentsToAdapterWithPlaylistList(musicStateAdapter);
         createTabLayoutMediator(tabLayout, viewPager);
         addTabLayoutsListener(tabLayout, viewPager);
         addPageChangeCallback(tabLayout, viewPager);
@@ -323,22 +327,67 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void addFragmentsToAdapter(MusicStateAdapter musicStateAdapter) {
+
+    private SongDetailListFragment songDetailListFragment;
+
+    private void addFragmentsToAdapterWithPlaylistList(MusicStateAdapter musicStateAdapter) {
         Log.d(TAG, "Добавление фрагментов к адаптеру");
         if(getSupportFragmentManager().findFragmentById(R.id.list_songs) == null){
-            Fragment soundtrackListFragment = SoundtrackListFragment.newInstance();
+            Fragment soundtrackListFragment = SongListFragment.newInstance();
             musicStateAdapter.addFragment(soundtrackListFragment);
         }
         if(getSupportFragmentManager().findFragmentById(R.id.list_playlist) == null){
-            Fragment playlistListFragment = PlaylistListFragment.newInstance();
+            Fragment playlistListFragment = PlaylistDetailListFragment.newInstance();
+            ((PlaylistDetailListFragment)playlistListFragment).setOnClickPlaylistListener(playlist -> {
+                songDetailListFragment = new SongDetailListFragment(playlist);
+                createTabsWithSoundtrackList();
+            });
             musicStateAdapter.addFragment(playlistListFragment);
         }
-
-
-
-
-
     }
+
+    private void addFragmentsToAdapterWithSoundtrackList(MusicStateAdapter musicStateAdapter) {
+        Log.d(TAG, "Добавление фрагментов к адаптеру");
+        if(getSupportFragmentManager().findFragmentById(R.id.list_songs) != null){
+            musicStateAdapter.addFragment(getSupportFragmentManager().findFragmentById(R.id.list_songs));
+        }else{
+            Fragment soundtrackListFragment = SongListFragment.newInstance();
+            musicStateAdapter.addFragment(soundtrackListFragment);
+        }
+        musicStateAdapter.addFragment(songDetailListFragment);
+    }
+
+    private void createTabsWithSoundtrackList() {
+        musicStateAdapter = new MusicStateAdapter(this);
+        tabLayout = findViewById(R.id.tab_layout_media);
+        ViewPager2 viewPager = findViewById(R.id.pager);
+        viewPager.setAdapter(musicStateAdapter);
+        addFragmentsToAdapterWithSoundtrackList(musicStateAdapter);
+        createTabLayoutMediator(tabLayout, viewPager);
+        addTabLayoutsListener(tabLayout, viewPager);
+        addPageChangeCallback(tabLayout, viewPager);
+        viewPager.setCurrentItem(1);
+    }
+
+
+
+    public void removeFragmentPlaylist(Playlist playlist, Fragment fragment){
+        SongDetailListFragment songDetailListFragment = new SongDetailListFragment(playlist);
+        musicStateAdapter.removeFragment(fragment);
+        musicStateAdapter.addFragment(songDetailListFragment);
+    }
+
+    public void removeFragmentSoundtrack(){
+        Fragment playlistListFragment = PlaylistDetailListFragment.newInstance();
+        if(getSupportFragmentManager().findFragmentById(R.id.list_soundtrack_detail) != null){
+            Fragment fragmentById = getSupportFragmentManager().findFragmentById(R.id.list_soundtrack_detail);
+            musicStateAdapter.removeFragment(fragmentById);
+            musicStateAdapter.addFragment(playlistListFragment);
+        }
+    }
+
+
+
 
     private void createTabLayoutMediator(TabLayout tabLayout, ViewPager2 viewPager) {
         Log.d(TAG, "Создание медиатора для связывания TabLayout с ViewPager2");
@@ -361,46 +410,45 @@ public class MainActivity extends AppCompatActivity {
         ).attach();
     }
 
-
     private void bindActions() {
         Log.d(TAG, "Создание обсервера нажатия кнопок плеера");
-        soundtrackPlayerModel.getPlayerActionLiveData().observe(this, action -> {
+        dataModel.getPlayerActionLiveData().observe(this, action -> {
             if (action == Action.UNKNOWN) return;
-            int position = soundtrackPlayerModel.getCurrentPositionLiveData().getValue();
-            List<Soundtrack> soundtracks = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
+            int position = dataModel.getCurrentPositionLiveData().getValue();
+            List<Song> songs = dataModel.getSongsLiveData().getValue();
 
             switch (action) {
                 case PLAY:
-                    if (!soundtrackPlayerModel.getIsPlayingLiveData().getValue()) {
-                        mediaSessionService.getSoundsController().playOrPause(position, soundtracks);
+                    if (!dataModel.getIsPlayingLiveData().getValue()) {
+                        mediaSessionService.getSoundsController().playOrPause(position, songs);
                         createOrRefreshNotification();
                     }
                     break;
                 case PAUSE:
-                    if (soundtrackPlayerModel.getIsPlayingLiveData().getValue())
-                        mediaSessionService.getSoundsController().playOrPause(position, soundtracks);
+                    if (dataModel.getIsPlayingLiveData().getValue())
+                        mediaSessionService.getSoundsController().playOrPause(position, songs);
                     break;
                 case PREVIOUS:
-                    mediaSessionService.getSoundsController().previous(position, soundtracks);
+                    mediaSessionService.getSoundsController().previous(position, songs);
                     break;
                 case NEXT:
-                    mediaSessionService.getSoundsController().next(position, soundtracks);
+                    mediaSessionService.getSoundsController().next(position, songs);
                     break;
                 case SWITCH_MODE:
                     mediaSessionService.getSoundsController().switchMode();
                     break;
                 case TO_START:
-                    mediaSessionService.getSoundsController().playOrPause(0, soundtracks);
-                    soundtrackPlayerModel.getCurrentPositionLiveData().setValue(0);
+                    mediaSessionService.getSoundsController().playOrPause(0, songs);
+                    dataModel.getCurrentPositionLiveData().setValue(0);
                     break;
                 case SLIDER_MANIPULATE:
                     mediaSessionService.getSoundsController().setCurrentDuration(
-                            soundtrackPlayerModel.getDurationLiveData().getValue());
+                            dataModel.getDurationLiveData().getValue());
                     break;
             }
             Log.d(TAG, "Выбрано действие: " + action);
             //чтобы команды не проходили повторно при смене ориентации экрана
-            soundtrackPlayerModel.getPlayerActionLiveData().setValue(Action.UNKNOWN);
+            dataModel.getPlayerActionLiveData().setValue(Action.UNKNOWN);
 
         });
     }
@@ -416,9 +464,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void createOrRefreshNotification() {
         mediaSessionService.createNotification(
-                soundtrackPlayerModel.getCurrentPositionLiveData().getValue(),
-                soundtrackPlayerModel.getStateModeLiveData().getValue(),
-                soundtrackPlayerModel.getSoundtracksLiveData().getValue().get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue()).getRating());
+                dataModel.getCurrentPositionLiveData().getValue(),
+                dataModel.getStateModeLiveData().getValue(),
+                dataModel.getSongsLiveData().getValue().get(dataModel.getCurrentPositionLiveData().getValue()).getRating());
     }
 
     @Override
@@ -444,15 +492,15 @@ public class MainActivity extends AppCompatActivity {
         defaultsSharedPreferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = defaultsSharedPreferences.edit();
         //Защита от NPE при уничтожении активити
-        if (soundtrackPlayerModel.getDurationLiveData().getValue() == null) return;
-        currentDuration = soundtrackPlayerModel.getDurationLiveData().getValue();
-        soundTitle = soundtrackPlayerModel.getSoundtracksLiveData().getValue()
-                .get(soundtrackPlayerModel.getCurrentPositionLiveData().getValue()).getData();
-        currentState = soundtrackPlayerModel.getStateModeLiveData().getValue();
+        if (dataModel.getDurationLiveData().getValue() == null) return;
+        currentDuration = dataModel.getDurationLiveData().getValue();
+        soundTitle = dataModel.getSongsLiveData().getValue()
+                .get(dataModel.getCurrentPositionLiveData().getValue()).getData();
+        currentState = dataModel.getStateModeLiveData().getValue();
         editor.putString(KEY_DATA, soundTitle);
-        editor.putString(KEY_SORTING_TYPE, soundtrackPlayerModel.getSortingTypeLiveData().getValue().toString());
+        editor.putString(KEY_SORTING_TYPE, dataModel.getSortingTypeLiveData().getValue().toString());
         editor.putLong(KEY_DURATION, currentDuration);
-        editor.putString(KEY_STATE_MODE, soundtrackPlayerModel.getStateModeLiveData().getValue().toString());
+        editor.putString(KEY_STATE_MODE, dataModel.getStateModeLiveData().getValue().toString());
         editor.commit();
     }
 
@@ -462,24 +510,24 @@ public class MainActivity extends AppCompatActivity {
         soundTitle = defaultsSharedPreferences.getString(KEY_DATA, "");
         currentState = StateMode.valueOf(defaultsSharedPreferences.getString(KEY_STATE_MODE, "LOOP"));
         sortingType = SortingType.valueOf(defaultsSharedPreferences.getString(KEY_SORTING_TYPE, "DATE"));
-        soundtrackPlayerModel.getSortingTypeLiveData().setValue(sortingType);
-        soundtrackPlayerModel.getStateModeLiveData().setValue(currentState);
+        dataModel.getSortingTypeLiveData().setValue(sortingType);
+        dataModel.getStateModeLiveData().setValue(currentState);
         Log.d(TAG, String.format("Получить состояния soundTitle: %s currentDuration: %d currentState: %s", soundTitle, currentDuration, currentState));
     }
 
     public void defaultDescription() {
-        soundtrackPlayerModel.getIsLoadedLiveData().observe(this, aBoolean -> {
-            List<Soundtrack> soundtracks = soundtrackPlayerModel.getSoundtracksLiveData().getValue();
-            if (soundtracks.size() == 0) return;
+        dataModel.getIsLoadedLiveData().observe(this, aBoolean -> {
+            List<Song> songs = dataModel.getSongsLiveData().getValue();
+            if (songs.size() == 0) return;
             int position = 0;
-            for (int i = 0; i < soundtracks.size(); i++) {
-                if (soundtracks.get(i).getData().equals(soundTitle)) {
+            for (int i = 0; i < songs.size(); i++) {
+                if (songs.get(i).getData().equals(soundTitle)) {
                     position = i;
                     Log.d(TAG, "Найдена последняя воиспроизводимая песня, номер: " + position);
                     break;
                 }
             }
-            soundtrackPlayerModel.getCurrentPositionLiveData().setValue(position);
+            dataModel.getCurrentPositionLiveData().setValue(position);
             mediaSessionService.getSoundsController().setCurrentPosition(position);
             mediaSessionService.initMediaPlayer();
             //mediaSessionService.createNotification(position, currentState);
