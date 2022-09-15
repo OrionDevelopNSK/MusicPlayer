@@ -68,6 +68,7 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         subscribeSaveButtonClickListener();
         createSoundtracksObserver((soundtrack, position) -> {
             dataModel.getCurrentPositionLiveData().setValue(position);
+            dataModel.getIsFromPlaylist().setValue(false);
             if (!dataModel.getIsPlayingLiveData().getValue()) {
                 dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 dataModel.getIsPlayingLiveData().setValue(true);

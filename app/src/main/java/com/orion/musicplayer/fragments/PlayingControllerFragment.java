@@ -125,9 +125,16 @@ public class PlayingControllerFragment extends Fragment {
     private void createPositionObserver() {
         Log.d(TAG, "Создание обсервера изменения номера воспроизведения песни");
         dataModel.getCurrentPositionLiveData().observe(requireActivity(), position -> {
-            List<Song> songList = dataModel.getSongsLiveData().getValue();
+            List<Song> songList;
+            dataModel.getIsFromPlaylist().getValue();
+            if (!dataModel.getIsFromPlaylist().getValue()){
+                songList = dataModel.getSongsLiveData().getValue();
+            }else{
+                songList = dataModel.getPlaylistLiveData().getValue().get(dataModel.getCurrentPlaylist().getValue());
+            }
+
             if (songList.size() == 0) return;
-            Song song = songList.get(position);
+            Song song = songList.get(dataModel.getCurrentPositionLiveData().getValue());
             Log.d(TAG, "Изменение значений элементов UI");
             stylizedData(song);
             textTimeDuration.setText(TimeConverter.toMinutesAndSeconds(song.getDuration()));

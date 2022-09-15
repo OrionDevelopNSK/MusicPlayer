@@ -14,6 +14,7 @@ import com.orion.musicplayer.models.Song;
 )
 public class SongEntity {
     @PrimaryKey
+    @NonNull
     public String data;
     public String title;
     public String artist;

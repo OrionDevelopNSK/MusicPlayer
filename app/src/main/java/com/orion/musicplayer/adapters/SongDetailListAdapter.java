@@ -24,7 +24,7 @@ import java.util.concurrent.Executors;
 public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAdapter.ViewHolder> {
 
     public interface OnSoundtrackClickListener {
-        void onSoundtrackClick(Song song, int position);
+        void onSongClick(Song song, int position);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -86,14 +86,13 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
             updateRecycleView(holder, position);
             holder.buttonSongPlay.setOnClickListener(view -> {
                 executorService.execute(() -> holder.buttonSongPlay.startAnimation(buttonAnimationClick));
-                onClickListener.onSoundtrackClick(song, position);
+                onClickListener.onSongClick(song, position);
                 if (isPlaying[position]) {
                     holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_pause);
                 } else {
                     holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_play);
                 }
             });
-
             stylizedData(holder, song);
         }
 

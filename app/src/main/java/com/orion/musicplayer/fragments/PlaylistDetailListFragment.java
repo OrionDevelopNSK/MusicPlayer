@@ -56,6 +56,7 @@ public class PlaylistDetailListFragment extends Fragment {
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         createPlaylistsObserver((playlist, position) -> {
             onClickPlaylistListener.onClickPlaylist(playlist);
+            dataModel.getCurrentPlaylist().setValue(playlist);
             //TODO
         });
         return view;
@@ -65,6 +66,7 @@ public class PlaylistDetailListFragment extends Fragment {
     private void createPlaylistsObserver(PlaylistDetailListAdapter.OnPlaylistClickListener onPlaylistClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка плейлистов");
         dataModel.getPlaylistLiveData().observe(requireActivity(), playlistListMap -> {
+            if (getContext() == null) return;
             List<Playlist> targetList = new ArrayList<>(playlistListMap.keySet());
             List<String> capacityList = new ArrayList<>();
             for (Collection c : playlistListMap.values()) {

@@ -26,6 +26,7 @@ import java.util.List;
 @Entity(tableName = "playlist")
 public class PlaylistEntity {
     @PrimaryKey
+    @NonNull
     public String playlistName;
     @Ignore
     public List<SongEntity> songEntityList;

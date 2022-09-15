@@ -22,6 +22,8 @@ import androidx.room.Index;
         indices = {@Index(value = {"playlistName", "data"}, unique = true)}
 )
 public class PlaylistSongEntity {
+    @NonNull
     public String playlistName;
+    @NonNull
     public String data;
 }

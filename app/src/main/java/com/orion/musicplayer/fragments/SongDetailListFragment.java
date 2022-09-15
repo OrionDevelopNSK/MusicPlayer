@@ -28,11 +28,6 @@ public class SongDetailListFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private DataModel dataModel;
-    private final Playlist playlist;
-
-    public SongDetailListFragment(Playlist playlist) {
-        this.playlist = playlist;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,7 +42,7 @@ public class SongDetailListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.list_soundtrack_detail);
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();
-        List<Song> songs = playlistListMap.get(playlist);
+        List<Song> songs = playlistListMap.get(dataModel.getCurrentPlaylist().getValue());
         SongDetailListAdapter songDetailListAdapter = new SongDetailListAdapter(
                 getContext(),
                 songs,
@@ -55,26 +50,23 @@ public class SongDetailListFragment extends Fragment {
         );
         recyclerView.setAdapter(songDetailListAdapter);
 //TODO не корректно работает
-        createSoundtracksObserver(playlist, new SongDetailListAdapter.OnSoundtrackClickListener() {
-            @Override
-            public void onSoundtrackClick(Song song, int position) {
-                dataModel.getCurrentPositionLiveData().setValue(position);
-                if (!dataModel.getIsPlayingLiveData().getValue()) {
-                    dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
-                    dataModel.getIsPlayingLiveData().setValue(true);
-                } else {
-                    dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
-                    dataModel.getIsPlayingLiveData().setValue(false);
-                }
+        createSoundtracksObserver((song, position) -> {
+            dataModel.getIsFromPlaylist().setValue(true);
+            dataModel.getCurrentPositionLiveData().setValue(position);
+            if (!dataModel.getIsPlayingLiveData().getValue()) {
+                dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
+                dataModel.getIsPlayingLiveData().setValue(true);
+            } else {
+                dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+                dataModel.getIsPlayingLiveData().setValue(false);
             }
         });
         return view;
     }
 
-    public void createSoundtracksObserver(Playlist playlist, SongDetailListAdapter.OnSoundtrackClickListener onSoundtrackClickListener){
-
+    public void createSoundtracksObserver(SongDetailListAdapter.OnSoundtrackClickListener onSoundtrackClickListener){
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();
-        List<Song> songs = playlistListMap.get(playlist);
+        List<Song> songs = playlistListMap.get(dataModel.getCurrentPlaylist().getValue());
         SongDetailListAdapter songDetailListAdapter = new SongDetailListAdapter(
                 getContext(),
                 songs,

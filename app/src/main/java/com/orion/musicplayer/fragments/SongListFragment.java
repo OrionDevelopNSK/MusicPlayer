@@ -44,6 +44,7 @@ public class SongListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.list_songs);
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         createSoundtracksObserver((song, position) -> {
+            dataModel.getIsFromPlaylist().setValue(false);
             dataModel.getCurrentPositionLiveData().setValue(position);
             if (!dataModel.getIsPlayingLiveData().getValue()) {
                 dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
