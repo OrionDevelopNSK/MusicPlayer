@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <dimen name="margin_left" tools:ignore="MissingDefaultResource">16dp</dimen>
+    <dimen name="text_size_normal">24sp</dimen>
+    <dimen name="button_height">40dp</dimen>
+    <dimen name="button_width">40dp</dimen>
+    <dimen name="text_view_height">25dp</dimen>
+    <dimen name="text_view_width">50dp</dimen>
+    <dimen name="button_height_large">60dp</dimen>
+    <dimen name="button_width_large">60dp</dimen>
+    <dimen name="button_width_normal">50dp</dimen>
+    <dimen name="button_height_normal">50dp</dimen>
+    <dimen name="text_size_little">16sp</dimen>
+    <dimen name="text_size_very_little">11sp</dimen>
+    <dimen name="button_width_little">20dp</dimen>
+    <dimen name="button_height_little">20dp</dimen>
+    <dimen name="text_size_14">14sp</dimen>
+</resources>

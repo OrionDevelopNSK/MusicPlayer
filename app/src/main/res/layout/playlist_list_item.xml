@@ -30,7 +30,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:gravity="bottom|center"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_size_14"
                 android:textStyle="bold"
                 android:textAllCaps="true"
 
@@ -45,7 +45,7 @@
                 android:layout_height="25dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_size_14"
                 android:gravity="top|center"
                 android:fontFamily="@font/yanone_kaffeesatz_light"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -54,13 +54,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/playlist_name"
                 tools:ignore="MissingConstraints" />
 
-
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-
-
 
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/materialDivider"
@@ -78,11 +72,11 @@
     <Button
         android:id="@+id/open_playlist"
         style="@style/Widget.AppCompat.Button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/button_width"
+        android:layout_height="@dimen/button_height"
         android:layout_marginStart="16dp"
         android:background="@drawable/ic_song"
-        android:textSize="11sp"
+        android:textSize="@dimen/text_size_very_little"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -92,8 +86,8 @@
     <Button
         android:id="@+id/playlist_settings"
         style="@style/Widget.AppCompat.Button"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/button_width_little"
+        android:layout_height="@dimen/button_height_little"
         android:layout_marginEnd="25dp"
         android:background="@drawable/ic_menu_unwrap_quad"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -3,9 +3,12 @@ package com.orion.musicplayer.fragments;
 import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
@@ -24,10 +27,23 @@ import java.util.Map;
 
 
 public class SongDetailListFragment extends Fragment {
+
+    public interface OnClickBackToPlaylistsListener {
+        void onClickBackToPlaylists();
+    }
+
+
     private static final String TAG = SongDetailListFragment.class.getSimpleName();
 
     private RecyclerView recyclerView;
     private DataModel dataModel;
+    private Button backToPlaylist;
+    private TextView playlistName;
+    private OnClickBackToPlaylistsListener onClickBackToPlaylistsListener;
+
+    public void setOnClickBackToSongsListener(OnClickBackToPlaylistsListener onClickBackToPlaylistsListener) {
+        this.onClickBackToPlaylistsListener = onClickBackToPlaylistsListener;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,8 +54,13 @@ public class SongDetailListFragment extends Fragment {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sound_list_view2, container, false);
+        View view = inflater.inflate(R.layout.fragment_sound_list_detail, container, false);
         recyclerView = view.findViewById(R.id.list_soundtrack_detail);
+        playlistName = view.findViewById(R.id.playlist_name_detail);
+        backToPlaylist = view.findViewById(R.id.back_to_playlist);
+
+
+
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();
         List<Song> songs = playlistListMap.get(dataModel.getCurrentPlaylist().getValue());
@@ -49,7 +70,6 @@ public class SongDetailListFragment extends Fragment {
                 null
         );
         recyclerView.setAdapter(songDetailListAdapter);
-//TODO не корректно работает
         createSoundtracksObserver((song, position) -> {
             dataModel.getIsFromPlaylist().setValue(true);
             dataModel.getCurrentPositionLiveData().setValue(position);
@@ -64,6 +84,7 @@ public class SongDetailListFragment extends Fragment {
         return view;
     }
 
+    @SuppressLint("SetTextI18n")
     public void createSoundtracksObserver(SongDetailListAdapter.OnSoundtrackClickListener onSoundtrackClickListener){
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();
         List<Song> songs = playlistListMap.get(dataModel.getCurrentPlaylist().getValue());
@@ -72,8 +93,11 @@ public class SongDetailListFragment extends Fragment {
                 songs,
                 onSoundtrackClickListener
         );
+        playlistName.setText("["  + dataModel.getCurrentPlaylist().getValue().getPlaylistName() + "]");
+        backToPlaylist.setOnClickListener(view -> {
+            Log.d(TAG, "Вернуться к списку плейлистов");
+            onClickBackToPlaylistsListener.onClickBackToPlaylists();
+        });
         recyclerView.setAdapter(songDetailListAdapter);
     }
-
-
 }

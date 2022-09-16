@@ -30,6 +30,7 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -44,7 +45,6 @@ import com.orion.musicplayer.fragments.CreatorPlaylistDialogFragment;
 import com.orion.musicplayer.fragments.PlaylistDetailListFragment;
 import com.orion.musicplayer.fragments.SongDetailListFragment;
 import com.orion.musicplayer.fragments.SongListFragment;
-import com.orion.musicplayer.models.Playlist;
 import com.orion.musicplayer.models.Song;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.utils.Action;
@@ -54,7 +54,6 @@ import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -315,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private MusicStateAdapter musicStateAdapter;
-    ViewPager2 viewPager;
+    private ViewPager2 viewPager;
 
     private void createTabs() {
         musicStateAdapter = new MusicStateAdapter(this);
@@ -329,15 +328,24 @@ public class MainActivity extends AppCompatActivity {
         addPageChangeCallback(tabLayout, viewPager);
     }
 
-
     private void addSongListFragment() {
         Log.d(TAG, "Добавление фрагмента списка песней к адаптеру");
-        if (getSupportFragmentManager().findFragmentById(R.id.list_songs) != null) {
-            musicStateAdapter.addFragment(getSupportFragmentManager().findFragmentById(R.id.list_songs));
-        } else {
-            SongListFragment songListFragment = SongListFragment.newInstance();
-            musicStateAdapter.addFragment(songListFragment);
+        musicStateAdapter.addFragment(findOrCreateSongListFragment());
+    }
+
+    @NonNull
+    private SongListFragment findOrCreateSongListFragment() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        SongListFragment songListFragment = null;
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof SongListFragment){
+                songListFragment = (SongListFragment) fragment;
+            }
         }
+        if (songListFragment == null){
+            songListFragment = SongListFragment.newInstance();
+        }
+        return songListFragment;
     }
 
 
@@ -346,25 +354,50 @@ public class MainActivity extends AppCompatActivity {
 
     private void addPlaylistDetailListFragment() {
         Log.d(TAG, "Добавление фрагмента списка плейлистоа к адаптеру");
-
-        if (getSupportFragmentManager().findFragmentById(R.id.list_playlist) != null) {
-            musicStateAdapter.addFragment(getSupportFragmentManager().findFragmentById(R.id.list_playlist));
-        } else {
-            playlistListFragment = PlaylistDetailListFragment.newInstance();
-            musicStateAdapter.addFragment(playlistListFragment);
+        playlistListFragment = findOrCreatePlaylistDetailListFragment();
+        musicStateAdapter.addFragment(playlistListFragment);
+        List<Fragment> fragments2 = getSupportFragmentManager().getFragments();
+        for (Fragment fragment : fragments2) {
+            if (fragment instanceof SongDetailListFragment){
+                songDetailListFragment = (SongDetailListFragment) fragment;
+                songDetailListFragment.setOnClickBackToSongsListener(() -> {
+                    addPlaylistDetailListFragment();
+                    musicStateAdapter.removeFragment(songDetailListFragment);
+                    viewPager.setAdapter(musicStateAdapter);
+                    viewPager.setCurrentItem(1);
+                });
+            }
         }
 
         playlistListFragment.setOnClickPlaylistListener(playlist -> {
-            songDetailListFragment = new SongDetailListFragment();
-//            mediaSessionService.getSoundsController().setSoundtracks(
-//                    dataModel.getPlaylistLiveData().getValue().get(playlist)
-//            );
-            musicStateAdapter.addFragment(songDetailListFragment);
+            if (songDetailListFragment == null) {
+                songDetailListFragment = new SongDetailListFragment();
+            }
+                this.songDetailListFragment.setOnClickBackToSongsListener(() -> {
+                    addPlaylistDetailListFragment();
+                    musicStateAdapter.removeFragment(this.songDetailListFragment);
+                    viewPager.setAdapter(musicStateAdapter);
+                    viewPager.setCurrentItem(1);
+                });
+            musicStateAdapter.addFragment(this.songDetailListFragment);
             musicStateAdapter.removeFragment(playlistListFragment);
+
             viewPager.setAdapter(musicStateAdapter);
             viewPager.setCurrentItem(1);
         });
+    }
 
+    @NonNull
+    private PlaylistDetailListFragment findOrCreatePlaylistDetailListFragment() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        PlaylistDetailListFragment playlistDetailListFragment = null;
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof PlaylistDetailListFragment){
+                playlistDetailListFragment = (PlaylistDetailListFragment) fragment;
+                return playlistDetailListFragment;
+            }
+        }
+        return PlaylistDetailListFragment.newInstance();
     }
 
     private void createTabLayoutMediator(TabLayout tabLayout, ViewPager2 viewPager) {
@@ -393,9 +426,9 @@ public class MainActivity extends AppCompatActivity {
         dataModel.getPlayerActionLiveData().observe(this, action -> {
             if (action == Action.UNKNOWN) return;
             List<Song> songs;
-            if (!dataModel.getIsFromPlaylist().getValue()){
+            if (!dataModel.getIsFromPlaylist().getValue()) {
                 songs = dataModel.getSongsLiveData().getValue();
-            }else{
+            } else {
                 songs = dataModel.getPlaylistLiveData().getValue().get(dataModel.getCurrentPlaylist().getValue());
             }
 

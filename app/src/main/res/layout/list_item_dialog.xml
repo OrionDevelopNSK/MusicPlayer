@@ -8,8 +8,8 @@
     <Button
         android:id="@+id/play_music_dialog"
         style="@style/Widget.AppCompat.Button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/button_width"
+        android:layout_height="@dimen/button_height"
         android:layout_marginStart="20dp"
         android:background="@drawable/ic_play"
         android:textSize="11sp"

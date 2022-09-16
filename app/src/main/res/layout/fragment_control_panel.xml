@@ -49,7 +49,7 @@
                 android:id="@+id/text_soundtrack_title"
                 android:fontFamily="@font/yanone_kaffeesatz_semi_bold"
                 android:layout_width="match_parent"
-                android:layout_height="25dp"
+                android:layout_height="@dimen/text_view_height"
                 android:layout_marginHorizontal="15dp"
                 android:textAlignment="center" />
 
@@ -99,7 +99,7 @@
 
             <TextView
                 android:id="@+id/text_time_duration"
-                android:layout_width="50dp"
+                android:layout_width="@dimen/text_view_width"
                 android:layout_height="22dp"
                 android:layout_marginEnd="8dp"
                 android:textStyle="bold"
@@ -121,40 +121,40 @@
 
             <Button
                 android:id="@+id/button_to_start"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/button_width"
+                android:layout_height="@dimen/button_height"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp"
                 tools:ignore="ButtonStyle" />
 
             <Button
                 android:id="@+id/button_previous"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/button_width_normal"
+                android:layout_height="@dimen/button_height_normal"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp"
                 tools:ignore="ButtonStyle" />
 
             <Button
                 android:id="@+id/button_play_pause"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="@dimen/button_width_large"
+                android:layout_height="@dimen/button_height_large"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp"
                 tools:ignore="ButtonStyle" />
 
             <Button
                 android:id="@+id/button_next"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/button_width_normal"
+                android:layout_height="@dimen/button_height_normal"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp"
                 tools:ignore="ButtonStyle" />
 
             <Button
                 android:id="@+id/button_change_state_mode"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/button_width"
+                android:layout_height="@dimen/button_height"
                 android:background="@android:color/transparent"
                 android:layout_marginHorizontal="8dp"
                 tools:ignore="ButtonStyle" />
