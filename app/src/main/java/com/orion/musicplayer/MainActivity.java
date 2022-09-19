@@ -30,7 +30,6 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -40,8 +39,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.orion.musicplayer.adapters.MusicStateAdapter;
 import com.orion.musicplayer.database.DataLoader;
 import com.orion.musicplayer.database.PlaylistDatabaseHelper;
-import com.orion.musicplayer.fragments.PlayingControllerFragment;
 import com.orion.musicplayer.fragments.CreatorPlaylistDialogFragment;
+import com.orion.musicplayer.fragments.PlayingControllerFragment;
 import com.orion.musicplayer.fragments.PlaylistDetailListFragment;
 import com.orion.musicplayer.fragments.SongDetailListFragment;
 import com.orion.musicplayer.fragments.SongListFragment;
@@ -56,7 +55,7 @@ import com.orion.musicplayer.viewmodels.DataModel;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private final static String TAG = MainActivity.class.getSimpleName();
     private final static String KEY_DATA = "currentSoundtrackTitle";
     private final static String KEY_DURATION = "currentSoundtrackDuration";
     private final static String KEY_STATE_MODE = "currentStateModePlaying";
@@ -105,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
         //ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
-        createTabs();
         playlistDatabaseHelper = new PlaylistDatabaseHelper(this);
+        createTabs();
     }
 
     private void subscribeCurrentDataPositionChanged() {
@@ -134,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                     return false;
             }
         });
-        popupMenu.inflate(R.menu.sorting_menu);
+        popupMenu.inflate(R.menu.menu_sorting);
         popupMenu.show();
     }
 
@@ -338,11 +337,11 @@ public class MainActivity extends AppCompatActivity {
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         SongListFragment songListFragment = null;
         for (Fragment fragment : fragments) {
-            if (fragment instanceof SongListFragment){
+            if (fragment instanceof SongListFragment) {
                 songListFragment = (SongListFragment) fragment;
             }
         }
-        if (songListFragment == null){
+        if (songListFragment == null) {
             songListFragment = SongListFragment.newInstance();
         }
         return songListFragment;
@@ -356,9 +355,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Добавление фрагмента списка плейлистоа к адаптеру");
         playlistListFragment = findOrCreatePlaylistDetailListFragment();
         musicStateAdapter.addFragment(playlistListFragment);
-        List<Fragment> fragments2 = getSupportFragmentManager().getFragments();
-        for (Fragment fragment : fragments2) {
-            if (fragment instanceof SongDetailListFragment){
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof SongDetailListFragment) {
                 songDetailListFragment = (SongDetailListFragment) fragment;
                 songDetailListFragment.setOnClickBackToSongsListener(() -> {
                     addPlaylistDetailListFragment();
@@ -373,17 +372,17 @@ public class MainActivity extends AppCompatActivity {
             if (songDetailListFragment == null) {
                 songDetailListFragment = new SongDetailListFragment();
             }
-                this.songDetailListFragment.setOnClickBackToSongsListener(() -> {
-                    addPlaylistDetailListFragment();
-                    musicStateAdapter.removeFragment(this.songDetailListFragment);
-                    viewPager.setAdapter(musicStateAdapter);
-                    viewPager.setCurrentItem(1);
-                });
             musicStateAdapter.addFragment(this.songDetailListFragment);
             musicStateAdapter.removeFragment(playlistListFragment);
-
             viewPager.setAdapter(musicStateAdapter);
             viewPager.setCurrentItem(1);
+
+            songDetailListFragment.setOnClickBackToSongsListener(() -> {
+                addPlaylistDetailListFragment();
+                musicStateAdapter.removeFragment(this.songDetailListFragment);
+                viewPager.setAdapter(musicStateAdapter);
+                viewPager.setCurrentItem(1);
+            });
         });
     }
 
@@ -392,12 +391,15 @@ public class MainActivity extends AppCompatActivity {
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         PlaylistDetailListFragment playlistDetailListFragment = null;
         for (Fragment fragment : fragments) {
-            if (fragment instanceof PlaylistDetailListFragment){
+            if (fragment instanceof PlaylistDetailListFragment) {
                 playlistDetailListFragment = (PlaylistDetailListFragment) fragment;
+                playlistDetailListFragment.setPlaylistDatabaseHelper(playlistDatabaseHelper);
                 return playlistDetailListFragment;
             }
         }
-        return PlaylistDetailListFragment.newInstance();
+        PlaylistDetailListFragment fragment = PlaylistDetailListFragment.newInstance();
+        fragment.setPlaylistDatabaseHelper(playlistDatabaseHelper);
+        return fragment;
     }
 
     private void createTabLayoutMediator(TabLayout tabLayout, ViewPager2 viewPager) {

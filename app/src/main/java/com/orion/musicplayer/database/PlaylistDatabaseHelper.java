@@ -41,7 +41,7 @@ public class PlaylistDatabaseHelper {
         });
     }
 
-    public void loadPlaylistWithSoundtrack(){
+    public void loadPlaylistWithSoundtrack() {
         AsyncTask.execute(() -> {
             AppDatabase database = AppDatabase.getDatabase(application);
             RoomPlaylistRepository roomPlaylistRepository = new RoomPlaylistRepository(database.playlistDao());
@@ -49,10 +49,10 @@ public class PlaylistDatabaseHelper {
         });
     }
 
-    public List<PlaylistSongEntity> createPlaylistSoundtrackDbEntityList(PlaylistEntity playlistEntity){
+    public List<PlaylistSongEntity> createPlaylistSoundtrackDbEntityList(PlaylistEntity playlistEntity) {
         List<SongEntity> soundtrackDbEntities = playlistEntity.getSongEntityList();
         List<PlaylistSongEntity> playlistSoundtrackDbEntities = new ArrayList<>();
-        for (SongEntity s: soundtrackDbEntities){
+        for (SongEntity s : soundtrackDbEntities) {
             PlaylistSongEntity pl = new PlaylistSongEntity();
             pl.data = s.data;
             pl.playlistName = playlistEntity.playlistName;
@@ -78,13 +78,12 @@ public class PlaylistDatabaseHelper {
         AppDatabase database = AppDatabase.getDatabase(application);
         AsyncTask.execute(() -> {
             Log.d(TAG, "Удаление из базы данных плейлиста");
-            new RoomPlaylistRepository(database.playlistDao())
-                    .deletePlaylists(playlist.toPlaylistDbEntity());
+            RoomPlaylistRepository roomPlaylistRepository = new RoomPlaylistRepository(database.playlistDao());
+            roomPlaylistRepository.deletePlaylists(playlist.toPlaylistDbEntity());
+            dataModel.getPlaylistLiveData().postValue(roomPlaylistRepository.getPlaylistWithSoundTrack());
             Log.d(TAG, String.format("Плейлист :%s удален", playlist.getPlaylistName()));
         });
     }
-
-
 
 
 }

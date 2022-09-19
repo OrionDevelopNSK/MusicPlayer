@@ -4,17 +4,20 @@ import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
 import com.orion.musicplayer.adapters.PlaylistDetailListAdapter;
+import com.orion.musicplayer.database.PlaylistDatabaseHelper;
 import com.orion.musicplayer.models.Playlist;
 import com.orion.musicplayer.viewmodels.DataModel;
 
@@ -33,6 +36,7 @@ public class PlaylistDetailListFragment extends Fragment {
     private RecyclerView recyclerView;
     private DataModel dataModel;
     private OnClickPlaylistListener onClickPlaylistListener;
+    private PlaylistDatabaseHelper playlistDatabaseHelper;
 
     public void setOnClickPlaylistListener(OnClickPlaylistListener onClickPlaylistListener) {
         this.onClickPlaylistListener = onClickPlaylistListener;
@@ -40,6 +44,10 @@ public class PlaylistDetailListFragment extends Fragment {
 
     public static PlaylistDetailListFragment newInstance() {
         return new PlaylistDetailListFragment();
+    }
+
+    public void setPlaylistDatabaseHelper(PlaylistDatabaseHelper playlistDatabaseHelper) {
+        this.playlistDatabaseHelper = playlistDatabaseHelper;
     }
 
     @Override
@@ -54,16 +62,20 @@ public class PlaylistDetailListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_playlist_list_view, container, false);
         recyclerView = view.findViewById(R.id.list_playlist);
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
-        createPlaylistsObserver((playlist, position) -> {
-            onClickPlaylistListener.onClickPlaylist(playlist);
-            dataModel.getCurrentPlaylist().setValue(playlist);
-            //TODO
-        });
+        createPlaylistsObserver(
+                (playlist, position) -> {
+                    onClickPlaylistListener.onClickPlaylist(playlist);
+                    dataModel.getCurrentPlaylist().setValue(playlist);
+                },
+                (view1, playlist) -> showPopup(view1, playlist));
         return view;
     }
 
     @SuppressWarnings("rawtypes")
-    private void createPlaylistsObserver(PlaylistDetailListAdapter.OnPlaylistClickListener onPlaylistClickListener) {
+    private void createPlaylistsObserver(
+            PlaylistDetailListAdapter.OnPlaylistClickListener onPlaylistClickListener,
+            PlaylistDetailListAdapter.OnSettingsPlaylistClickListener onSettingsPlaylistClickListener
+            ) {
         Log.d(TAG, "Создание обсервера изменения списка плейлистов");
         dataModel.getPlaylistLiveData().observe(requireActivity(), playlistListMap -> {
             if (getContext() == null) return;
@@ -75,13 +87,29 @@ public class PlaylistDetailListFragment extends Fragment {
             PlaylistDetailListAdapter playlistDetailListAdapter = new PlaylistDetailListAdapter(
                     getContext(),
                     targetList,
+                    capacityList,
                     onPlaylistClickListener,
-                    capacityList
+                    onSettingsPlaylistClickListener
             );
             recyclerView.setAdapter(playlistDetailListAdapter);
         });
 
     }
 
+    @SuppressLint("NonConstantResourceId")
+    public void showPopup(View view, Playlist playlist) {
+        @SuppressLint("RtlHardcoded") PopupMenu popupMenu = new PopupMenu(requireContext(), view, Gravity.RIGHT);
+        popupMenu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.delete_playlist:
+                    playlistDatabaseHelper.deletePlaylist(playlist);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+        popupMenu.inflate(R.menu.menu_playlist_settings);
+        popupMenu.show();
+    }
 
 }

@@ -31,9 +31,9 @@ public class RoomPlaylistRepository {
         return playlistDao.getPlaylistWithSoundTrack();
     }
 
-    public void deletePlaylists(PlaylistEntity... playlists) {
+    public void deletePlaylists(PlaylistEntity playlist) {
         Log.d(TAG, "Удаление данных из базы данных");
-        playlistDao.deletePlaylists(playlists);
+        playlistDao.deletePlaylist(playlist);
     }
 
     public void updatePlaylists(PlaylistEntity... playlists) {

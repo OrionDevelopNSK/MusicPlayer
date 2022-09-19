@@ -27,6 +27,7 @@ public class MusicStateAdapter extends FragmentStateAdapter {
     }
 
     public void addFragment(Fragment fragment) {
+        if (fragments.contains(fragment)) return;
         fragments.add(fragment);
     }
 

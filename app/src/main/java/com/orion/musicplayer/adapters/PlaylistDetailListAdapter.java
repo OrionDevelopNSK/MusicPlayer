@@ -24,6 +24,11 @@ public class PlaylistDetailListAdapter extends RecyclerView.Adapter<PlaylistDeta
         void onPlaylistClick(Playlist playlist, int position);
     }
 
+    public interface OnSettingsPlaylistClickListener {
+        void onSettingsPlaylistClick(View view, Playlist playlist);
+    }
+
+
     public static class ViewHolder extends RecyclerView.ViewHolder{
         final TextView textPlaylistName;
         final TextView textPlayCapacity;
@@ -43,19 +48,24 @@ public class PlaylistDetailListAdapter extends RecyclerView.Adapter<PlaylistDeta
 
     private final LayoutInflater layoutInflater;
     private final List<Playlist> playlistList;
-    private final OnPlaylistClickListener onClickListener;
+    private final OnPlaylistClickListener onPlaylistClickListener;
+    private final OnSettingsPlaylistClickListener onSettingsPlaylistClickListener;
     private final Animation buttonAnimationClick;
     private final List<String> capacityList;
+
 
     public PlaylistDetailListAdapter(
             Context context,
             List<Playlist> playlistList,
-            OnPlaylistClickListener onClickListener,
-            List<String> capacityList) {
+            List<String> capacityList,
+            OnPlaylistClickListener onPlaylistClickListener,
+            OnSettingsPlaylistClickListener onSettingsPlaylistClickListener
+            ) {
         this.layoutInflater = LayoutInflater.from(context);
         this.playlistList = playlistList;
-        this.onClickListener = onClickListener;
         this.capacityList = capacityList;
+        this.onPlaylistClickListener = onPlaylistClickListener;
+        this.onSettingsPlaylistClickListener = onSettingsPlaylistClickListener;
         buttonAnimationClick = AnimationUtils.loadAnimation(context, R.anim.button_click);
     }
 
@@ -74,12 +84,11 @@ public class PlaylistDetailListAdapter extends RecyclerView.Adapter<PlaylistDeta
         holder.textPlayCapacity.setText(holder.countOfSoundtracks + "" + capacityList.get(position));
         holder.buttonOpenPlaylist.setOnClickListener(view -> {
             holder.buttonOpenPlaylist.startAnimation(buttonAnimationClick);
-            onClickListener.onPlaylistClick(playlist, position);
+            onPlaylistClickListener.onPlaylistClick(playlist, position);
         });
-
         holder.buttonPlaylistSettings.setOnClickListener(view -> {
             holder.buttonPlaylistSettings.startAnimation(buttonAnimationClick);
-            //TODO
+            onSettingsPlaylistClickListener.onSettingsPlaylistClick(holder.buttonPlaylistSettings, playlist);
         });
 
     }
