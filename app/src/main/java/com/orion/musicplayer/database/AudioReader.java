@@ -8,13 +8,12 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import com.orion.musicplayer.models.Song;
-import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AudioReader {
-    private static final String TAG = DataModel.class.getSimpleName();
+    private static final String TAG = AudioReader.class.getSimpleName();
 
     private final Context context;
 

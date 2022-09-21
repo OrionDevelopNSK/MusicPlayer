@@ -50,10 +50,6 @@ public class PlaylistDetailListFragment extends Fragment {
         this.playlistDatabaseHelper = playlistDatabaseHelper;
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -67,7 +63,10 @@ public class PlaylistDetailListFragment extends Fragment {
                     onClickPlaylistListener.onClickPlaylist(playlist);
                     dataModel.getCurrentPlaylist().setValue(playlist);
                 },
-                (view1, playlist) -> showPopup(view1, playlist));
+                (view1, playlist) -> {
+                    dataModel.getCurrentPlaylist().setValue(playlist);
+                    showPopup(view1, playlist);
+                });
         return view;
     }
 
@@ -104,12 +103,34 @@ public class PlaylistDetailListFragment extends Fragment {
                 case R.id.delete_playlist:
                     playlistDatabaseHelper.deletePlaylist(playlist);
                     return true;
+                case R.id.edit_playlist:
+                    openChooserDialogFragment();
+                    return true;
                 default:
                     return false;
             }
         });
         popupMenu.inflate(R.menu.menu_playlist_settings);
         popupMenu.show();
+    }
+
+    private void openChooserDialogFragment() {
+        List<Fragment> fragments = requireActivity().getSupportFragmentManager().getFragments();
+        ChooserDialogFragment chooserDialogFragment = null;
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof ChooserDialogFragment) {
+                chooserDialogFragment = (ChooserDialogFragment) fragment;
+                chooserDialogFragment.setPlaylistDatabaseHelper(playlistDatabaseHelper);
+            }
+        }
+        if (chooserDialogFragment == null) {
+            chooserDialogFragment = new ChooserDialogFragment(playlistDatabaseHelper);
+        }
+
+        dataModel.getIsReadPlaylist().setValue(true);
+        chooserDialogFragment.setPlaylistName(dataModel.getCurrentPlaylist().getValue().getPlaylistName());
+        chooserDialogFragment.setStyle(ChooserDialogFragment.STYLE_NO_TITLE, R.style.Dialog);
+        chooserDialogFragment.show(requireActivity().getSupportFragmentManager(), "Выберите песни");
     }
 
 }

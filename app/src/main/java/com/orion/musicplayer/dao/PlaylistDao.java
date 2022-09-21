@@ -5,7 +5,6 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
-import androidx.room.Update;
 
 import com.orion.musicplayer.entities.PlaylistEntity;
 import com.orion.musicplayer.entities.PlaylistSongEntity;
@@ -20,11 +19,11 @@ import java.util.Map;
 
 @Dao
 public abstract class PlaylistDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public abstract void insertAllPlaylist(PlaylistEntity playlists);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    public abstract void insertPlaylist(PlaylistEntity playlists);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public abstract void insertAllPlaylist(List<PlaylistSongEntity> playlistSongEntityList);
+    public abstract void insertPlaylist(List<PlaylistSongEntity> playlistSongEntityList);
 
     @Query("SELECT * FROM playlist")
     public abstract List<PlaylistEntity> getAll();
@@ -35,9 +34,6 @@ public abstract class PlaylistDao {
 
     @Query("SELECT * FROM song WHERE data =:data")
     public abstract SongEntity getSongEntity(String data);
-
-    @Update
-    public abstract void updatePlaylists(PlaylistEntity... playlists);
 
     @Query("DELETE FROM playlist_song WHERE playlistName = :name")
     public abstract void deleteByPlaylistName(String name);
@@ -53,8 +49,8 @@ public abstract class PlaylistDao {
 
     @Transaction
     public void insertPlaylistAndSoundTrack(PlaylistEntity playlistEntity, List<PlaylistSongEntity> playlistSongEntityList) {
-        insertAllPlaylist(playlistEntity);
-        insertAllPlaylist(playlistSongEntityList);
+        insertPlaylist(playlistEntity);
+        insertPlaylist(playlistSongEntityList);
     }
 
     @Transaction
@@ -75,5 +71,4 @@ public abstract class PlaylistDao {
         }
         return tmpPlaylistWithSoundTrack;
     }
-
 }

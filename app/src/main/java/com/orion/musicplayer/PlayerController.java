@@ -19,6 +19,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class PlayerController {
@@ -47,6 +49,7 @@ public class PlayerController {
     private final Application application;
     private final Deque<Integer> directOrder;
     private final Deque<Integer> reverseOrder;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private List<Song> songs;
     private int currentPosition = -1;
     private StateMode stateMode = StateMode.LOOP;
@@ -55,7 +58,6 @@ public class PlayerController {
     private OnPlayingStatusListener onPlayingStatusForServiceListener;
     private OnCurrentDurationListener onCurrentDurationListener;
     private OnCurrentPositionListener onCurrentPositionListener;
-
 
     public PlayerController(Application app) {
         application = app;
@@ -288,7 +290,7 @@ public class PlayerController {
         AppDatabase database = AppDatabase.getDatabase(application);
         final int likeStatus = 1;
         final int unlikeStatus = 0;
-        AsyncTask.execute(() -> {
+        executor.execute(() -> {
             Log.d(TAG, "Запись в базу данных оценки песни");
             Song song = songs.get(currentPosition);
             song.setRating(song.getRating() == 0 ? likeStatus : unlikeStatus);
@@ -301,7 +303,7 @@ public class PlayerController {
 
     private void setCountOfLaunches(int position, List<Song> countSongs) {
         AppDatabase database = AppDatabase.getDatabase(application);
-        AsyncTask.execute(() -> {
+        executor.execute(() -> {
             Log.d(TAG, "Запись в базу данных количества раз прослушивания");
             Song song = countSongs.get(position);
             int countOfLaunchesOld = song.getCountOfLaunches();

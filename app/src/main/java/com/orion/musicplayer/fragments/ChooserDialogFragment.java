@@ -32,14 +32,16 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     private DataModel dataModel;
     private Button saveButton;
     private Button closeButton;
-    private TextView textPlaylistName;
     private Animation buttonAnimationClick;
     private String playlistName;
     private ChooserDialogAdapter soundtrackAdapter;
-    private final PlaylistDatabaseHelper playlistDatabaseHelper;
-
+    private PlaylistDatabaseHelper playlistDatabaseHelper;
 
     public ChooserDialogFragment(PlaylistDatabaseHelper playlistDatabaseHelper){
+        this.playlistDatabaseHelper = playlistDatabaseHelper;
+    }
+
+    public void setPlaylistDatabaseHelper(PlaylistDatabaseHelper playlistDatabaseHelper) {
         this.playlistDatabaseHelper = playlistDatabaseHelper;
     }
 
@@ -60,7 +62,7 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
         recyclerView = view.findViewById(R.id.list_songs_dialog);
         saveButton = view.findViewById(R.id.save_playlist);
         closeButton = view.findViewById(R.id.close_dialog);
-        textPlaylistName = view.findViewById(R.id.text_view_playlist_name);
+        TextView textPlaylistName = view.findViewById(R.id.text_view_playlist_name);
         textPlaylistName.setText(playlistName);
         buttonAnimationClick = AnimationUtils.loadAnimation(requireActivity(), R.anim.button_click);
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
@@ -83,7 +85,6 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
     public void setPlaylistName(String playlistName) {
         this.playlistName = playlistName;
     }
-
 
     private final List<Integer> currentChosePositionList = new ArrayList<>();
 
@@ -113,7 +114,7 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
             Playlist playlist = new Playlist();
             playlist.setPlaylistName(playlistName);
             playlist.setSongs(getItemsPlaylist());
-            playlistDatabaseHelper.insertPlaylist(playlist);
+            playlistDatabaseHelper.insertOrUpdatePlaylist(playlist);
             ChooserDialogFragment.this.dismiss();
         });
     }
@@ -136,6 +137,24 @@ public class ChooserDialogFragment extends androidx.fragment.app.DialogFragment 
                     onSoundtrackClickListener);
             recyclerView.setAdapter(soundtrackAdapter);
             subscribeCheckBoxChooseListener();
+
+            if (dataModel.getIsReadPlaylist().getValue()){
+                refreshRecycleView();
+                dataModel.getIsReadPlaylist().setValue(false);
+            }
         });
+    }
+    
+    public void refreshRecycleView(){
+        List<Song> allSongs = dataModel.getSongsLiveData().getValue();
+        List<Song> songsFromPlaylist = dataModel.getPlaylistLiveData().getValue()
+                .get(dataModel.getCurrentPlaylist().getValue());
+        boolean[] checked = new boolean[allSongs.size()];
+
+        for (Song song : songsFromPlaylist) {
+            int i = allSongs.indexOf(song);
+            checked[i] = true;
+        }
+        soundtrackAdapter.setChecked(checked);
     }
 }

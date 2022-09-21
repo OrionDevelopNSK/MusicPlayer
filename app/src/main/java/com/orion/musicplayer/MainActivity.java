@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,7 +19,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -55,11 +53,11 @@ import com.orion.musicplayer.viewmodels.DataModel;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private final static String TAG = MainActivity.class.getSimpleName();
-    private final static String KEY_DATA = "currentSoundtrackTitle";
-    private final static String KEY_DURATION = "currentSoundtrackDuration";
-    private final static String KEY_STATE_MODE = "currentStateModePlaying";
-    private final static String KEY_SORTING_TYPE = "currentSortingType";
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String KEY_DATA = "currentSoundtrackTitle";
+    private static final String KEY_DURATION = "currentSoundtrackDuration";
+    private static final String KEY_STATE_MODE = "currentStateModePlaying";
+    private static final String KEY_SORTING_TYPE = "currentSortingType";
 
     private MediaSessionService mediaSessionService;
     private ServiceConnection serviceConnection;
@@ -89,6 +87,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void initialize() {
         dataModel = new ViewModelProvider(this).get(DataModel.class);
+
+//        TextView textView = new TextView(getApplicationContext());
+//        textView.setText("Песни отсутствуют");
+//        textView.setGravity(Gravity.CENTER);
+
         setContentView(R.layout.activity_main);
         addFragmentControlPanel();
         buttonAnimationClick = AnimationUtils.loadAnimation(this, R.anim.button_click);
@@ -102,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
         createServiceConnection();
         intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
         startService(intent);
-        //ContextCompat.startForegroundService(getApplicationContext(), intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
         playlistDatabaseHelper = new PlaylistDatabaseHelper(this);
         createTabs();
@@ -217,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
     private void subscribeDatabaseLoadListeners() {
         DataLoader dataLoader = mediaSessionService.getDataLoader();
         dataLoader.setOnDatabaseLoadListener(soundtracks -> {
+            //setContentView(R.layout.activity_main);
             dataModel.getSongsLiveData().postValue(soundtracks);
             dataModel.getIsLoadedLiveData().postValue(true);
         });
@@ -347,7 +350,6 @@ public class MainActivity extends AppCompatActivity {
         return songListFragment;
     }
 
-
     private SongDetailListFragment songDetailListFragment;
     private PlaylistDetailListFragment playlistListFragment;
 
@@ -468,24 +470,15 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Выбрано действие: " + action);
             //чтобы команды не проходили повторно при смене ориентации экрана
             dataModel.getPlayerActionLiveData().setValue(Action.UNKNOWN);
-
         });
-    }
-
-    //TODO Требуется сделать чтобы при манипуляции seekbar-ом на notification панели он не обновлялся программно
-    public SeekBar getSeekBarPlayer() {
-        int topContainerId = getResources().getIdentifier("mediacontroller_progress", "id", "android");
-        int identifier = Resources.getSystem().getIdentifier("media_controller", "layout", "android");
-        View viewById = findViewById(topContainerId);
-        System.out.println(viewById);
-        return null;
     }
 
     public void createOrRefreshNotification() {
         mediaSessionService.createNotification(
                 dataModel.getCurrentPositionLiveData().getValue(),
                 dataModel.getStateModeLiveData().getValue(),
-                dataModel.getSongsLiveData().getValue().get(dataModel.getCurrentPositionLiveData().getValue()).getRating());
+                dataModel.getSongsLiveData().getValue()
+                        .get(dataModel.getCurrentPositionLiveData().getValue()).getRating());
     }
 
     @Override
@@ -531,7 +524,8 @@ public class MainActivity extends AppCompatActivity {
         sortingType = SortingType.valueOf(defaultsSharedPreferences.getString(KEY_SORTING_TYPE, "DATE"));
         dataModel.getSortingTypeLiveData().setValue(sortingType);
         dataModel.getStateModeLiveData().setValue(currentState);
-        Log.d(TAG, String.format("Получить состояния soundTitle: %s currentDuration: %d currentState: %s", soundTitle, currentDuration, currentState));
+        Log.d(TAG, String.format("Получить состояния soundTitle: %s currentDuration: %d currentState: %s",
+                soundTitle, currentDuration, currentState));
     }
 
     public void defaultDescription() {
@@ -549,10 +543,8 @@ public class MainActivity extends AppCompatActivity {
             dataModel.getCurrentPositionLiveData().setValue(position);
             mediaSessionService.getSoundsController().setCurrentPosition(position);
             mediaSessionService.initMediaPlayer();
-            //mediaSessionService.createNotification(position, currentState);
         });
     }
-
 
     @Override
     protected void onDestroy() {
@@ -560,7 +552,6 @@ public class MainActivity extends AppCompatActivity {
         unbindService(serviceConnection);
         Log.d(TAG, "Сохранение настроек");
         saveDefaultsSharedPreferences();
-//        stopService(intent);
         Log.d(TAG, "Уничтожение активити");
         super.onDestroy();
     }

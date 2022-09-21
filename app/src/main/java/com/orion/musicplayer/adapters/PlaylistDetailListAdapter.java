@@ -53,7 +53,6 @@ public class PlaylistDetailListAdapter extends RecyclerView.Adapter<PlaylistDeta
     private final Animation buttonAnimationClick;
     private final List<String> capacityList;
 
-
     public PlaylistDetailListAdapter(
             Context context,
             List<Playlist> playlistList,

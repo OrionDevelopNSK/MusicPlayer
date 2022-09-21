@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class PlayingControllerFragment extends Fragment {
-    private final static String TAG = PlayingControllerFragment.class.getSimpleName();
+    private static final String TAG = PlayingControllerFragment.class.getSimpleName();
 
     private TextView textSoundtrackTitle;
     private TextView textArtistTitle;
@@ -47,13 +47,9 @@ public class PlayingControllerFragment extends Fragment {
     private ExecutorService executorService;
     private boolean isTouch;
 
+
     public static PlayingControllerFragment newInstance() {
         return new PlayingControllerFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -226,7 +222,7 @@ public class PlayingControllerFragment extends Fragment {
     private void subscribeListenerButtonToStart() {
         Log.d(TAG, "Установка слушателя ButtonToStart");
         buttonToStart.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonToStart.startAnimation(animationButtonClick));
+            executorService.execute(() -> buttonToStart.startAnimation(animationButtonClick));
             dataModel.getPlayerActionLiveData().setValue(Action.TO_START);
         });
     }
@@ -234,7 +230,7 @@ public class PlayingControllerFragment extends Fragment {
     private void subscribeListenerButtonChangeStateMode() {
         Log.d(TAG, "Установка слушателя ButtonChange");
         buttonChangeStateMode.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonChangeStateMode.startAnimation(animationButtonClick));
+            executorService.execute(() -> buttonChangeStateMode.startAnimation(animationButtonClick));
             dataModel.getPlayerActionLiveData().setValue(Action.SWITCH_MODE);
         });
     }
@@ -242,7 +238,7 @@ public class PlayingControllerFragment extends Fragment {
     private void subscribeListenerButtonNext() {
         Log.d(TAG, "Установка слушателя ButtonNext");
         buttonNext.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonNext.startAnimation(animationButtonClick));
+            executorService.execute(() -> buttonNext.startAnimation(animationButtonClick));
             dataModel.getPlayerActionLiveData().setValue(Action.NEXT);
         });
     }
@@ -250,7 +246,7 @@ public class PlayingControllerFragment extends Fragment {
     private void subscribeListenerButtonPrevious() {
         Log.d(TAG, "Установка слушателя ButtonPrevious");
         buttonPrevious.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonPrevious.startAnimation(animationButtonClick));
+            executorService.execute(() -> buttonPrevious.startAnimation(animationButtonClick));
             dataModel.getPlayerActionLiveData().setValue(Action.PREVIOUS);
         });
     }
@@ -258,7 +254,7 @@ public class PlayingControllerFragment extends Fragment {
     private void subscribeListenerButtonPlayOrPause() {
         Log.d(TAG, "Установка слушателя ButtonPlayOrPause");
         buttonPlayOrPause.setOnClickListener(view -> {
-            executorService.execute((Runnable) () -> buttonPlayOrPause.startAnimation(animationButtonClick));
+            executorService.execute(() -> buttonPlayOrPause.startAnimation(animationButtonClick));
             if (!dataModel.getIsPlayingLiveData().getValue()) {
                 dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
                 dataModel.getIsPlayingLiveData().setValue(true);

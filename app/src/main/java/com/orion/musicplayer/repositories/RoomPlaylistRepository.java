@@ -20,13 +20,13 @@ public class RoomPlaylistRepository {
         this.playlistDao = playlistDao;
     }
 
-    public void insertPlaylistAndSoundTrack(PlaylistEntity playlistEntity, List<PlaylistSongEntity> playlistSongEntityList){
+    public void insertOrUpdatePlaylistAndSoundTrack(PlaylistEntity playlistEntity, List<PlaylistSongEntity> playlistSongEntityList) {
         Log.d(TAG, "Внесение данных в базу данных");
-        playlistDao.insertAllPlaylist(playlistEntity);
-        playlistDao.insertAllPlaylist(playlistSongEntityList);
+        playlistDao.deleteByPlaylistName(playlistEntity.playlistName);
+        playlistDao.insertPlaylistAndSoundTrack(playlistEntity, playlistSongEntityList);
     }
 
-    public Map<Playlist, List<Song>> getPlaylistWithSoundTrack(){
+    public Map<Playlist, List<Song>> getPlaylistWithSoundTrack() {
         Log.d(TAG, "Предоставление словаря плейлистов с песнями");
         return playlistDao.getPlaylistWithSoundTrack();
     }
@@ -34,11 +34,6 @@ public class RoomPlaylistRepository {
     public void deletePlaylists(PlaylistEntity playlist) {
         Log.d(TAG, "Удаление данных из базы данных");
         playlistDao.deletePlaylist(playlist);
-    }
-
-    public void updatePlaylists(PlaylistEntity... playlists) {
-        Log.d(TAG, "Обновление данных в базе данных");
-        playlistDao.updatePlaylists(playlists);
     }
 
 }

@@ -28,7 +28,7 @@ public class ChooserDialogAdapter extends RecyclerView.Adapter<ChooserDialogAdap
     }
 
     public interface OnSoundTrackChoseListener {
-        void OnSoundTrackChose(int position, boolean isSelected);
+        void onSoundTrackChose(int position, boolean isSelected);
     }
 
 
@@ -52,7 +52,7 @@ public class ChooserDialogAdapter extends RecyclerView.Adapter<ChooserDialogAdap
     private final OnSoundtrackClickListener onClickListener;
     private final Animation buttonAnimationClick;
     private final ExecutorService executorService;
-    private final boolean[] checked;
+    private boolean[] checked;
     private boolean[] isPlaying;
     private OnSoundTrackChoseListener onSoundTrackChoseListener;
 
@@ -67,12 +67,20 @@ public class ChooserDialogAdapter extends RecyclerView.Adapter<ChooserDialogAdap
         checked = new boolean[songList.size()];
         isPlaying = new boolean[songList.size()];
         executorService = Executors.newSingleThreadExecutor();
+
+    }
+
+    public void setChecked(boolean[] checked) {
+        this.checked = checked;
+        for (int i = 0; i < checked.length; i++) {
+            if (checked[i]) onSoundTrackChoseListener.onSoundTrackChose(i, true);
+        }
+        notifyDataSetChanged();
     }
 
     public void setOnSoundTrackChoseListener(OnSoundTrackChoseListener onSoundTrackChoseListener) {
         this.onSoundTrackChoseListener = onSoundTrackChoseListener;
     }
-
 
     @NonNull
     @Override
@@ -105,10 +113,10 @@ public class ChooserDialogAdapter extends RecyclerView.Adapter<ChooserDialogAdap
         holder.checkBoxSongChoice.setChecked(checked[position]);
         holder.checkBoxSongChoice.setOnClickListener(view -> {
             if (holder.checkBoxSongChoice.isChecked()) {
-                onSoundTrackChoseListener.OnSoundTrackChose(position, true);
+                onSoundTrackChoseListener.onSoundTrackChose(position, true);
                 Log.d(TAG, String.format("Позиция %d добавлена в исписок", position));
             } else {
-                onSoundTrackChoseListener.OnSoundTrackChose(position, false);
+                onSoundTrackChoseListener.onSoundTrackChose(position, false);
                 Log.d(TAG, String.format("Позиция %d удалена из исписка", position));
             }
             checked[position] = !checked[position];

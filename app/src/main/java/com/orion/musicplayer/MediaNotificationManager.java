@@ -149,7 +149,6 @@ public class MediaNotificationManager {
         }
     }
 
-
     private PendingIntent createPendingIntent(Long actionCode) {
         int keyCode = PlaybackStateCompat.toKeyCode(actionCode);
         Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);

@@ -4,5 +4,9 @@
         android:id="@+id/delete_playlist"
         android:icon="@drawable/ic_add"
         android:title="@string/delete_playlist" />
+    <item
+        android:id="@+id/edit_playlist"
+        android:icon="@drawable/ic_add"
+        android:title="@string/edit_playlist" />
 
 </menu>

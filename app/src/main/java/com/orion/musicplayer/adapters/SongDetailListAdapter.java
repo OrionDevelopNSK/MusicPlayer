@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAdapter.ViewHolder> {
-
     public interface OnSoundtrackClickListener {
         void onSongClick(Song song, int position);
     }
@@ -77,7 +76,6 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
         return new ViewHolder(view);
     }
 
-
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull SongDetailListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
@@ -105,9 +103,6 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
             holder.buttonSongSettings.startAnimation(buttonAnimationClick);
             //TODO открытие меню действий
         });
-
-
-
     }
 
     private void updateRecycleView(@NonNull ViewHolder holder, int position) {
@@ -119,7 +114,6 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
             holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_play);
         }
     }
-
 
     private void stylizedData(@NonNull ViewHolder holder, Song song) {
         Log.d(TAG, "Стилизовать TextViews");

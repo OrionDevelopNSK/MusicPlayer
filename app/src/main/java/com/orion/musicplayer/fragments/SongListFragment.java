@@ -26,14 +26,8 @@ public class SongListFragment extends Fragment {
     private DataModel dataModel;
     private SongListAdapter songListAdapter;
 
-
     public static SongListFragment newInstance() {
         return new SongListFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -59,8 +53,9 @@ public class SongListFragment extends Fragment {
 
     private void subscribe(){
         dataModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
-            if (dataModel.getCurrentPositionLiveData().getValue() != null)
-            songListAdapter.changePlayingStatus(dataModel.getCurrentPositionLiveData().getValue(), aBoolean);
+            if (dataModel.getCurrentPositionLiveData().getValue() != null){
+                songListAdapter.changePlayingStatus(dataModel.getCurrentPositionLiveData().getValue(), aBoolean);
+            }
         });
     }
 

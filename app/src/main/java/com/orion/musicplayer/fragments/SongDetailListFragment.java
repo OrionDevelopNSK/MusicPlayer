@@ -45,11 +45,6 @@ public class SongDetailListFragment extends Fragment {
         this.onClickBackToPlaylistsListener = onClickBackToPlaylistsListener;
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
@@ -58,8 +53,6 @@ public class SongDetailListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.list_soundtrack_detail);
         playlistName = view.findViewById(R.id.playlist_name_detail);
         backToPlaylist = view.findViewById(R.id.back_to_playlist);
-
-
 
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();

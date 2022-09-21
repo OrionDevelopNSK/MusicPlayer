@@ -14,9 +14,10 @@ import com.orion.musicplayer.utils.SortingType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DataLoader {
-
     public interface OnDatabaseLoadListener {
         void onDatabaseLoad(List<Song> songs);
     }
@@ -29,12 +30,13 @@ public class DataLoader {
 
     private static final String TAG = DataLoader.class.getSimpleName();
 
-    private AppDatabase database;
     private final Application application;
+    private AppDatabase database;
     private OnDatabaseLoadListener onDatabaseLoadListener;
     private OnDatabaseChangeListener onDatabaseChangeListener;
     private List<Song> songListSorted;
     private List<Song> songsCashed;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public DataLoader(Application application) {
         this.application = application;
@@ -56,10 +58,11 @@ public class DataLoader {
         Log.d(TAG, "Манипуляции с базой данных");
         AudioReader audioReader = new AudioReader(application);
         database = AppDatabase.getDatabase(application);
-
-        AsyncTask.execute(() -> {
+        executor.execute(() -> {
             SongDao songDao = database.soundtrackDao();
             List<Song> songs = audioReader.readMediaData();
+            //Защита от NPE при отсутствии песен
+            if (songs.isEmpty()) return;
             RoomSongRepository roomSongRepository = new RoomSongRepository(songDao);
             roomSongRepository.insertAllSongs(songs);
             Log.d(TAG, "Получение всех сущностей из базы данных");
