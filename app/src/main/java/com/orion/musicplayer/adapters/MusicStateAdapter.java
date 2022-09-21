@@ -27,12 +27,21 @@ public class MusicStateAdapter extends FragmentStateAdapter {
     }
 
     public void addFragment(Fragment fragment) {
-        if (fragments.contains(fragment)) return;
+        for (Fragment fr : fragments) {
+            if (fr.getClass() == fragment.getClass()) return;
+        }
         fragments.add(fragment);
     }
 
     public void removeFragment(Fragment fragment) {
-        fragments.remove(fragment);
+        if (fragments.isEmpty()) return;
+        int pos = 0;
+        for (Fragment fr : fragments) {
+            if (fr.getClass() == fragment.getClass()){
+                fragments.remove(pos);
+                break;
+            }
+            pos++;
+        }
     }
-
 }

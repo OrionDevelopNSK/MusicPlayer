@@ -50,6 +50,7 @@ import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.StateMode;
 import com.orion.musicplayer.viewmodels.DataModel;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -338,54 +339,23 @@ public class MainActivity extends AppCompatActivity {
     @NonNull
     private SongListFragment findOrCreateSongListFragment() {
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
-        SongListFragment songListFragment = null;
         for (Fragment fragment : fragments) {
             if (fragment instanceof SongListFragment) {
-                songListFragment = (SongListFragment) fragment;
+                return (SongListFragment) fragment;
             }
         }
-        if (songListFragment == null) {
-            songListFragment = SongListFragment.newInstance();
-        }
-        return songListFragment;
+        return SongListFragment.newInstance();
     }
 
-    private SongDetailListFragment songDetailListFragment;
-    private PlaylistDetailListFragment playlistListFragment;
-
-    private void addPlaylistDetailListFragment() {
-        Log.d(TAG, "Добавление фрагмента списка плейлистоа к адаптеру");
-        playlistListFragment = findOrCreatePlaylistDetailListFragment();
-        musicStateAdapter.addFragment(playlistListFragment);
+    private void findOrCreateSongDetailListFragment() {
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         for (Fragment fragment : fragments) {
             if (fragment instanceof SongDetailListFragment) {
                 songDetailListFragment = (SongDetailListFragment) fragment;
-                songDetailListFragment.setOnClickBackToSongsListener(() -> {
-                    addPlaylistDetailListFragment();
-                    musicStateAdapter.removeFragment(songDetailListFragment);
-                    viewPager.setAdapter(musicStateAdapter);
-                    viewPager.setCurrentItem(1);
-                });
+                subscribeClickBackToSongsListener();
+                break;
             }
         }
-
-        playlistListFragment.setOnClickPlaylistListener(playlist -> {
-            if (songDetailListFragment == null) {
-                songDetailListFragment = new SongDetailListFragment();
-            }
-            musicStateAdapter.addFragment(this.songDetailListFragment);
-            musicStateAdapter.removeFragment(playlistListFragment);
-            viewPager.setAdapter(musicStateAdapter);
-            viewPager.setCurrentItem(1);
-
-            songDetailListFragment.setOnClickBackToSongsListener(() -> {
-                addPlaylistDetailListFragment();
-                musicStateAdapter.removeFragment(this.songDetailListFragment);
-                viewPager.setAdapter(musicStateAdapter);
-                viewPager.setCurrentItem(1);
-            });
-        });
     }
 
     @NonNull
@@ -399,9 +369,47 @@ public class MainActivity extends AppCompatActivity {
                 return playlistDetailListFragment;
             }
         }
-        PlaylistDetailListFragment fragment = PlaylistDetailListFragment.newInstance();
-        fragment.setPlaylistDatabaseHelper(playlistDatabaseHelper);
-        return fragment;
+        playlistDetailListFragment = PlaylistDetailListFragment.newInstance();
+        playlistDetailListFragment.setPlaylistDatabaseHelper(playlistDatabaseHelper);
+        return playlistDetailListFragment;
+    }
+
+    private SongDetailListFragment songDetailListFragment;
+    private PlaylistDetailListFragment playlistListFragment;
+
+    private void addPlaylistDetailListFragment() {
+        Log.d(TAG, "Добавление фрагмента списка плейлистоа к адаптеру");
+        playlistListFragment = findOrCreatePlaylistDetailListFragment();
+        musicStateAdapter.addFragment(playlistListFragment);
+        findOrCreateSongDetailListFragment();
+        subscribeOnClickPlaylistListener();
+    }
+
+    private void subscribeOnClickPlaylistListener() {
+        playlistListFragment.setOnClickPlaylistListener(playlist -> {
+            if (songDetailListFragment == null) {
+                songDetailListFragment = new SongDetailListFragment();
+            }
+            System.out.println(musicStateAdapter);
+            musicStateAdapter.addFragment(songDetailListFragment);
+            System.out.println(musicStateAdapter);
+            musicStateAdapter.removeFragment(playlistListFragment);
+            System.out.println(musicStateAdapter);
+            viewPager.setAdapter(musicStateAdapter);
+            viewPager.setCurrentItem(1);
+
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            subscribeClickBackToSongsListener();
+        });
+    }
+
+    private void subscribeClickBackToSongsListener() {
+        songDetailListFragment.setOnClickBackToSongsListener(() -> {
+            addPlaylistDetailListFragment();
+            musicStateAdapter.removeFragment(songDetailListFragment);
+            viewPager.setAdapter(musicStateAdapter);
+            viewPager.setCurrentItem(1);
+        });
     }
 
     private void createTabLayoutMediator(TabLayout tabLayout, ViewPager2 viewPager) {
