@@ -6,8 +6,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.orion.musicplayer.database.AudioReader;
-import com.orion.musicplayer.models.Song;
+import com.orion.musicplayer.data.database.AudioReader;
+import com.orion.musicplayer.data.models.Song;
 
 import java.util.ArrayList;
 import java.util.List;

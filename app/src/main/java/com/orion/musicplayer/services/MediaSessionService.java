@@ -22,12 +22,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
 
-import com.orion.musicplayer.MainActivity;
-import com.orion.musicplayer.MediaNotificationManager;
-import com.orion.musicplayer.Player;
-import com.orion.musicplayer.PlayerController;
-import com.orion.musicplayer.database.DataLoader;
-import com.orion.musicplayer.models.Song;
+import com.orion.musicplayer.ui.MainActivity;
+import com.orion.musicplayer.notifications.MediaNotificationManager;
+import com.orion.musicplayer.models.Player;
+import com.orion.musicplayer.models.PlayerController;
+import com.orion.musicplayer.data.database.DataLoader;
+import com.orion.musicplayer.data.models.Song;
 import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {

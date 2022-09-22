@@ -3,8 +3,8 @@ package com.orion.musicplayer.viewmodels;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.orion.musicplayer.models.Playlist;
-import com.orion.musicplayer.models.Song;
+import com.orion.musicplayer.data.models.Playlist;
+import com.orion.musicplayer.data.models.Song;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.StateMode;

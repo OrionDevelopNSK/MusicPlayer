@@ -1,6 +1,6 @@
 package com.orion.musicplayer.utils;
 
-import com.orion.musicplayer.models.Song;
+import com.orion.musicplayer.data.models.Song;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,4 +25,5 @@ public class Sorting {
         return songList;
     }
 
+    private Sorting() {}
 }
