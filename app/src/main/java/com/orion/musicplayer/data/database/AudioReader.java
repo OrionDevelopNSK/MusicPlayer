@@ -1,10 +1,12 @@
 package com.orion.musicplayer.data.database;
 
+import static android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.MediaStore;
+import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
 
 import com.orion.musicplayer.data.models.Song;
@@ -25,27 +27,27 @@ public class AudioReader {
     public List<Song> readMediaData() {
         Log.d(TAG, "Чтение аудиофайла с внутреннего хранилища");
         String[] projection = new String[]{
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA
+                MediaColumns.TITLE,
+                MediaColumns.ARTIST,
+                MediaColumns.DURATION,
+                MediaColumns.DATA
         };
 
         Log.d(TAG, "Создание курсора аудиофайлов");
         ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
         Cursor cursorAudio = contentResolver.query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                EXTERNAL_CONTENT_URI,
                 projection,
-                MediaStore.Audio.Media.DATA + " like ? OR " + MediaStore.Audio.Media.DATA + " like ? ",
+                MediaColumns.DATA + " like ? OR " + MediaColumns.DATA + " like ? ",
                 new String[]{"%mp3", "%wav"},
                 null);
         cursorAudio.moveToFirst();
 
         Log.d(TAG, "Получение индексов столбцов по имени");
-        int columnIndexTitle = cursorAudio.getColumnIndex(MediaStore.Audio.Media.TITLE);
-        int columnIndexArtist = cursorAudio.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-        int columnIndexDuration = cursorAudio.getColumnIndex(MediaStore.Audio.Media.DURATION);
-        int columnIndexData = cursorAudio.getColumnIndex(MediaStore.Audio.Media.DATA);
+        int columnIndexTitle = cursorAudio.getColumnIndex(MediaColumns.TITLE);
+        int columnIndexArtist = cursorAudio.getColumnIndex(MediaColumns.ARTIST);
+        int columnIndexDuration = cursorAudio.getColumnIndex(MediaColumns.DURATION);
+        int columnIndexData = cursorAudio.getColumnIndex(MediaColumns.DATA);
 
         List<Song> songs = new ArrayList<>();
         Log.d(TAG, "Чтение данных из курсора, добавление в коллекцию");

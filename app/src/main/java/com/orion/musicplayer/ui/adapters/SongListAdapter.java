@@ -96,7 +96,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
 
         holder.itemView.setOnClickListener(view -> {
             //TODO открытие подробной справки
-            //onClickListener.onSoundtrackClick(soundtrack, position);
         });
 
         holder.buttonSongSettings.setOnClickListener(view -> {

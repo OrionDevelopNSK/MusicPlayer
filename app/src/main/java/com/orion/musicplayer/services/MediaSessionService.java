@@ -12,9 +12,9 @@ import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -22,12 +22,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
 
-import com.orion.musicplayer.ui.MainActivity;
-import com.orion.musicplayer.notifications.MediaNotificationManager;
-import com.orion.musicplayer.models.Player;
-import com.orion.musicplayer.models.PlayerController;
 import com.orion.musicplayer.data.database.DataLoader;
 import com.orion.musicplayer.data.models.Song;
+import com.orion.musicplayer.models.Player;
+import com.orion.musicplayer.models.PlayerController;
+import com.orion.musicplayer.notifications.MediaNotificationManager;
+import com.orion.musicplayer.ui.MainActivity;
 import com.orion.musicplayer.utils.StateMode;
 
 public class MediaSessionService extends Service {
@@ -93,16 +93,6 @@ public class MediaSessionService extends Service {
                         0,
                         new Intent(getApplicationContext(), MainActivity.class),
                         PendingIntent.FLAG_IMMUTABLE));
-
-        MediaControllerCompat controller = mediaSession.getController();
-        controller.registerCallback(new MediaControllerCompat.Callback() {
-            @Override
-            public void onPlaybackStateChanged(PlaybackStateCompat state) {
-                super.onPlaybackStateChanged(state);
-            }
-
-
-        });
 
         subscribePlayingStatusListener();
         registerReceiver(noisyBroadcastReceiver, noisyIntentFilter);
@@ -219,7 +209,7 @@ public class MediaSessionService extends Service {
         super.onRebind(intent);
     }
 
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable runnable;
     private int pos;
     private int ratingCurrentSoundtrack;
