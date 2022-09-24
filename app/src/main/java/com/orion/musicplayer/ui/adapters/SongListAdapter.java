@@ -69,6 +69,12 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         notifyDataSetChanged();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    public void changePlayingStatus() {
+        isPlaying = new boolean[songList.size()];
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public SongListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

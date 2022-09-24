@@ -75,8 +75,12 @@ public class ActionBinder {
     @Nullable
     private List<Song> getSongsForCurrentState() {
         //воспроизведение из общего хранилища или плейлиста
-        return !dataModel.getIsFromPlaylist().getValue()
-                ? dataModel.getSongsLiveData().getValue()
-                : dataModel.getPlaylistLiveData().getValue().get(dataModel.getCurrentPlaylist().getValue());
+        if (!dataModel.getIsFromPlaylist().getValue()){
+            return dataModel.getSongsLiveData().getValue();
+        }else{
+            dataModel.getCurrentPlayingPlaylist().setValue(dataModel.getCurrentPlaylist().getValue());
+            return dataModel.getPlaylistLiveData().getValue().get(dataModel.getCurrentPlaylist().getValue());
+        }
+
     }
 }

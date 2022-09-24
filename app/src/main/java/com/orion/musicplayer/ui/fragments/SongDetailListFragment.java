@@ -16,9 +16,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.ui.adapters.SongDetailListAdapter;
 import com.orion.musicplayer.data.models.Playlist;
 import com.orion.musicplayer.data.models.Song;
+import com.orion.musicplayer.ui.adapters.SongDetailListAdapter;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.DataModel;
 
@@ -27,6 +27,7 @@ import java.util.Map;
 
 
 public class SongDetailListFragment extends Fragment {
+
 
     public interface OnClickBackToPlaylistsListener {
         void onClickBackToPlaylists();
@@ -40,6 +41,7 @@ public class SongDetailListFragment extends Fragment {
     private Button backToPlaylist;
     private TextView playlistName;
     private OnClickBackToPlaylistsListener onClickBackToPlaylistsListener;
+    private SongDetailListAdapter songDetailListAdapter;
 
     public void setOnClickBackToSongsListener(OnClickBackToPlaylistsListener onClickBackToPlaylistsListener) {
         this.onClickBackToPlaylistsListener = onClickBackToPlaylistsListener;
@@ -57,40 +59,77 @@ public class SongDetailListFragment extends Fragment {
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();
         List<Song> songs = playlistListMap.get(dataModel.getCurrentPlaylist().getValue());
-        SongDetailListAdapter songDetailListAdapter = new SongDetailListAdapter(
+        songDetailListAdapter = new SongDetailListAdapter(
                 getContext(),
                 songs,
                 null
         );
         recyclerView.setAdapter(songDetailListAdapter);
-        createSoundtracksObserver((song, position) -> {
-            dataModel.getIsFromPlaylist().setValue(true);
-            dataModel.getCurrentPositionLiveData().setValue(position);
-            if (!dataModel.getIsPlayingLiveData().getValue()) {
-                dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
-                dataModel.getIsPlayingLiveData().setValue(true);
-            } else {
-                dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
-                dataModel.getIsPlayingLiveData().setValue(false);
-            }
-        });
+        createSoundtracksObserver(this::clickButtonSong);
+        defaultSettings();
         return view;
     }
 
+    private void defaultSettings() {
+        if (dataModel.getCurrentPlayingPlaylist().getValue() != null) {
+            String currentPlayingPlaylistName = dataModel.getCurrentPlayingPlaylist().getValue().getPlaylistName();
+            String currentPlaylistName = dataModel.getCurrentPlaylist().getValue().getPlaylistName();
+            if (currentPlayingPlaylistName.equals(currentPlaylistName)) {
+                songDetailListAdapter.changePlayingStatus(dataModel.getCurrentPositionLiveData().getValue(), true);
+            }
+        }
+    }
+
     @SuppressLint("SetTextI18n")
-    public void createSoundtracksObserver(SongDetailListAdapter.OnSoundtrackClickListener onSoundtrackClickListener){
+    public void createSoundtracksObserver(SongDetailListAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Map<Playlist, List<Song>> playlistListMap = dataModel.getPlaylistLiveData().getValue();
         List<Song> songs = playlistListMap.get(dataModel.getCurrentPlaylist().getValue());
-        SongDetailListAdapter songDetailListAdapter = new SongDetailListAdapter(
+        songDetailListAdapter = new SongDetailListAdapter(
                 getContext(),
                 songs,
                 onSoundtrackClickListener
         );
-        playlistName.setText("["  + dataModel.getCurrentPlaylist().getValue().getPlaylistName() + "]");
+        playlistName.setText("[" + dataModel.getCurrentPlaylist().getValue().getPlaylistName() + "]");
         backToPlaylist.setOnClickListener(view -> {
             Log.d(TAG, "Вернуться к списку плейлистов");
             onClickBackToPlaylistsListener.onClickBackToPlaylists();
         });
         recyclerView.setAdapter(songDetailListAdapter);
+        subscribeSongsListUpdate();
+        subscribeChangeCurrentPlaylist();
+    }
+
+    private void clickButtonSong(Song song, int position) {
+        dataModel.getIsFromPlaylist().setValue(true);
+        dataModel.getCurrentPositionLiveData().setValue(position);
+        if (!dataModel.getIsPlayingLiveData().getValue()) {
+            dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
+            dataModel.getIsPlayingLiveData().setValue(true);
+        } else {
+            dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+            dataModel.getIsPlayingLiveData().setValue(false);
+        }
+    }
+
+    private void subscribeSongsListUpdate() {
+        dataModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
+            if (dataModel.getCurrentPositionLiveData().getValue() != null && dataModel.getIsFromPlaylist().getValue()) {
+                songDetailListAdapter.changePlayingStatus(dataModel.getCurrentPositionLiveData().getValue(), aBoolean);
+            } else if (!dataModel.getIsFromPlaylist().getValue()) {
+                songDetailListAdapter.changePlayingStatus();
+            }
+        });
+    }
+
+    private void subscribeChangeCurrentPlaylist() {
+        dataModel.getCurrentPlaylist().observe(requireActivity(), playlist -> {
+                    songDetailListAdapter.changePlayingStatus();
+                    if (dataModel.getCurrentPlayingPlaylist().getValue() == null) return;
+                    if (playlist.getPlaylistName().equals(dataModel.getCurrentPlayingPlaylist().getValue().getPlaylistName()) &&
+                            dataModel.getIsPlayingLiveData().getValue()) {
+                        songDetailListAdapter.changePlayingStatus(dataModel.getCurrentPositionLiveData().getValue(), true);
+                    }
+                }
+        );
     }
 }

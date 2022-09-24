@@ -68,6 +68,11 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
         isPlaying[position] = bool;
         notifyDataSetChanged();
     }
+    @SuppressLint("NotifyDataSetChanged")
+    public void changePlayingStatus() {
+        isPlaying = new boolean[songList.size()];
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -83,6 +88,8 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
             Song song = songList.get(position);
             updateRecycleView(holder, position);
             holder.buttonSongPlay.setOnClickListener(view -> {
+                isPlaying[position] = !isPlaying[position];
+                changePlayingStatus(position, isPlaying[position]);
                 executorService.execute(() -> holder.buttonSongPlay.startAnimation(buttonAnimationClick));
                 onClickListener.onSongClick(song, position);
                 if (isPlaying[position]) {
@@ -90,6 +97,7 @@ public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAd
                 } else {
                     holder.buttonSongPlay.setBackgroundResource(R.drawable.ic_play);
                 }
+
             });
             stylizedData(holder, song);
         }

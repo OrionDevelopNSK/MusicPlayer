@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.orion.musicplayer.R;
+import com.orion.musicplayer.data.models.Song;
 import com.orion.musicplayer.ui.adapters.SongListAdapter;
 import com.orion.musicplayer.utils.Action;
 import com.orion.musicplayer.viewmodels.DataModel;
@@ -37,28 +38,20 @@ public class SongListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_sound_list_view, container, false);
         recyclerView = view.findViewById(R.id.list_songs);
         dataModel = new ViewModelProvider(requireActivity()).get(DataModel.class);
-        createSoundtracksObserver((song, position) -> {
-            dataModel.getIsFromPlaylist().setValue(false);
-            dataModel.getCurrentPositionLiveData().setValue(position);
-            if (!dataModel.getIsPlayingLiveData().getValue()) {
-                dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
-                dataModel.getIsPlayingLiveData().setValue(true);
-            } else {
-                dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
-                dataModel.getIsPlayingLiveData().setValue(false);
-            }
-        });
+        createSoundtracksObserver(this::clickButtonSong);
         return view;
     }
 
-    private void subscribe(){
+    private void subscribeSongsListUpdate() {
         dataModel.getIsPlayingLiveData().observe(requireActivity(), aBoolean -> {
-            if (dataModel.getCurrentPositionLiveData().getValue() != null){
+            if (dataModel.getCurrentPositionLiveData().getValue() != null && !dataModel.getIsFromPlaylist().getValue()) {
                 songListAdapter.changePlayingStatus(dataModel.getCurrentPositionLiveData().getValue(), aBoolean);
+                dataModel.getCurrentPlayingPlaylist().setValue(null);
+            } else if (dataModel.getIsFromPlaylist().getValue()) {
+                songListAdapter.changePlayingStatus();
             }
         });
     }
-
     private void createSoundtracksObserver(SongListAdapter.OnSoundtrackClickListener onSoundtrackClickListener) {
         Log.d(TAG, "Создание обсервера изменения списка песен");
         dataModel.getSongsLiveData().observe(requireActivity(), soundtracks -> {
@@ -67,11 +60,19 @@ public class SongListFragment extends Fragment {
                     soundtracks,
                     onSoundtrackClickListener);
             recyclerView.setAdapter(songListAdapter);
-            subscribe();
+            subscribeSongsListUpdate();
         });
     }
 
-
-
-
+    private void clickButtonSong(Song song, int position) {
+        dataModel.getIsFromPlaylist().setValue(false);
+        dataModel.getCurrentPositionLiveData().setValue(position);
+        if (!dataModel.getIsPlayingLiveData().getValue()) {
+            dataModel.getPlayerActionLiveData().setValue(Action.PLAY);
+            dataModel.getIsPlayingLiveData().setValue(true);
+        } else {
+            dataModel.getPlayerActionLiveData().setValue(Action.PAUSE);
+            dataModel.getIsPlayingLiveData().setValue(false);
+        }
+    }
 }

@@ -23,8 +23,10 @@ public class DataModel extends ViewModel {
     private final MutableLiveData<SortingType> sortingTypeLiveData = new MutableLiveData<>();
     private final MutableLiveData<Map<Playlist, List<Song>>> playlistLiveData = new MutableLiveData<>();
     private final MutableLiveData<Playlist> currentPlaylist = new MutableLiveData<>();
+    private final MutableLiveData<Playlist> currentPlayingPlaylist = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isFromPlaylist = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> isReadPlaylist = new MutableLiveData<>(false);
+
 
 
     public MutableLiveData<StateMode> getStateModeLiveData() {
@@ -65,6 +67,10 @@ public class DataModel extends ViewModel {
 
     public MutableLiveData<Playlist> getCurrentPlaylist() {
         return currentPlaylist;
+    }
+
+    public MutableLiveData<Playlist> getCurrentPlayingPlaylist() {
+        return currentPlayingPlaylist;
     }
 
     public MutableLiveData<Boolean> getIsFromPlaylist() {
