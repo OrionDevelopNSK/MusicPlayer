@@ -1,0 +1,11 @@
+package com.orion.musicplayer.dagger.annotations;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import javax.inject.Scope;
+
+@Scope
+@Retention(RetentionPolicy.CLASS)
+public @interface ActivityScope {
+}

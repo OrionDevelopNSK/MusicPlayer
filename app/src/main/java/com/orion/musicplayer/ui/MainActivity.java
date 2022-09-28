@@ -2,22 +2,16 @@ package com.orion.musicplayer.ui;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -27,19 +21,17 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.textfield.TextInputLayout;
 import com.orion.musicplayer.R;
-import com.orion.musicplayer.data.database.DataLoader;
+import com.orion.musicplayer.dagger.ApplicationComponent;
+import com.orion.musicplayer.dagger.DaggerApplicationComponent;
+import com.orion.musicplayer.dagger.modules.MainActivityModule;
 import com.orion.musicplayer.data.database.PlaylistDatabaseHelper;
-import com.orion.musicplayer.models.ActionBinder;
-import com.orion.musicplayer.models.DefaultDescriptionControllerFragmentCreator;
-import com.orion.musicplayer.models.NotificationController;
-import com.orion.musicplayer.models.PlayerController;
+import com.orion.musicplayer.models.PlayerServiceConnection;
 import com.orion.musicplayer.models.SharedPreferencesController;
 import com.orion.musicplayer.services.MediaSessionService;
 import com.orion.musicplayer.ui.adapters.MusicStateAdapter;
@@ -48,7 +40,6 @@ import com.orion.musicplayer.ui.fragments.PlayingControllerFragment;
 import com.orion.musicplayer.ui.fragments.PlaylistDetailListFragment;
 import com.orion.musicplayer.ui.fragments.SongDetailListFragment;
 import com.orion.musicplayer.ui.fragments.SongListFragment;
-import com.orion.musicplayer.utils.MediaScannerObserver;
 import com.orion.musicplayer.utils.SortingType;
 import com.orion.musicplayer.utils.TabLayoutWrapper;
 import com.orion.musicplayer.viewmodels.DataModel;
@@ -56,19 +47,20 @@ import com.orion.musicplayer.viewmodels.DataModel;
 import java.util.List;
 import java.util.Objects;
 
+import javax.inject.Inject;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private MediaSessionService mediaSessionService;
-    private ServiceConnection serviceConnection;
-    private DataModel dataModel;
-    private PlaylistDatabaseHelper playlistDatabaseHelper;
-    private MediaScannerObserver mediaScannerObserver;
-    private SharedPreferencesController sharedPreferencesController;
-    private ActionBinder actionBinder;
-    private NotificationController notificationController;
-    private DefaultDescriptionControllerFragmentCreator defaultDescriptionControllerFragmentCreator;
-    private String soundTitle;
+    @Inject
+    public DataModel dataModel;
+    @Inject
+    public SharedPreferencesController sharedPreferencesController;
+    @Inject
+    public PlaylistDatabaseHelper playlistDatabaseHelper;
+    @Inject
+    public PlayerServiceConnection playerServiceConnection;
+
     private Intent intent;
 
     private Button buttonSortingMode;
@@ -76,16 +68,22 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private TextInputLayout textInputLayoutFindSong;
     private Animation buttonAnimationClick;
+    private SongDetailListFragment songDetailListFragment;
+    private PlaylistDetailListFragment playlistListFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Objects.requireNonNull(getSupportActionBar()).hide();
+
+        ApplicationComponent component = DaggerApplicationComponent.builder()
+                .mainActivityModule(new MainActivityModule(this))
+                .build();
+        component.inject(this);
         checkPermissions();
     }
 
     private void initialize() {
-        dataModel = new ViewModelProvider(this).get(DataModel.class);
         setContentView(R.layout.activity_main);
         addFragmentControlPanel();
         buttonAnimationClick = AnimationUtils.loadAnimation(this, R.anim.button_click);
@@ -94,23 +92,11 @@ public class MainActivity extends AppCompatActivity {
         textInputLayoutFindSong = findViewById(R.id.textInputLayout);
         subscribeButtonDialogClickListener(buttonDialog);
         subscribeButtonSortingClickListener();
-        sharedPreferencesController = new SharedPreferencesController(dataModel, this);
         sharedPreferencesController.loadDefaultsSharedPreferences();
-        soundTitle = sharedPreferencesController.getSoundTitle();
-        subscribeCurrentDataPositionChanged();
-        createServiceConnection();
         intent = new Intent(new Intent(getApplicationContext(), MediaSessionService.class));
         startService(intent);
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
-        playlistDatabaseHelper = new PlaylistDatabaseHelper(this);
+        bindService(intent, playerServiceConnection, BIND_AUTO_CREATE);
         createTabs();
-    }
-
-    private void subscribeCurrentDataPositionChanged() {
-        dataModel.getCurrentPositionLiveData().observe(this, integer ->
-                soundTitle = Objects.requireNonNull(dataModel.getSongsLiveData().getValue())
-                        .get(Objects.requireNonNull(dataModel.getCurrentPositionLiveData().getValue()))
-                        .getData());
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -133,90 +119,6 @@ public class MainActivity extends AppCompatActivity {
         });
         popupMenu.inflate(R.menu.menu_sorting);
         popupMenu.show();
-    }
-
-    private void createServiceConnection() {
-        MainActivity activity = this;
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder binder) {
-                Log.d(TAG, "Подключение сервиса");
-                mediaSessionService = ((MediaSessionService.BinderService) binder).getService();
-                subscribeDatabaseLoadListeners();
-                mediaSessionService.getDataLoader().execute(dataModel.getSortingTypeLiveData().getValue());
-                playlistDatabaseHelper.loadPlaylistWithSoundtrack();
-                subscribeSoundsControllerListeners();
-                createMediaScannerObserver();
-                notificationController = new NotificationController(dataModel, mediaSessionService);
-                actionBinder = new ActionBinder(dataModel, mediaSessionService, notificationController, activity);
-                actionBinder.bindActions();
-                defaultDescriptionControllerFragmentCreator =
-                        new DefaultDescriptionControllerFragmentCreator(
-                                dataModel,
-                                mediaSessionService,
-                                soundTitle,
-                                activity);
-                defaultDescriptionControllerFragmentCreator.defaultDescription();
-                createDataValidateObserver();
-                createStateModeObserver();
-                createSortingTypeObserver();
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                Log.d(TAG, "Отключение сервиса");
-            }
-        };
-    }
-
-    private void createStateModeObserver() {
-        dataModel.getStateModeLiveData().observe(this, stateMode -> {
-            mediaSessionService.getSoundsController().setStateMode(stateMode);
-            mediaSessionService.getSoundsController().clearDequeSoundtrack();
-        });
-    }
-
-    private void createSortingTypeObserver() {
-        dataModel.getSortingTypeLiveData().observe(this, thisSortingType -> {
-            mediaScannerObserver.setSortingType(thisSortingType);
-            mediaSessionService.getDataLoader().refresh(thisSortingType);
-            mediaSessionService.getSoundsController().clearDequeSoundtrack();
-        });
-    }
-
-    private void createMediaScannerObserver() {
-        mediaScannerObserver = new MediaScannerObserver(
-                new Handler(Looper.getMainLooper()),
-                this, mediaSessionService, sharedPreferencesController.getSortingType());
-    }
-
-    private void createDataValidateObserver() {
-        dataModel.getSongsLiveData().observe(this, soundtracks -> {
-            if (!Objects.requireNonNull(dataModel.getSongsLiveData().getValue()).isEmpty()) return;
-            TextView textView = new TextView(getApplicationContext());
-            textView.setText("Песни отсутствуют");
-            textView.setGravity(Gravity.CENTER);
-            setContentView(textView);
-        });
-    }
-
-    private void subscribeSoundsControllerListeners() {
-        PlayerController soundsController = mediaSessionService.getSoundsController();
-        soundsController.setOnChangeStateModeListener(stateMode -> dataModel.getStateModeLiveData().setValue(stateMode));
-        soundsController.setOnCurrentDurationListener(duration -> dataModel.getDurationLiveData().setValue(duration));
-        soundsController.setOnCurrentPositionListener(position -> {
-            dataModel.getCurrentPositionLiveData().setValue(position);
-            notificationController.createOrRefreshNotification();
-        });
-        soundsController.setOnPlayingStatusListener(isPlay -> dataModel.getIsPlayingLiveData().setValue(isPlay));
-    }
-
-    private void subscribeDatabaseLoadListeners() {
-        DataLoader dataLoader = mediaSessionService.getDataLoader();
-        dataLoader.setOnDatabaseLoadListener(soundtracks -> {
-            dataModel.getSongsLiveData().postValue(soundtracks);
-            dataModel.getIsLoadedLiveData().postValue(true);
-        });
     }
 
     private void subscribeButtonDialogClickListener(Button buttonDialog) {
@@ -300,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private void createTabs() {
         musicStateAdapter = new MusicStateAdapter(this);
         TabLayout tabLayout = findViewById(R.id.tab_layout_media);
@@ -356,8 +257,7 @@ public class MainActivity extends AppCompatActivity {
         return playlistDetailListFragment;
     }
 
-    private SongDetailListFragment songDetailListFragment;
-    private PlaylistDetailListFragment playlistListFragment;
+
 
     private void addPlaylistDetailListFragment() {
         Log.d(TAG, "Добавление фрагмента списка плейлистоа к адаптеру");
@@ -430,12 +330,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "Отсоединение сервиса");
-        unbindService(serviceConnection);
+        unbindService(playerServiceConnection);
         Log.d(TAG, "Сохранение настроек");
         sharedPreferencesController.saveDefaultsSharedPreferences();
         Log.d(TAG, "Уничтожение активити");
         super.onDestroy();
     }
-
-
 }

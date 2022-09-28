@@ -2,18 +2,21 @@ package com.orion.musicplayer.utils;
 
 import android.app.Activity;
 import android.database.ContentObserver;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import com.orion.musicplayer.services.MediaSessionService;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class MediaScannerObserver extends ContentObserver {
     private static final String TAG = MediaScannerObserver.class.getSimpleName();
 
     private final MediaSessionService mediaSessionService;
     private SortingType sortingType;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public MediaScannerObserver(Handler handler, Activity activity, MediaSessionService mediaSessionService, SortingType sortingType) {
         super(handler);
@@ -35,12 +38,7 @@ public class MediaScannerObserver extends ContentObserver {
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
         Log.d(TAG, "Изменение хранилища аудиофайлов");
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                mediaSessionService.getDataLoader().execute(sortingType);
-            }
-        });
+        executor.execute(() -> mediaSessionService.getDataLoader().execute(sortingType));
     }
 
 
