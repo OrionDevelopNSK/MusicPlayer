@@ -45,8 +45,11 @@ public class ActionBinder {
                     }
                     break;
                 case PAUSE:
-                    if (dataModel.getIsPlayingLiveData().getValue())
+                    if (dataModel.getIsPlayingLiveData().getValue()){
                         mediaSessionService.getSoundsController().playOrPause(position, songs);
+                        notificationController.createOrRefreshNotification();
+                    }
+
                     break;
                 case PREVIOUS:
                     mediaSessionService.getSoundsController().previous(position, songs);

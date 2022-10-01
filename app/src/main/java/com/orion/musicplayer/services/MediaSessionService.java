@@ -12,7 +12,6 @@ import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -36,7 +35,11 @@ public class MediaSessionService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-                soundsController.playOrPause();
+                if (soundsController.getSoundtrackPlayer().isPlaying()){
+                    soundsController.playOrPause();
+                    createNotification(pos, stateMode, ratingCurrentSoundtrack);
+                }
+
             }
         }
     }
@@ -209,7 +212,7 @@ public class MediaSessionService extends Service {
         super.onRebind(intent);
     }
 
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler();
     private Runnable runnable;
     private int pos;
     private int ratingCurrentSoundtrack;
