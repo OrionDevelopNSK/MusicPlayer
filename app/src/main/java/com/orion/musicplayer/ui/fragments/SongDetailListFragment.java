@@ -28,7 +28,6 @@ import java.util.Map;
 
 public class SongDetailListFragment extends Fragment {
 
-
     public interface OnClickBackToPlaylistsListener {
         void onClickBackToPlaylists();
     }

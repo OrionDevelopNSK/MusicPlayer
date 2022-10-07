@@ -58,6 +58,8 @@ public class PlayerController {
     private OnCurrentDurationListener onCurrentDurationListener;
     private OnCurrentPositionListener onCurrentPositionListener;
 
+    private boolean isPlayerPlayed;
+
     public PlayerController(Application app) {
         application = app;
         player = new Player();
@@ -126,6 +128,7 @@ public class PlayerController {
             switch (eventCode) {
                 case AudioManager.AUDIOFOCUS_LOSS:
                     Log.d(TAG, "Фокус потерян. Запрос на долгое воспроизведение. Приостановка воспроизведения");
+                    if (player.isPlaying()) isPlayerPlayed = true;
                     player.pause();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
@@ -139,7 +142,10 @@ public class PlayerController {
                 case AudioManager.AUDIOFOCUS_GAIN:
                     Log.d(TAG, "Другое приложение возвратило фокус");
                     player.setVolume(1, 1);
-                    playOrPause(currentPosition, songs);
+                    if (isPlayerPlayed){
+                        isPlayerPlayed = false;
+                        playOrPause(currentPosition, songs);
+                    }
                     break;
             }
         });

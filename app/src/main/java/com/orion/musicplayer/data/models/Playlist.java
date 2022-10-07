@@ -35,7 +35,6 @@ public class Playlist {
         return Objects.equals(playlistName, playlist.playlistName);
     }
 
-
     @Override
     public int hashCode() {
         return Objects.hash(playlistName);

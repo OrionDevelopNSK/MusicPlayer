@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ChooserDialogAdapter extends RecyclerView.Adapter<ChooserDialogAdapter.ViewHolder> {
+
     public interface OnSoundtrackClickListener {
         void onSoundtrackClick(Song song, int position);
     }

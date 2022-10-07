@@ -39,7 +39,6 @@ public class MediaSessionService extends Service {
                     soundsController.playOrPause();
                     createNotification(pos, stateMode, ratingCurrentSoundtrack);
                 }
-
             }
         }
     }

@@ -27,6 +27,7 @@ import java.util.List;
 
 
 public class PlaylistDetailListFragment extends Fragment {
+
     public interface OnClickPlaylistListener {
         void onClickPlaylist(Playlist playlist);
     }

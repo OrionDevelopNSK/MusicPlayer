@@ -25,7 +25,6 @@ public class SharedPreferencesController {
     private String soundTitle;
     private SortingType sortingType;
 
-
     public SharedPreferencesController(DataModel dataModel, Activity activity) {
         this.dataModel = dataModel;
         this.activity = activity;

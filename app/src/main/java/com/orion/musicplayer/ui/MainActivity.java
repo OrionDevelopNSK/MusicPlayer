@@ -30,6 +30,7 @@ import com.orion.musicplayer.R;
 import com.orion.musicplayer.dagger.ApplicationComponent;
 import com.orion.musicplayer.dagger.DaggerApplicationComponent;
 import com.orion.musicplayer.dagger.modules.MainActivityModule;
+import com.orion.musicplayer.dagger.modules.SessionServiceModule;
 import com.orion.musicplayer.data.database.PlaylistDatabaseHelper;
 import com.orion.musicplayer.models.PlayerServiceConnection;
 import com.orion.musicplayer.models.SharedPreferencesController;
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         ApplicationComponent component = DaggerApplicationComponent.builder()
                 .mainActivityModule(new MainActivityModule(this))
+                .sessionServiceModule(new SessionServiceModule(null))
                 .build();
         component.inject(this);
         checkPermissions();

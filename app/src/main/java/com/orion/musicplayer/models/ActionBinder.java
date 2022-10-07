@@ -28,9 +28,10 @@ public class ActionBinder {
         this.mediaSessionService = mediaSessionService;
         this.notificationController = notificationController;
         this.activity = activity;
+        bindActions();
     }
 
-    public void bindActions() {
+    private void bindActions() {
         Log.d(TAG, "Создание обсервера нажатия кнопок плеера");
         dataModel.getPlayerActionLiveData().observe(activity, action -> {
             if (action == Action.UNKNOWN) return;
@@ -49,7 +50,6 @@ public class ActionBinder {
                         mediaSessionService.getSoundsController().playOrPause(position, songs);
                         notificationController.createOrRefreshNotification();
                     }
-
                     break;
                 case PREVIOUS:
                     mediaSessionService.getSoundsController().previous(position, songs);
@@ -84,6 +84,5 @@ public class ActionBinder {
             dataModel.getCurrentPlayingPlaylist().setValue(dataModel.getCurrentPlaylist().getValue());
             return dataModel.getPlaylistLiveData().getValue().get(dataModel.getCurrentPlaylist().getValue());
         }
-
     }
 }

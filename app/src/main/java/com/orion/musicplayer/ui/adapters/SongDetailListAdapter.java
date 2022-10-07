@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SongDetailListAdapter extends RecyclerView.Adapter<SongDetailListAdapter.ViewHolder> {
+
     public interface OnSoundtrackClickListener {
         void onSongClick(Song song, int position);
     }

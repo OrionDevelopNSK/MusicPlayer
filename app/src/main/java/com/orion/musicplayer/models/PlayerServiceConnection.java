@@ -18,19 +18,31 @@ import com.orion.musicplayer.viewmodels.DataModel;
 
 import java.util.Objects;
 
+import javax.inject.Inject;
+
 public class PlayerServiceConnection implements ServiceConnection {
     private static final String TAG = PlayerServiceConnection.class.getSimpleName();
-    private ActionBinder actionBinder;
-    private NotificationController notificationController;
-    private DefaultDescriptionControllerFragmentCreator defaultDescriptionControllerFragmentCreator;
-    private MediaSessionService mediaSessionService;
+
+    @Inject
+    public ActionBinder actionBinder;
+    @Inject
+    public NotificationController notificationController;
+    @Inject
+    public DefaultDescriptionControllerFragmentCreator defaultDescriptionControllerFragmentCreator;
+    @Inject
+    public MediaSessionService mediaSessionService;
+    @Inject
+    public DataModel dataModel;
+    @Inject
+    public PlaylistDatabaseHelper playlistDatabaseHelper;
+    @Inject
+    public MainActivity activity;
+    @Inject
+    public SharedPreferencesController sharedPreferencesController;
+
+
     private MediaScannerObserver mediaScannerObserver;
 
-
-    private DataModel dataModel;
-    private PlaylistDatabaseHelper playlistDatabaseHelper;
-    private MainActivity activity;
-    private SharedPreferencesController sharedPreferencesController;
 
     public PlayerServiceConnection(DataModel dataModel,
                                    PlaylistDatabaseHelper playlistDatabaseHelper,
@@ -51,9 +63,19 @@ public class PlayerServiceConnection implements ServiceConnection {
         playlistDatabaseHelper.loadPlaylistWithSoundtrack();
         subscribeSoundsControllerListeners();
         createMediaScannerObserver();
+
+//        ApplicationComponent component = DaggerApplicationComponent.builder()
+//                .mainActivityModule(new MainActivityModule(activity))
+//                .sessionServiceModule(new SessionServiceModule(mediaSessionService))
+//                .build();
+//        component.inject(activity);
+//
+//        defaultDescriptionControllerFragmentCreator = component.defaultDescriptionControllerFragmentCreator();
+//        notificationController = component.notificationController();
+//        actionBinder = component.actionBinder();
+
         notificationController = new NotificationController(dataModel, mediaSessionService);
         actionBinder = new ActionBinder(dataModel, mediaSessionService, notificationController, activity);
-        actionBinder.bindActions();
         defaultDescriptionControllerFragmentCreator =
                 new DefaultDescriptionControllerFragmentCreator(
                         dataModel,

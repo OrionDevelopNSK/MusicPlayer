@@ -11,17 +11,6 @@ import com.orion.musicplayer.data.models.Song;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Entity(tableName = "playlist",
-//        indices = {@Index(value = {"playlistName"}, unique = true)},
-//        foreignKeys = {
-//                @ForeignKey(
-//                        entity = SoundtrackDbEntity.class,
-//                        parentColumns = {"soundtrackId"},  //"soundtrackId"
-//                        childColumns = {"playlistId"},     //"playlistId"
-//                        onDelete = ForeignKey.CASCADE,
-//                        onUpdate = ForeignKey.CASCADE)
-//        })
-
 
 @Entity(tableName = "playlist")
 public class PlaylistEntity {
